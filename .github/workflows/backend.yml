@@ -5,8 +5,8 @@ on:
     - workflow_dispatch
 
 jobs:
-    setup:
-        name: Setup
+    testing:
+        name: Testing
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
@@ -15,11 +15,6 @@ jobs:
               uses: actions/setup-go@v5
               with:
                 go-version: '1.21'
-    testing:
-        name: Testing
-        runs-on: ubuntu-latest
-        needs: setup
-        steps:
             - name: Go Test
               run: |
                 cd ./backend/src
