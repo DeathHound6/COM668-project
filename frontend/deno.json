@@ -1,0 +1,57 @@
+{
+    "name": "@com668/frontend",
+    "version": "1.0",
+    "test": {
+        "include": ["test/"]
+    },
+    "tasks": {
+        "start": "deno run --allow-net=$BACKEND --watch ./src/main.ts",
+        "test": "deno test --parallel",
+        "lint": "deno lint"
+    },
+    "compilerOptions": {
+        "allowUnreachableCode": false,
+        "checkJs": true,
+        "noErrorTruncation": true,
+        "strict": true,
+        "noUnusedParameters": true,
+        "noUnusedLocals": true,
+        "noImplicitReturns": true,
+        "noImplicitAny": true
+    },
+    "fmt": {
+        "indentWidth": 4,
+        "useTabs": false,
+        "singleQuote": false,
+        "lineWidth": 120,
+        "include": ["src/", "test/"]
+    },
+    "lock": {
+        "frozen": false,
+        "path": "./deno.lock"
+    },
+    "lint": {
+        "include": ["src/", "test/"],
+        "rules": {
+            "tags": ["recommended"],
+            "include": [
+                "camelcase",
+                "default-param-last",
+                "explicit-function-return-type",
+                "explicit-module-boundary-types",
+                "no-console",
+                "no-const-assign",
+                "no-eval",
+                "prefer-ascii",
+                "no-undef",
+                "no-top-level-await",
+                "no-throw-literal",
+                "no-sparse-arrays",
+                "no-self-compare"
+            ]
+        },
+        "report": "pretty"
+    },
+    "imports": {},
+    "exports": "./src/main.ts"
+}

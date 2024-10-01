@@ -1,0 +1,48 @@
+version: '3'
+services:
+  processor:
+    container_name: com668-processor
+    depends_on:
+      - backend
+    env_file: ./processor/.env
+    build:
+      context: ./processor
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./processor/src:/app/src
+      - ./processor/test:/app/test
+  frontend:
+    container_name: com668-frontend
+    depends_on:
+      - backend
+    build:
+      context: ./frontend
+      dockerfile: ./Dockerfile
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/test:/app/test
+  backend:
+    container_name: com668-backend
+    depends_on:
+      - db
+    env_file: ./backend/.env
+    build:
+      context: ./backend
+      dockerfile: ./Dockerfile
+    ports:
+      - 5000:5000
+      - 5001:5001
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/test:/app/test
+      - ./backend/certs:/etc/certs
+  db:
+    container_name: com668-db
+    image: mariadb:latest
+    ports:
+      - 3306:3306
+    environment:
+      - MARIADB_ROOT_PASSWORD=root
