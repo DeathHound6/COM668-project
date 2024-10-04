@@ -8,19 +8,49 @@ import (
 
 func RegisterControllers(engine *gin.Engine) {
 	// Register Authentication endpoints
-	auth := engine.Group("/authorise", middleware.TransactionRequestMW())
-	{
-		auth.GET("/slack", SlackRedirect(), middleware.TransactionResponseMW())
-		auth.GET("/slack/callback", AuthoriseSlack(), middleware.TransactionResponseMW())
+	engine.GET(
+		"/authorise/slack",
+		middleware.TransactionRequestMW(),
+		SlackRedirect(),
+		middleware.TransactionResponseMW(),
+		middleware.ErrorHandlerResponseMW(),
+	)
+	engine.GET(
+		"/authorise/slack/callback",
+		middleware.TransactionRequestMW(),
+		AuthoriseSlack(),
+		middleware.TransactionResponseMW(),
+		middleware.ErrorHandlerResponseMW(),
+	)
 
-		// auth.GET("/teams", middleware.TransactionResponseMW())
-		// auth.GET("/teams/callback", middleware.TransactionResponseMW())
-	}
+	engine.GET(
+		"/authorise/teams",
+		middleware.TransactionRequestMW(),
+		// TeamsRedirect(),
+		middleware.TransactionResponseMW(),
+		middleware.ErrorHandlerResponseMW(),
+	)
+	engine.GET(
+		"/authorise/teams/callback",
+		middleware.TransactionRequestMW(),
+		// AuthoriseTeams(),
+		middleware.TransactionResponseMW(),
+		middleware.ErrorHandlerResponseMW(),
+	)
 
 	// Register users endpoints
-	users := engine.Group("/users", middleware.RequestMW...)
-	{
-		users.POST("/", CreateUser(), middleware.TransactionResponseMW())
-		users.POST("/login", LoginUser(), middleware.TransactionResponseMW())
-	}
+	engine.POST(
+		"/users",
+		middleware.TransactionRequestMW(),
+		CreateUser(),
+		middleware.TransactionResponseMW(),
+		middleware.ErrorHandlerResponseMW(),
+	)
+	engine.POST(
+		"/users/login",
+		middleware.TransactionRequestMW(),
+		LoginUser(),
+		middleware.TransactionResponseMW(),
+		middleware.ErrorHandlerResponseMW(),
+	)
 }

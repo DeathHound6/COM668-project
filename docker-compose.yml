@@ -34,7 +34,6 @@ services:
       dockerfile: ./Dockerfile
     ports:
       - 5000:5000
-      - 5001:5001
     volumes:
       - ./backend/src:/app/src
       - ./backend/test:/app/test
@@ -42,6 +41,9 @@ services:
   db:
     container_name: com668-db
     image: mariadb:latest
+    command: --init-file /data/application/init.sql
+    volumes:
+        - ./init.sql:/data/application/init.sql
     ports:
       - 3306:3306
     environment:

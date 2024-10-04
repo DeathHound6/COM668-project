@@ -31,14 +31,14 @@ func Connect() error {
 		SkipDefaultTransaction: true,
 		NamingStrategy: schema.NamingStrategy{
 			TablePrefix:   "tbl_",
-			SingularTable: false,
+			SingularTable: true,
 			NoLowerCase:   false,
 		},
 	})
 	if err != nil {
 		return err
 	}
-	migrate(conn)
+	migrate(db)
 	conn = db
 	return nil
 }
@@ -51,9 +51,11 @@ func GetDBConn() *gorm.DB {
 }
 
 func migrate(conn *gorm.DB) {
+	log.Default().Println("Migrating database")
 	structs := []interface{}{
-		models.User{},
 		models.Team{},
+		models.User{},
+		models.TeamUser{},
 		models.LogProvider{},
 		models.LogProviderSettings{},
 		models.AlertProvider{},
@@ -64,6 +66,7 @@ func migrate(conn *gorm.DB) {
 	if err := conn.AutoMigrate(structs...); err != nil {
 		panic(err)
 	}
+	conn.Commit()
 }
 
 func GetDBResults(tx *gorm.DB, model interface{}) ([]interface{}, error) {

@@ -13,11 +13,11 @@ var (
 )
 
 type User struct {
-	ID       uint   `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
-	Name     string `json:"name" gorm:"column:name;size:30"`
-	Email    string `json:"email" gorm:"column:email;size:30"`
-	Password string `json:"password" gorm:"column:password;size:72"`
-	Teams    []Team `json:"teams" gorm:"foreignKey:id"`
+	ID       uint   `gorm:"column:id;primaryKey;autoIncrement"`
+	Name     string `gorm:"column:name;size:30"`
+	Email    string `gorm:"column:email;size:30"`
+	Password string `gorm:"column:password;size:72"`
+	Teams    []Team `gorm:"many2many:team_user"`
 }
 
 func (user *User) hashPassword() error {
@@ -61,9 +61,9 @@ func (user *User) BeforeCreate(tx *gorm.DB) error {
 }
 
 type Team struct {
-	ID    uint   `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
-	Name  string `json:"name" gorm:"column:name"`
-	Users []User `json:"users" gorm:"foreignKey:id"`
+	ID    uint   `gorm:"column:id;primaryKey;autoIncrement"`
+	Name  string `gorm:"column:name"`
+	Users []User `gorm:"many2many:team_user"`
 }
 
 func (team *Team) BeforeCreate(tx *gorm.DB) error {
@@ -82,4 +82,11 @@ func (team *Team) BeforeDelete(tx *gorm.DB) error {
 		return errors.New("teams cannot be deleted if there are still users in them")
 	}
 	return nil
+}
+
+type TeamUser struct {
+	TeamID uint `gorm:"column:team_id"`
+	Team   Team `gorm:"foreignKey:team_id;references:id"`
+	UserID uint `gorm:"column:user_id"`
+	User   User `gorm:"foreignKey:user_id;references:id"`
 }

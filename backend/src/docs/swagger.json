@@ -1,0 +1,95 @@
+{
+    "schemes": [
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "title": "A.I.M.S Swagger",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:5000",
+    "basePath": "/",
+    "paths": {
+        "/authorise/slack": {
+            "get": {
+                "description": "Redirect to Slack auth",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Third-Party Auth"
+                ],
+                "summary": "Redirect to Slack auth",
+                "responses": {}
+            }
+        },
+        "/authorise/slack/callback": {
+            "get": {
+                "description": "Link Slack to user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Third-Party Auth"
+                ],
+                "summary": "Link Slack to user",
+                "responses": {}
+            }
+        },
+        "/users": {
+            "post": {
+                "description": "Create a user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Create a user",
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    }
+                }
+            }
+        },
+        "/users/login": {
+            "post": {
+                "description": "Login as a user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Login as a user",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "ApiToken": {
+            "description": "The API Token",
+            "type": "apiKey",
+            "name": "token",
+            "in": "cookie"
+        }
+    }
+}

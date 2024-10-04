@@ -6,19 +6,20 @@ import (
 
 // NOTE: DO NOT USE THIS IS A DB MODEL DIRECTLY
 type Provider struct {
-	ID           uint              `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
-	Name         string            `json:"name" gorm:"column:name"`
-	ImageURL     string            `json:"imageUrl" gorm:"column:image_url"`
+	ID           uint              `gorm:"column:id;primaryKey;autoIncrement"`
+	Name         string            `gorm:"column:name"`
+	ImageURL     string            `gorm:"column:image_url"`
 	FieldsString string            `gorm:"column:fields"`
-	Fields       map[string]string `json:"fields"`
+	Fields       map[string]string `gorm:"-"` // Tell gorm to ignore this field
 }
 
 // NOTE: DO NOT USE THIS IS A DB MODEL DIRECTLY
 type ProviderSettings struct {
-	ID             uint              `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
-	Provider       Provider          `gorm:"foreignKey:id"`
+	ID             uint              `gorm:"column:id;primaryKey;autoIncrement"`
+	ProviderID     uint              `gorm:"column:provider_id"`
+	Provider       Provider          `gorm:"foreignKey:provider_id;references:id;embedded;embeddedPrefix:provider_"`
 	SettingsString string            `gorm:"column:settings"`
-	Settings       map[string]string `json:"settings"`
+	Settings       map[string]string `gorm:"-"` // Tell gorm to ignore this field
 }
 
 // These are the actual db models - this is for gorm to identify table name

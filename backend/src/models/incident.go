@@ -8,13 +8,15 @@ import (
 )
 
 type Incident struct {
-	ID         uint              `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
-	Team       Team              `gorm:"foreignKey:id"`
-	Summary    string            `json:"summary" gorm:"column:summary"`
-	CreatedAt  time.Time         `json:"createdAt" gorm:"column:created_at;autoCreateTime"`
-	ResolvedAt *time.Time        `json:"resolvedAt" gorm:"column:resolved_at"`
-	ResolvedBy *User             `json:"resolvedBy" gorm:"column:resolved_by;foreignKey:id"`
-	Comments   []IncidentComment `json:"comments" gorm:"foreignKey:id"`
+	ID           uint       `gorm:"column:id;primaryKey;autoIncrement"`
+	UUID         string     `gorm:"column:uuid"`
+	TeamID       uint       `gorm:"column:team_id"`
+	Team         Team       `gorm:"foreignKey:team_id;references:id"`
+	Summary      string     `gorm:"column:summary"`
+	CreatedAt    time.Time  `gorm:"column:created_at;autoCreateTime"`
+	ResolvedAt   *time.Time `gorm:"column:resolved_at"`
+	ResolvedByID uint       `gorm:"column:resolved_by_id"`
+	ResolvedBy   *User      `gorm:"foreignKey:resolved_by_id;references:id"`
 }
 
 func (incident *Incident) BeforeCreate(tx *gorm.DB) error {
@@ -38,11 +40,13 @@ func (incident *Incident) BeforeDelete(tx *gorm.DB) error {
 }
 
 type IncidentComment struct {
-	ID          uint      `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
-	Comment     string    `json:"comment" gorm:"column:comment"`
-	CommentedBy User      `json:"commentedBy" gorm:"column:commented_by;foreignKey:id"`
-	CommentedAt time.Time `json:"commentedAt" gorm:"column:commented_at"`
-	Incident    Incident  `json:"incident" gorm:"foreignKey:id"`
+	ID            uint      `gorm:"column:id;primaryKey;autoIncrement"`
+	Comment       string    `gorm:"column:comment"`
+	CommentedByID uint      `gorm:"column:commented_by_id"`
+	CommentedBy   User      `gorm:"foreignKey:commented_by_id;references:id"`
+	CommentedAt   time.Time `gorm:"column:commented_at;autoCreateTime"`
+	IncidentID    uint      `gorm:"column:incident_id"`
+	Incident      Incident  `gorm:"foreignKey:incident_id;references:id"`
 }
 
 func (comment *IncidentComment) BeforeCreate(tx *gorm.DB) error {

@@ -1,0 +1,64 @@
+basePath: /
+host: localhost:5000
+info:
+  contact: {}
+  title: A.I.M.S Swagger
+  version: "1.0"
+paths:
+  /authorise/slack:
+    get:
+      consumes:
+      - application/json
+      description: Redirect to Slack auth
+      produces:
+      - application/json
+      responses: {}
+      summary: Redirect to Slack auth
+      tags:
+      - Third-Party Auth
+  /authorise/slack/callback:
+    get:
+      consumes:
+      - application/json
+      description: Link Slack to user
+      produces:
+      - application/json
+      responses: {}
+      summary: Link Slack to user
+      tags:
+      - Third-Party Auth
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Create a user
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+      summary: Create a user
+      tags:
+      - Users
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: Login as a user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Login as a user
+      tags:
+      - Users
+schemes:
+- https
+securityDefinitions:
+  ApiToken:
+    description: The API Token
+    in: cookie
+    name: token
+    type: apiKey
+swagger: "2.0"
