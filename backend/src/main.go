@@ -23,8 +23,6 @@ import (
 // @in cookie
 // @name token
 // @description The API Token
-// @accept json
-// @produce json
 func main() {
 	if err := database.Connect(); err != nil {
 		panic(err)

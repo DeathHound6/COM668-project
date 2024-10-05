@@ -1,11 +1,11 @@
-package models
+package database
 
 import (
 	"strings"
 )
 
 // NOTE: DO NOT USE THIS IS A DB MODEL DIRECTLY
-type Provider struct {
+type provider struct {
 	ID           uint              `gorm:"column:id;primaryKey;autoIncrement"`
 	Name         string            `gorm:"column:name"`
 	ImageURL     string            `gorm:"column:image_url"`
@@ -14,29 +14,29 @@ type Provider struct {
 }
 
 // NOTE: DO NOT USE THIS IS A DB MODEL DIRECTLY
-type ProviderSettings struct {
+type providerSettings struct {
 	ID             uint              `gorm:"column:id;primaryKey;autoIncrement"`
 	ProviderID     uint              `gorm:"column:provider_id"`
-	Provider       Provider          `gorm:"foreignKey:provider_id;references:id;embedded;embeddedPrefix:provider_"`
+	Provider       provider          `gorm:"foreignKey:provider_id;references:id;embedded;embeddedPrefix:provider_"`
 	SettingsString string            `gorm:"column:settings"`
 	Settings       map[string]string `gorm:"-"` // Tell gorm to ignore this field
 }
 
 // These are the actual db models - this is for gorm to identify table name
 type LogProvider struct {
-	Provider
+	provider
 }
 type LogProviderSettings struct {
-	ProviderSettings
+	providerSettings
 }
 type AlertProvider struct {
-	Provider
+	provider
 }
 type AlertProviderSettings struct {
-	ProviderSettings
+	providerSettings
 }
 
-func (provider *Provider) GetFields() {
+func (provider *provider) GetFields() {
 	fields := make(map[string]string, 0)
 	// Each field is separated by `|`
 	dbFields := strings.Split(provider.FieldsString, "|")
@@ -48,7 +48,7 @@ func (provider *Provider) GetFields() {
 	provider.Fields = fields
 }
 
-func (settings *ProviderSettings) GetSettings() {
+func (settings *providerSettings) GetSettings() {
 	fields := make(map[string]string, 0)
 	// Each field is separated by `|`
 	dbFields := strings.Split(settings.SettingsString, "|")

@@ -1,7 +1,6 @@
 package database
 
 import (
-	"com668-backend/models"
 	"fmt"
 	"log"
 	"os"
@@ -53,15 +52,15 @@ func GetDBConn() *gorm.DB {
 func migrate(conn *gorm.DB) {
 	log.Default().Println("Migrating database")
 	structs := []interface{}{
-		models.Team{},
-		models.User{},
-		models.TeamUser{},
-		models.LogProvider{},
-		models.LogProviderSettings{},
-		models.AlertProvider{},
-		models.AlertProviderSettings{},
-		models.Incident{},
-		models.IncidentComment{},
+		Team{},
+		User{},
+		TeamUser{},
+		LogProvider{},
+		LogProviderSettings{},
+		AlertProvider{},
+		AlertProviderSettings{},
+		Incident{},
+		IncidentComment{},
 	}
 	if err := conn.AutoMigrate(structs...); err != nil {
 		panic(err)
