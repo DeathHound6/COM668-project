@@ -40,10 +40,8 @@ services:
   db:
     container_name: com668-db
     image: mariadb:latest
-    command: --init-file /data/application/init.sql
-    volumes:
-        - ./init.sql:/data/application/init.sql
     ports:
       - 3306:3306
     environment:
       - MARIADB_ROOT_PASSWORD=root
+      - MARIADB_DATABASE=com668
