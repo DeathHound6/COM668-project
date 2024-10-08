@@ -19,6 +19,8 @@ import (
 // @host localhost:5000
 // @BasePath /
 // @schemes https
+// @accept json
+// @produce json
 // @securitydefinitions.apikey ApiToken
 // @in cookie
 // @name token
@@ -50,4 +52,5 @@ func main() {
 	exitSignal := make(chan os.Signal, 1)
 	signal.Notify(exitSignal, syscall.SIGINT, syscall.SIGTERM)
 	<-exitSignal
+	close(exitSignal)
 }

@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -37,6 +38,7 @@ func Connect() error {
 	if err != nil {
 		return err
 	}
+	db = db.Session(&gorm.Session{Context: db.Statement.Context, NewDB: true})
 	migrate(db)
 	conn = db
 	return nil
@@ -50,6 +52,7 @@ func GetDBConn() *gorm.DB {
 }
 
 func migrate(conn *gorm.DB) {
+	tx := conn.Begin()
 	log.Default().Println("Migrating database")
 	structs := []interface{}{
 		Team{},
@@ -62,10 +65,27 @@ func migrate(conn *gorm.DB) {
 		Incident{},
 		IncidentComment{},
 	}
-	if err := conn.AutoMigrate(structs...); err != nil {
+	if err := tx.AutoMigrate(structs...); err != nil {
 		panic(err)
 	}
-	conn.Commit()
+	tx.Commit()
+	if tx.Error != nil {
+		panic(tx.Error)
+	}
+}
+
+func GetDBTransaction(ctx *gin.Context) *gorm.DB {
+	tx, _ := ctx.Get("transaction")
+	transaction := tx.(*gorm.DB)
+	return transaction
+}
+
+func GetContext(tx *gorm.DB) *gin.Context {
+	context, exists := tx.Get("context")
+	if !exists {
+		return nil
+	}
+	return context.(*gin.Context)
 }
 
 func GetDBResults(tx *gorm.DB, model interface{}) ([]interface{}, error) {

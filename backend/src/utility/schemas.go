@@ -1,13 +1,8 @@
 package utility
 
-type ErrorSchema struct {
-	Message string `json:"message"`
-}
-
 type ErrorResponseSchema struct {
-	Errors []ErrorSchema `json:"errors"`
+	Error string `json:"error"`
 }
-
 type UserPostRequestBodySchema struct {
 	Name     string   `json:"name"`
 	Email    string   `json:"email"`
@@ -17,4 +12,26 @@ type UserPostRequestBodySchema struct {
 
 type TeamPostRequestBodySchema struct {
 	Name string `json:"name"`
+}
+
+type KeyValueSchema struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+	Type  string `json:"type"`
+}
+
+type ProviderGetResponseSchema struct {
+	ID       string           `json:"id"`
+	Name     string           `json:"name"`
+	ImageURL string           `json:"imageUrl"`
+	Fields   []KeyValueSchema `json:"fields"`
+}
+
+type ProvidersGetResponseSchema struct {
+	Providers []ProviderGetResponseSchema `json:"providers"`
+}
+
+type SettingsGetResponseSchema struct {
+	Provider string           `json:"provider"`
+	Settings []KeyValueSchema `json:"settings"`
 }

@@ -1,4 +1,54 @@
 basePath: /
+consumes:
+- application/json
+definitions:
+  utility.ErrorResponseSchema:
+    properties:
+      error:
+        type: string
+    type: object
+  utility.KeyValueSchema:
+    properties:
+      key:
+        type: string
+      type:
+        type: string
+      value:
+        type: string
+    type: object
+  utility.ProviderGetResponseSchema:
+    properties:
+      fields:
+        items:
+          $ref: '#/definitions/utility.KeyValueSchema'
+        type: array
+      id:
+        type: string
+      imageUrl:
+        type: string
+      name:
+        type: string
+    type: object
+  utility.ProvidersGetResponseSchema:
+    properties:
+      providers:
+        items:
+          $ref: '#/definitions/utility.ProviderGetResponseSchema'
+        type: array
+    type: object
+  utility.UserPostRequestBodySchema:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      teams:
+        items:
+          type: string
+        type: array
+    type: object
 host: localhost:5000
 info:
   contact: {}
@@ -9,11 +59,29 @@ paths:
     get:
       consumes:
       - application/json
-      description: Redirect to Slack auth
+      description: Redirect to Slack auth login
       produces:
       - application/json
-      responses: {}
-      summary: Redirect to Slack auth
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+      security:
+      - ApiToken: []
+      summary: Redirect to Slack auth login
       tags:
       - Third-Party Auth
   /authorise/slack/callback:
@@ -23,20 +91,250 @@ paths:
       description: Link Slack to user
       produces:
       - application/json
-      responses: {}
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+      security:
+      - ApiToken: []
       summary: Link Slack to user
       tags:
       - Third-Party Auth
-  /users:
+  /incidents:
     post:
       consumes:
       - application/json
-      description: Create a user
+      description: Create an incident
       produces:
       - application/json
       responses:
         "201":
           description: Created
+      security:
+      - ApiToken: []
+      summary: Create an incident
+      tags:
+      - Incidents
+  /providers:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of Providers
+      parameters:
+      - description: The type of provider
+        enum:
+        - log
+        - alert
+        in: query
+        name: provider_type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utility.ProvidersGetResponseSchema'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+      security:
+      - ApiToken: []
+      summary: Get a list of Providers
+      tags:
+      - Settings
+  /providers/{provider_id}/settings:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of Settings for a given Provider
+      parameters:
+      - description: The type of provider
+        enum:
+        - log
+        - alert
+        in: query
+        name: provider_type
+        required: true
+        type: string
+      - description: Provider ID
+        format: uuid
+        in: path
+        name: provider_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+      security:
+      - ApiToken: []
+      summary: Get a list of Settings for a given Provider
+      tags:
+      - Settings
+    patch:
+      consumes:
+      - application/json
+      description: Create or Update the list of Settings for a given Provider
+      parameters:
+      - description: The type of provider
+        enum:
+        - log
+        - alert
+        in: query
+        name: provider_type
+        required: true
+        type: string
+      - description: Provider ID
+        format: uuid
+        in: path
+        name: provider_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+      security:
+      - ApiToken: []
+      summary: Create or Update the list of Settings for a given Provider
+      tags:
+      - Settings
+  /teams:
+    post:
+      consumes:
+      - application/json
+      description: Create a Team
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+      security:
+      - ApiToken: []
+      summary: Create a Team
+      tags:
+      - Teams
+  /teams/{team_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a Team
+      parameters:
+      - description: Team ID
+        format: uuid
+        in: path
+        name: team_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+      security:
+      - ApiToken: []
+      summary: Delete a Team
+      tags:
+      - Teams
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Create a user
+      parameters:
+      - description: The request body
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/utility.UserPostRequestBodySchema'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          headers:
+            location:
+              description: GET URL of the Created User
+              type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
       summary: Create a user
       tags:
       - Users
@@ -50,9 +348,23 @@ paths:
       responses:
         "200":
           description: OK
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
       summary: Login as a user
       tags:
       - Users
+produces:
+- application/json
 schemes:
 - https
 securityDefinitions:

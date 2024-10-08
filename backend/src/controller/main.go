@@ -10,47 +10,80 @@ func RegisterControllers(engine *gin.Engine) {
 	// Register Authentication endpoints
 	engine.GET(
 		"/authorise/slack",
+		middleware.UserAuthRequestMW(),
 		middleware.TransactionRequestMW(),
 		SlackRedirect(),
 		middleware.TransactionResponseMW(),
-		middleware.ErrorHandlerResponseMW(),
 	)
 	engine.GET(
 		"/authorise/slack/callback",
+		middleware.UserAuthRequestMW(),
 		middleware.TransactionRequestMW(),
 		AuthoriseSlack(),
 		middleware.TransactionResponseMW(),
-		middleware.ErrorHandlerResponseMW(),
 	)
 
-	engine.GET(
-		"/authorise/teams",
+	// Register teams endpoints
+	engine.POST(
+		"/teams",
+		middleware.UserAuthRequestMW(),
 		middleware.TransactionRequestMW(),
-		// TeamsRedirect(),
+		CreateTeam(),
 		middleware.TransactionResponseMW(),
-		middleware.ErrorHandlerResponseMW(),
 	)
-	engine.GET(
-		"/authorise/teams/callback",
+	engine.DELETE(
+		"/teams/:team_id",
+		middleware.UserAuthRequestMW(),
 		middleware.TransactionRequestMW(),
-		// AuthoriseTeams(),
+		DeleteTeam(),
 		middleware.TransactionResponseMW(),
-		middleware.ErrorHandlerResponseMW(),
 	)
 
 	// Register users endpoints
 	engine.POST(
 		"/users",
+		middleware.UserAuthRequestMW(),
 		middleware.TransactionRequestMW(),
 		CreateUser(),
 		middleware.TransactionResponseMW(),
-		middleware.ErrorHandlerResponseMW(),
 	)
 	engine.POST(
 		"/users/login",
+		middleware.UserAuthRequestMW(),
 		middleware.TransactionRequestMW(),
 		LoginUser(),
 		middleware.TransactionResponseMW(),
-		middleware.ErrorHandlerResponseMW(),
+	)
+
+	// Register incident endpoints
+	engine.POST(
+		"/incidents",
+		middleware.UserAuthRequestMW(),
+		middleware.TransactionRequestMW(),
+		CreateIncident(),
+		middleware.TransactionResponseMW(),
+	)
+
+	// Register settings endpoints
+	engine.GET(
+		"/providers",
+		middleware.UserAuthRequestMW(),
+		middleware.TransactionRequestMW(),
+		GetProviders(),
+		middleware.TransactionResponseMW(),
+	)
+	engine.GET(
+		"/providers/:provider_id/settings",
+		middleware.UserAuthRequestMW(),
+		middleware.TransactionRequestMW(),
+		GetSettings(),
+		middleware.TransactionResponseMW(),
+	)
+	engine.PATCH(
+		"/providers/:provider_id/settings",
+		middleware.UserAuthRequestMW(),
+		middleware.TransactionRequestMW(),
+		PatchSettings(),
+		middleware.TransactionResponseMW(),
 	)
 }

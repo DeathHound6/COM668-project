@@ -3,8 +3,11 @@ package database
 import (
 	"com668-backend/utility"
 	"errors"
+	"log"
+	"net/http"
 	"regexp"
 
+	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -15,19 +18,20 @@ var (
 
 type User struct {
 	ID       uint   `gorm:"column:id;primaryKey;autoIncrement"`
+	UUID     string `gorm:"column:uuid;size:16"`
 	Name     string `gorm:"column:name;size:30"`
 	Email    string `gorm:"column:email;size:30"`
 	Password string `gorm:"column:password;size:72"`
 	Teams    []Team `gorm:"many2many:team_user"`
 }
 
-func (user *User) hashPassword() error {
+func (user *User) hashPassword() (*string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	user.Password = string(bytes)
-	return nil
+	pass := string(bytes)
+	return &pass, nil
 }
 
 func (user *User) ValidatePassword(password string) bool {
@@ -36,52 +40,40 @@ func (user *User) ValidatePassword(password string) bool {
 }
 
 func (user *User) BeforeCreate(tx *gorm.DB) error {
+	ctx := GetContext(tx)
+	uuid, err := utility.GenerateRandomUUID()
+	if err != nil {
+		ctx.Set("errorCode", http.StatusInternalServerError)
+		return errors.New("failed to create an incident uuid")
+	}
 	if len(user.Name) > 30 {
+		ctx.Set("errorCode", http.StatusBadRequest)
 		return errors.New("user name cannot be greater than 30 characters")
 	}
 	if len(user.Email) > 30 {
+		ctx.Set("errorCode", http.StatusBadRequest)
 		return errors.New("user email cannot be greater than 30 characters")
 	}
 	if matched, err := regexp.MatchString(EmailRegexp, user.Email); !matched || err != nil {
-		if err != nil {
-			return err
-		}
+		ctx.Set("errorCode", http.StatusBadRequest)
 		return errors.New("user email is not a valid email")
 	}
 	// NOTE: 72 chars is the max bcrypt supports
 	if len(user.Password) > 72 {
+		ctx.Set("errorCode", http.StatusBadRequest)
 		return errors.New("user password cannot be greater than 72 characters")
 	}
-	if err := user.hashPassword(); err != nil {
+	password, err := user.hashPassword()
+	if err != nil {
+		ctx.Set("errorCode", http.StatusInternalServerError)
 		return err
 	}
 	if len(user.Teams) == 0 {
+		ctx.Set("errorCode", http.StatusBadRequest)
 		return errors.New("user must be part of at least 1 team")
 	}
-	return nil
-}
-
-type Team struct {
-	ID    uint   `gorm:"column:id;primaryKey;autoIncrement"`
-	Name  string `gorm:"column:name"`
-	Users []User `gorm:"many2many:team_user"`
-}
-
-func (team *Team) BeforeCreate(tx *gorm.DB) error {
-	if len(team.Name) > 30 {
-		return errors.New("team name cannot be greater than 30 characters")
-	}
-	return nil
-}
-
-func (team *Team) BeforeUpdate(tx *gorm.DB) error {
-	return team.BeforeCreate(tx)
-}
-
-func (team *Team) BeforeDelete(tx *gorm.DB) error {
-	if len(team.Users) > 0 {
-		return errors.New("teams cannot be deleted if there are still users in them")
-	}
+	user.Password = *password
+	user.UUID = uuid
 	return nil
 }
 
@@ -92,16 +84,17 @@ type TeamUser struct {
 	User   User `gorm:"foreignKey:user_id;references:id"`
 }
 
-func GetUser(tx *gorm.DB) error {
+func GetUser(ctx *gin.Context) error {
 	return nil
 }
 
-func CreateUser(tx *gorm.DB, body *utility.UserPostRequestBodySchema) error {
-	teams := make([]Team, 0)
-	for _, teamName := range body.Teams {
-		teams = append(teams, Team{
-			Name: teamName,
-		})
+func CreateUser(ctx *gin.Context, body *utility.UserPostRequestBodySchema) (*User, error) {
+	tx := GetDBTransaction(ctx)
+	teams := getTeams(tx, body.Teams)
+	// If not all teams exist, fail out
+	if len(teams) < len(body.Teams) {
+		ctx.Set("errorCode", http.StatusBadRequest)
+		return nil, errors.New("not all teams exist") // TODO: need a better error message here
 	}
 	user := &User{
 		Name:     body.Name,
@@ -109,14 +102,13 @@ func CreateUser(tx *gorm.DB, body *utility.UserPostRequestBodySchema) error {
 		Password: body.Password,
 		Teams:    teams,
 	}
-	out := tx.Create(user)
-	if out.Error != nil || out.RowsAffected == 0 {
-		if out.Error != nil {
-			return out.Error
-		}
-		return errors.New("failed to create new user")
+	tx.Create(user)
+	if tx.Error != nil {
+		ctx.Set("errorCode", http.StatusInternalServerError)
+		log.Default().Fatalln(tx.Error.Error())
+		return nil, tx.Error
 	}
-	return nil
+	return user, nil
 }
 
 func UpdateUser(tx *gorm.DB) error {

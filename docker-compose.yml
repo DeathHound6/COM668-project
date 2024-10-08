@@ -36,7 +36,6 @@ services:
       - 5000:5000
     volumes:
       - ./backend/src:/app/src
-      - ./backend/test:/app/test
       - ./backend/certs:/etc/certs
   db:
     container_name: com668-db

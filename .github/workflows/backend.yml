@@ -17,5 +17,5 @@ jobs:
                 go-version: '1.21'
             - name: Go Test
               run: |
-                cd ./backend/src
+                cd ./backend/src/test
                 go test
