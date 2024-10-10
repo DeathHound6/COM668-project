@@ -21,10 +21,9 @@ type KeyValueSchema struct {
 }
 
 type ProviderGetResponseSchema struct {
-	ID       string           `json:"id"`
-	Name     string           `json:"name"`
-	ImageURL string           `json:"imageUrl"`
-	Fields   []KeyValueSchema `json:"fields"`
+	ID     string           `json:"id"`
+	Name   string           `json:"name"`
+	Fields []KeyValueSchema `json:"fields"`
 }
 
 type ProvidersGetResponseSchema struct {
@@ -33,5 +32,9 @@ type ProvidersGetResponseSchema struct {
 
 type SettingsGetResponseSchema struct {
 	Provider string           `json:"provider"`
+	Settings []KeyValueSchema `json:"settings"`
+}
+
+type SettingsPatchRequestBody struct {
 	Settings []KeyValueSchema `json:"settings"`
 }

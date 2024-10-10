@@ -1,8 +1,10 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -12,7 +14,36 @@ import (
 )
 
 var (
-	conn *gorm.DB = nil
+	conn                *gorm.DB       = nil
+	defaultLogProviders []*LogProvider = []*LogProvider{
+		{
+			Name:   "Sentry",
+			Fields: "",
+		},
+	}
+	defaultAlertProviders []*AlertProvider = []*AlertProvider{
+		{
+			Name:   "Slack",
+			Fields: "",
+		},
+	}
+	defaultTeams []*Team = []*Team{
+		{
+			Name: "Engineering",
+		},
+	}
+	defaultUsers []*User = []*User{
+		{
+			Name:     "A C",
+			Email:    "test@example.com",
+			Password: "test123",
+			Teams: []Team{
+				{
+					Name: "Engineering",
+				},
+			},
+		},
+	}
 )
 
 func Connect() error {
@@ -65,13 +96,36 @@ func migrate(conn *gorm.DB) {
 		Incident{},
 		IncidentComment{},
 	}
+	if err := tx.Migrator().DropTable(structs...); err != nil {
+		panic(err)
+	}
 	if err := tx.AutoMigrate(structs...); err != nil {
+		panic(err)
+	}
+	log.Default().Println("Inserting default data")
+	if err := insert_default_data(tx); err != nil {
 		panic(err)
 	}
 	tx.Commit()
 	if tx.Error != nil {
 		panic(tx.Error)
 	}
+}
+
+func insert_default_data(tx *gorm.DB) error {
+	data := []interface{}{
+		defaultTeams,
+		defaultUsers,
+		defaultAlertProviders,
+		defaultLogProviders,
+	}
+	for _, slice := range data {
+		tx.Create(slice)
+		if tx.Error != nil {
+			return tx.Error
+		}
+	}
+	return nil
 }
 
 func GetDBTransaction(ctx *gin.Context) *gorm.DB {
@@ -88,17 +142,20 @@ func GetContext(tx *gorm.DB) *gin.Context {
 	return context.(*gin.Context)
 }
 
-func GetDBResults(tx *gorm.DB, model interface{}) ([]interface{}, error) {
-	rows, err := tx.Rows()
-	results := make([]interface{}, 0)
-	if err != nil {
-		return nil, err
+func handleError(ctx *gin.Context, err error) error {
+	switch err.Error() {
+	case gorm.ErrDuplicatedKey.Error():
+		ctx.Set("errorCode", http.StatusBadRequest)
+		return errors.New("duplicate data was provided")
+	case gorm.ErrForeignKeyViolated.Error():
+		ctx.Set("errorCode", http.StatusBadRequest)
+		return errors.New("")
+	case gorm.ErrCheckConstraintViolated.Error():
+		ctx.Set("errorCode", http.StatusBadRequest)
+		return errors.New("an invalid enum value was given")
+	default:
+		log.Default().Fatalf("unhandled error: %e\n", err)
+		ctx.Set("errorCode", http.StatusInternalServerError)
+		return errors.New("an unhandled error occurred")
 	}
-	for rows.Next() {
-		if err := rows.Scan(model); err != nil {
-			return nil, err
-		}
-		results = append(results, model)
-	}
-	return results, nil
 }

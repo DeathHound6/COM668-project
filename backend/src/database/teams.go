@@ -11,8 +11,8 @@ import (
 
 type Team struct {
 	ID    uint   `gorm:"column:id;primaryKey;autoIncrement"`
-	UUID  string `gorm:"column:uuid;size:16"`
-	Name  string `gorm:"column:name"`
+	UUID  string `gorm:"column:uuid;size:36;unique;not null"`
+	Name  string `gorm:"column:name;size:30;unique;not null"`
 	Users []User `gorm:"many2many:team_user"`
 }
 

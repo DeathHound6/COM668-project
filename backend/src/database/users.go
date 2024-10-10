@@ -3,7 +3,6 @@ package database
 import (
 	"com668-backend/utility"
 	"errors"
-	"log"
 	"net/http"
 	"regexp"
 
@@ -18,10 +17,10 @@ var (
 
 type User struct {
 	ID       uint   `gorm:"column:id;primaryKey;autoIncrement"`
-	UUID     string `gorm:"column:uuid;size:16"`
-	Name     string `gorm:"column:name;size:30"`
-	Email    string `gorm:"column:email;size:30"`
-	Password string `gorm:"column:password;size:72"`
+	UUID     string `gorm:"column:uuid;size:36;unique;not null"`
+	Name     string `gorm:"column:name;size:30;unique;not null"`
+	Email    string `gorm:"column:email;size:30;unique;not null"`
+	Password string `gorm:"column:password;size:72;not null"`
 	Teams    []Team `gorm:"many2many:team_user"`
 }
 
@@ -44,7 +43,7 @@ func (user *User) BeforeCreate(tx *gorm.DB) error {
 	uuid, err := utility.GenerateRandomUUID()
 	if err != nil {
 		ctx.Set("errorCode", http.StatusInternalServerError)
-		return errors.New("failed to create an incident uuid")
+		return errors.New("failed to create a user uuid")
 	}
 	if len(user.Name) > 30 {
 		ctx.Set("errorCode", http.StatusBadRequest)
@@ -78,9 +77,9 @@ func (user *User) BeforeCreate(tx *gorm.DB) error {
 }
 
 type TeamUser struct {
-	TeamID uint `gorm:"column:team_id"`
+	TeamID uint `gorm:"column:team_id;not null"`
 	Team   Team `gorm:"foreignKey:team_id;references:id"`
-	UserID uint `gorm:"column:user_id"`
+	UserID uint `gorm:"column:user_id;not null"`
 	User   User `gorm:"foreignKey:user_id;references:id"`
 }
 
@@ -93,8 +92,8 @@ func CreateUser(ctx *gin.Context, body *utility.UserPostRequestBodySchema) (*Use
 	teams := getTeams(tx, body.Teams)
 	// If not all teams exist, fail out
 	if len(teams) < len(body.Teams) {
-		ctx.Set("errorCode", http.StatusBadRequest)
-		return nil, errors.New("not all teams exist") // TODO: need a better error message here
+		ctx.Set("errorCode", http.StatusNotFound)
+		return nil, errors.New("teams not found")
 	}
 	user := &User{
 		Name:     body.Name,
@@ -102,11 +101,9 @@ func CreateUser(ctx *gin.Context, body *utility.UserPostRequestBodySchema) (*Use
 		Password: body.Password,
 		Teams:    teams,
 	}
-	tx.Create(user)
-	if tx.Error != nil {
-		ctx.Set("errorCode", http.StatusInternalServerError)
-		log.Default().Fatalln(tx.Error.Error())
-		return nil, tx.Error
+	out := tx.Create(user)
+	if out.Error != nil {
+		return nil, handleError(ctx, out.Error)
 	}
 	return user, nil
 }

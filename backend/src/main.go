@@ -4,6 +4,7 @@ import (
 	"com668-backend/controller"
 	"com668-backend/database"
 	_ "com668-backend/docs" // import docs to register the swagger definition
+	"com668-backend/middleware"
 	"fmt"
 	"os"
 	"os/signal"
@@ -33,7 +34,7 @@ func main() {
 	// Setup HTTP webserver
 	gin.SetMode(gin.DebugMode)
 	engine := gin.New()
-	engine.Use(gin.Recovery())
+	engine.Use(gin.CustomRecoveryWithWriter(gin.DefaultErrorWriter, middleware.RecoveryHandler()))
 	engine.GET("/swagger/*any", swaggerGin.WrapHandler(swaggerFiles.Handler))
 	engine.HandleMethodNotAllowed = true
 	controller.RegisterControllers(engine)

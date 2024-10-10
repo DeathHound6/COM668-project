@@ -196,6 +196,76 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiToken": []
+                    }
+                ],
+                "description": "Create a provider",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Create a provider",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    }
+                }
+            }
+        },
+        "/providers/{provider_id}": {
+            "put": {
+                "security": [
+                    {
+                        "ApiToken": []
+                    }
+                ],
+                "description": "Update a provider",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Update a provider",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Provider ID",
+                        "name": "provider_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    }
+                }
             }
         },
         "/providers/{provider_id}/settings": {
@@ -238,6 +308,12 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utility.SettingsGetResponseSchema"
+                        }
+                    },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
@@ -258,13 +334,13 @@ const docTemplate = `{
                     }
                 }
             },
-            "patch": {
+            "put": {
                 "security": [
                     {
                         "ApiToken": []
                     }
                 ],
-                "description": "Create or Update the list of Settings for a given Provider",
+                "description": "Create or Update the Settings for a given Provider",
                 "consumes": [
                     "application/json"
                 ],
@@ -274,7 +350,7 @@ const docTemplate = `{
                 "tags": [
                     "Settings"
                 ],
-                "summary": "Create or Update the list of Settings for a given Provider",
+                "summary": "Create or Update the Settings for a given Provider",
                 "parameters": [
                     {
                         "enum": [
@@ -297,17 +373,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/utility.ErrorResponseSchema"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/utility.ErrorResponseSchema"
-                        }
+                    "204": {
+                        "description": "No Content"
                     },
                     "500": {
                         "description": "Internal Server Error",
@@ -436,9 +503,9 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "headers": {
-                            "location": {
+                            "Location": {
                                 "type": "string",
-                                "description": "GET URL of the Created User"
+                                "description": "GET URL of the created User"
                             }
                         }
                     },
@@ -477,8 +544,8 @@ const docTemplate = `{
                 ],
                 "summary": "Login as a user",
                 "responses": {
-                    "200": {
-                        "description": "OK"
+                    "204": {
+                        "description": "No Content"
                     },
                     "403": {
                         "description": "Forbidden",
@@ -537,9 +604,6 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "imageUrl": {
-                    "type": "string"
-                },
                 "name": {
                     "type": "string"
                 }
@@ -552,6 +616,20 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/utility.ProviderGetResponseSchema"
+                    }
+                }
+            }
+        },
+        "utility.SettingsGetResponseSchema": {
+            "type": "object",
+            "properties": {
+                "provider": {
+                    "type": "string"
+                },
+                "settings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utility.KeyValueSchema"
                     }
                 }
             }

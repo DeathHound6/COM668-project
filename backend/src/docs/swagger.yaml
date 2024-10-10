@@ -24,8 +24,6 @@ definitions:
         type: array
       id:
         type: string
-      imageUrl:
-        type: string
       name:
         type: string
     type: object
@@ -34,6 +32,15 @@ definitions:
       providers:
         items:
           $ref: '#/definitions/utility.ProviderGetResponseSchema'
+        type: array
+    type: object
+  utility.SettingsGetResponseSchema:
+    properties:
+      provider:
+        type: string
+      settings:
+        items:
+          $ref: '#/definitions/utility.KeyValueSchema'
         type: array
     type: object
   utility.UserPostRequestBodySchema:
@@ -166,6 +173,50 @@ paths:
       summary: Get a list of Providers
       tags:
       - Settings
+    post:
+      consumes:
+      - application/json
+      description: Create a provider
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+      security:
+      - ApiToken: []
+      summary: Create a provider
+      tags:
+      - Settings
+  /providers/{provider_id}:
+    put:
+      consumes:
+      - application/json
+      description: Update a provider
+      parameters:
+      - description: Provider ID
+        format: uuid
+        in: path
+        name: provider_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+      security:
+      - ApiToken: []
+      summary: Update a provider
+      tags:
+      - Settings
   /providers/{provider_id}/settings:
     get:
       consumes:
@@ -189,6 +240,10 @@ paths:
       produces:
       - application/json
       responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utility.SettingsGetResponseSchema'
         "401":
           description: Unauthorized
           schema:
@@ -206,10 +261,10 @@ paths:
       summary: Get a list of Settings for a given Provider
       tags:
       - Settings
-    patch:
+    put:
       consumes:
       - application/json
-      description: Create or Update the list of Settings for a given Provider
+      description: Create or Update the Settings for a given Provider
       parameters:
       - description: The type of provider
         enum:
@@ -228,21 +283,15 @@ paths:
       produces:
       - application/json
       responses:
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/utility.ErrorResponseSchema'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "204":
+          description: No Content
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utility.ErrorResponseSchema'
       security:
       - ApiToken: []
-      summary: Create or Update the list of Settings for a given Provider
+      summary: Create or Update the Settings for a given Provider
       tags:
       - Settings
   /teams:
@@ -320,8 +369,8 @@ paths:
         "201":
           description: Created
           headers:
-            location:
-              description: GET URL of the Created User
+            Location:
+              description: GET URL of the created User
               type: string
         "400":
           description: Bad Request
@@ -346,8 +395,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "204":
+          description: No Content
         "403":
           description: Forbidden
           schema:

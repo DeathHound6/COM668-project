@@ -1,6 +1,7 @@
 package utility
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -33,6 +34,14 @@ func GetFieldsMapFromString(fieldsString string) []KeyValueSchema {
 		})
 	}
 	return fields
+}
+
+func GetStringFromFieldsMap(fieldsMap []KeyValueSchema) string {
+	parts := make([]string, 0)
+	for _, field := range fieldsMap {
+		parts = append(parts, fmt.Sprintf("%s;%s;%s", field.Key, field.Value, field.Type))
+	}
+	return strings.Join(parts, "|")
 }
 
 func GenerateRandomUUID() (string, error) {

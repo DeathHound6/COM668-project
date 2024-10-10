@@ -11,11 +11,11 @@ import (
 
 type Incident struct {
 	ID           uint       `gorm:"column:id;primaryKey;autoIncrement"`
-	UUID         string     `gorm:"column:uuid;size:16"`
-	TeamID       uint       `gorm:"column:team_id"`
+	UUID         string     `gorm:"column:uuid;size:36;unique;not null"`
+	TeamID       uint       `gorm:"column:team_id;not null"`
 	Team         Team       `gorm:"foreignKey:team_id;references:id"`
-	Summary      string     `gorm:"column:summary;size:500"`
-	CreatedAt    time.Time  `gorm:"column:created_at;autoCreateTime"`
+	Summary      string     `gorm:"column:summary;size:500;not null"`
+	CreatedAt    time.Time  `gorm:"column:created_at;autoCreateTime;not null"`
 	ResolvedAt   *time.Time `gorm:"column:resolved_at"`
 	ResolvedByID *uint      `gorm:"column:resolved_by_id"`
 	ResolvedBy   *User      `gorm:"foreignKey:resolved_by_id;references:id"`
@@ -58,12 +58,12 @@ func (incident *Incident) BeforeDelete(tx *gorm.DB) error {
 
 type IncidentComment struct {
 	ID            uint      `gorm:"column:id;primaryKey;autoIncrement"`
-	UUID          string    `gorm:"column:uuid'size:16"`
-	Comment       string    `gorm:"column:comment;size:200"`
-	CommentedByID uint      `gorm:"column:commented_by_id"`
+	UUID          string    `gorm:"column:uuid;size:36;unique;not null"`
+	Comment       string    `gorm:"column:comment;size:200;not null"`
+	CommentedByID uint      `gorm:"column:commented_by_id;not null"`
 	CommentedBy   User      `gorm:"foreignKey:commented_by_id;references:id"`
-	CommentedAt   time.Time `gorm:"column:commented_at;autoCreateTime"`
-	IncidentID    uint      `gorm:"column:incident_id"`
+	CommentedAt   time.Time `gorm:"column:commented_at;autoCreateTime;not null"`
+	IncidentID    uint      `gorm:"column:incident_id;not null"`
 	Incident      Incident  `gorm:"foreignKey:incident_id;references:id"`
 }
 
@@ -72,7 +72,7 @@ func (comment *IncidentComment) BeforeCreate(tx *gorm.DB) error {
 	uuid, err := utility.GenerateRandomUUID()
 	if err != nil {
 		ctx.Set("errorCode", http.StatusInternalServerError)
-		return errors.New("failed to create an incident uuid")
+		return errors.New("failed to create a comment uuid")
 	}
 	if len(comment.Comment) > 200 {
 		ctx.Set("errorCode", http.StatusBadRequest)

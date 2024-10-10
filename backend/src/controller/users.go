@@ -18,7 +18,7 @@ import (
 //	@Produce json
 //	@Param user body utility.UserPostRequestBodySchema true "The request body"
 //	@Success 201
-//	@Header 201 {string} location "GET URL of the Created User"
+//	@Header 201 {string} Location "GET URL of the created User"
 //	@Failure 400 {object} utility.ErrorResponseSchema
 //	@Failure 403 {object} utility.ErrorResponseSchema
 //	@Failure 500 {object} utility.ErrorResponseSchema
@@ -27,20 +27,24 @@ func CreateUser() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var body *utility.UserPostRequestBodySchema
 		if err := ctx.BindJSON(&body); err != nil {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, &utility.ErrorResponseSchema{
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
 				Error: err.Error(),
 			})
 			ctx.Next()
+			return
 		}
 		user, err := database.CreateUser(ctx, body)
 		if err != nil {
-			ctx.AbortWithStatusJSON(ctx.GetInt("errorCode"), &utility.ErrorResponseSchema{
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
 				Error: err.Error(),
 			})
 			ctx.Next()
+			return
 		}
-		ctx.Header("location", fmt.Sprintf("%s://%s/users/%s", ctx.Request.URL.Scheme, ctx.Request.URL.Host, user.UUID))
-		ctx.Status(http.StatusCreated)
+		ctx.Header("Location", fmt.Sprintf("%s://%s/users/%s", ctx.Request.URL.Scheme, ctx.Request.URL.Host, user.UUID))
+		ctx.Set("Status", http.StatusCreated)
 	}
 }
 
@@ -51,7 +55,7 @@ func CreateUser() gin.HandlerFunc {
 //	@Tags Users
 //	@Accept json
 //	@Produce json
-//	@Success 200
+//	@Success 204
 //	@Failure 403 {object} utility.ErrorResponseSchema
 //	@Failure 404 {object} utility.ErrorResponseSchema
 //	@Failure 500 {object} utility.ErrorResponseSchema
