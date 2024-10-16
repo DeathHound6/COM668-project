@@ -1,6 +1,7 @@
 package utility
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
@@ -50,4 +51,13 @@ func GenerateRandomUUID() (string, error) {
 		return "", err
 	}
 	return id.String(), nil
+}
+
+func ReadJSONStruct[T any](bytes []byte) (*T, error) {
+	var data T
+	err := json.Unmarshal(bytes, &data)
+	if err != nil {
+		return nil, err
+	}
+	return &data, nil
 }

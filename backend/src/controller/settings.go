@@ -21,7 +21,6 @@ import (
 //	@Param provider_type query string true "The type of provider" Enums(log, alert)
 //	@Success 200 {object} utility.ProvidersGetResponseSchema
 //	@Failure 401 {object} utility.ErrorResponseSchema
-//	@Failure 404 {object} utility.ErrorResponseSchema
 //	@Failure 500 {object} utility.ErrorResponseSchema
 //	@Router /providers [get]
 func GetProviders() gin.HandlerFunc {
@@ -219,7 +218,7 @@ func GetSettings() gin.HandlerFunc {
 				Settings: utility.GetFieldsMapFromString(settings.Settings),
 			})
 		} else {
-			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Status", http.StatusBadRequest)
 			ctx.Set("Body", &utility.ErrorResponseSchema{
 				Error: "'provider_type' query parameter must be either 'log' or 'alert'",
 			})

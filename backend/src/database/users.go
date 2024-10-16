@@ -101,9 +101,9 @@ func CreateUser(ctx *gin.Context, body *utility.UserPostRequestBodySchema) (*Use
 		Password: body.Password,
 		Teams:    teams,
 	}
-	out := tx.Create(user)
-	if out.Error != nil {
-		return nil, handleError(ctx, out.Error)
+	tx = tx.Create(user)
+	if tx.Error != nil {
+		return nil, handleError(ctx, tx.Error)
 	}
 	return user, nil
 }

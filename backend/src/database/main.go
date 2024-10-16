@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
@@ -21,10 +22,22 @@ var (
 			Fields: "",
 		},
 	}
+	defaultLogSettings []*LogProviderSettings = []*LogProviderSettings{
+		{
+			Provider: *defaultLogProviders[0],
+			Settings: "",
+		},
+	}
 	defaultAlertProviders []*AlertProvider = []*AlertProvider{
 		{
 			Name:   "Slack",
 			Fields: "",
+		},
+	}
+	defaultAlertSettings []*AlertProviderSettings = []*AlertProviderSettings{
+		{
+			Provider: *defaultAlertProviders[0],
+			Settings: "",
 		},
 	}
 	defaultTeams []*Team = []*Team{
@@ -117,7 +130,9 @@ func insert_default_data(tx *gorm.DB) error {
 		defaultTeams,
 		defaultUsers,
 		defaultAlertProviders,
+		defaultAlertSettings,
 		defaultLogProviders,
+		defaultLogSettings,
 	}
 	for _, slice := range data {
 		tx.Create(slice)
@@ -157,5 +172,33 @@ func handleError(ctx *gin.Context, err error) error {
 		log.Default().Fatalf("unhandled error: %e\n", err)
 		ctx.Set("errorCode", http.StatusInternalServerError)
 		return errors.New("an unhandled error occurred")
+	}
+}
+
+func filter(filters map[string]any, allowedFilters [][]string, tx *gorm.DB) {
+	for _, filterMap := range allowedFilters {
+		value, ok := filters[filterMap[0]]
+		if !ok {
+			continue
+		}
+		// Pagination filters
+		if strings.ToLower(filterMap[0]) == "pagesize" {
+			tx = tx.Limit(value.(int))
+			continue
+		}
+		if strings.ToLower(filterMap[0]) == "page" {
+			// Ensure page size exists - this allows us to calculate offset
+			pageSize, ok := filters["pageSize"]
+			if !ok {
+				continue
+			}
+			// Value = page number
+			page := value.(int) * pageSize.(int)
+			tx = tx.Offset(page)
+			continue
+		}
+
+		// Column filters
+		tx = tx.Where(fmt.Sprintf("%s = ?", filterMap[1]), value)
 	}
 }

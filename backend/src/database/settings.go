@@ -82,17 +82,15 @@ func GetLogProvider(ctx *gin.Context, uuid string) (*LogProvider, error) {
 
 // Get a list of Log providers
 func GetLogProviders(ctx *gin.Context, filters map[string]any) ([]*LogProvider, error) {
+	// mapped `filterMapField, dbField`
+	allowedFilters := [][]string{
+		{"id", "id"},
+		{"uuid", "uuid"},
+		{"name", "name"},
+	}
 	tx := GetDBTransaction(ctx)
 	providers := make([]*LogProvider, 0)
-	if id, ok := filters["id"]; ok {
-		tx = tx.Where("id = ?", id)
-	}
-	if uuid, ok := filters["uuid"]; ok {
-		tx = tx.Where("uuid = ?", uuid)
-	}
-	if name, ok := filters["name"]; ok {
-		tx = tx.Where("name = ?", name)
-	}
+	filter(filters, allowedFilters, tx)
 	tx = tx.Find(&providers)
 	if tx.Error != nil {
 		return nil, handleError(ctx, tx.Error)
@@ -116,20 +114,18 @@ func GetAlertProvider(ctx *gin.Context, uuid string) (*AlertProvider, error) {
 
 // Get a list of Alert providers
 func GetAlertProviders(ctx *gin.Context, filters map[string]any) ([]*AlertProvider, error) {
+	// mapped `filterMapField, dbField`
+	allowedFilters := [][]string{
+		{"id", "id"},
+		{"uuid", "uuid"},
+		{"name", "name"},
+	}
 	tx := GetDBTransaction(ctx)
 	providers := make([]*AlertProvider, 0)
-	if id, ok := filters["id"]; ok {
-		tx = tx.Where("id = ?", id)
-	}
-	if uuid, ok := filters["uuid"]; ok {
-		tx = tx.Where("uuid = ?", uuid)
-	}
-	if name, ok := filters["name"]; ok {
-		tx = tx.Where("name = ?", name)
-	}
-	out := tx.Find(&providers)
-	if out.Error != nil {
-		return nil, handleError(ctx, out.Error)
+	filter(filters, allowedFilters, tx)
+	tx = tx.Find(&providers)
+	if tx.Error != nil {
+		return nil, handleError(ctx, tx.Error)
 	}
 	return providers, nil
 }
@@ -137,9 +133,9 @@ func GetAlertProviders(ctx *gin.Context, filters map[string]any) ([]*AlertProvid
 func GetLogSettings(ctx *gin.Context, providerID uint) (*LogProviderSettings, error) {
 	tx := GetDBTransaction(ctx)
 	settings := make([]*LogProviderSettings, 0)
-	out := tx.Where("provider_id=?", providerID).Find(&settings)
-	if out.Error != nil {
-		return nil, handleError(ctx, out.Error)
+	tx = tx.Where("provider_id=?", providerID).Find(&settings)
+	if tx.Error != nil {
+		return nil, handleError(ctx, tx.Error)
 	}
 	if len(settings) == 0 {
 		return nil, nil
@@ -150,9 +146,9 @@ func GetLogSettings(ctx *gin.Context, providerID uint) (*LogProviderSettings, er
 func GetAlertSettings(ctx *gin.Context, providerID uint) (*AlertProviderSettings, error) {
 	tx := GetDBTransaction(ctx)
 	settings := make([]*AlertProviderSettings, 0)
-	out := tx.Where("provider_id=?", providerID).Find(&settings)
-	if out.Error != nil {
-		return nil, handleError(ctx, out.Error)
+	tx = tx.Where("provider_id=?", providerID).Find(&settings)
+	if tx.Error != nil {
+		return nil, handleError(ctx, tx.Error)
 	}
 	if len(settings) == 0 {
 		return nil, nil
