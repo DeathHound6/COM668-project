@@ -11,7 +11,7 @@ import (
 //	@Summary Create an incident
 //	@Description Create an incident
 //	@Tags Incidents
-//	@Security ApiToken
+//	@Security JWT
 //	@Accept json
 //	@Produce json
 //	@Success 201

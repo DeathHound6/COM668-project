@@ -10,6 +10,11 @@ type UserPostRequestBodySchema struct {
 	Teams    []string `json:"teams"`
 }
 
+type UserLoginRequestBodySchema struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 type TeamPostRequestBodySchema struct {
 	Name string `json:"name"`
 }

@@ -22,10 +22,10 @@ import (
 // @schemes https
 // @accept json
 // @produce json
-// @securitydefinitions.apikey ApiToken
-// @in cookie
-// @name token
-// @description The API Token
+// @securitydefinitions.apikey JWT
+// @in header
+// @name Authorization
+// @description The JWT
 func main() {
 	if err := database.Connect(); err != nil {
 		panic(err)

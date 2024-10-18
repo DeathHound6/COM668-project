@@ -47,9 +47,9 @@ var (
 	}
 	defaultUsers []*User = []*User{
 		{
-			Name:     "A C",
+			Name:     "System",
 			Email:    "test@example.com",
-			Password: "test123",
+			Password: "system_user",
 			Teams: []Team{
 				{
 					Name: "Engineering",

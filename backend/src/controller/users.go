@@ -2,11 +2,14 @@ package controller
 
 import (
 	"com668-backend/database"
+	"com668-backend/middleware"
 	"com668-backend/utility"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // CreateUser godoc
@@ -55,6 +58,7 @@ func CreateUser() gin.HandlerFunc {
 //	@Tags Users
 //	@Accept json
 //	@Produce json
+//	@Param request_body body utility.UserLoginRequestBodySchema true "Request Body"
 //	@Success 204
 //	@Failure 403 {object} utility.ErrorResponseSchema
 //	@Failure 404 {object} utility.ErrorResponseSchema
@@ -62,6 +66,28 @@ func CreateUser() gin.HandlerFunc {
 //	@Router /users/login [post]
 func LoginUser() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		var body *utility.UserLoginRequestBodySchema
+		if err := ctx.BindJSON(&body); err != nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
 
+		token := jwt.New(middleware.JWTSigningMethod)
+		jwtString, err := token.SignedString([]byte(os.Getenv("JWT_SIGNING_KEY")))
+		if err != nil {
+			ctx.Set("Status", http.StatusInternalServerError)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		ctx.Set("Status", http.StatusNoContent)
+		ctx.Header(middleware.AuthHeaderNameString, fmt.Sprintf("Bearer %s", jwtString))
 	}
 }

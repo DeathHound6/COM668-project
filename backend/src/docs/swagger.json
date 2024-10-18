@@ -21,7 +21,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiToken": []
+                        "JWT": []
                     }
                 ],
                 "description": "Redirect to Slack auth login",
@@ -67,7 +67,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiToken": []
+                        "JWT": []
                     }
                 ],
                 "description": "Link Slack to user",
@@ -113,7 +113,7 @@
             "post": {
                 "security": [
                     {
-                        "ApiToken": []
+                        "JWT": []
                     }
                 ],
                 "description": "Create an incident",
@@ -138,7 +138,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiToken": []
+                        "JWT": []
                     }
                 ],
                 "description": "Get a list of Providers",
@@ -189,7 +189,7 @@
             "post": {
                 "security": [
                     {
-                        "ApiToken": []
+                        "JWT": []
                     }
                 ],
                 "description": "Create a provider",
@@ -220,7 +220,7 @@
             "put": {
                 "security": [
                     {
-                        "ApiToken": []
+                        "JWT": []
                     }
                 ],
                 "description": "Update a provider",
@@ -261,7 +261,7 @@
             "get": {
                 "security": [
                     {
-                        "ApiToken": []
+                        "JWT": []
                     }
                 ],
                 "description": "Get a list of Settings for a given Provider",
@@ -326,7 +326,7 @@
             "put": {
                 "security": [
                     {
-                        "ApiToken": []
+                        "JWT": []
                     }
                 ],
                 "description": "Create or Update the Settings for a given Provider",
@@ -378,7 +378,7 @@
             "post": {
                 "security": [
                     {
-                        "ApiToken": []
+                        "JWT": []
                     }
                 ],
                 "description": "Create a Team",
@@ -418,7 +418,7 @@
             "delete": {
                 "security": [
                     {
-                        "ApiToken": []
+                        "JWT": []
                     }
                 ],
                 "description": "Delete a Team",
@@ -532,6 +532,17 @@
                     "Users"
                 ],
                 "summary": "Login as a user",
+                "parameters": [
+                    {
+                        "description": "Request Body",
+                        "name": "request_body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/utility.UserLoginRequestBodySchema"
+                        }
+                    }
+                ],
                 "responses": {
                     "204": {
                         "description": "No Content"
@@ -623,6 +634,17 @@
                 }
             }
         },
+        "utility.UserLoginRequestBodySchema": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
         "utility.UserPostRequestBodySchema": {
             "type": "object",
             "properties": {
@@ -645,11 +667,11 @@
         }
     },
     "securityDefinitions": {
-        "ApiToken": {
-            "description": "The API Token",
+        "JWT": {
+            "description": "The JWT",
             "type": "apiKey",
-            "name": "token",
-            "in": "cookie"
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }

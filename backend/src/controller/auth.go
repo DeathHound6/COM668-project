@@ -9,7 +9,7 @@ import (
 //	@Summary Redirect to Slack auth login
 //	@Description Redirect to Slack auth login
 //	@Tags Third-Party Auth
-//	@Security ApiToken
+//	@Security JWT
 //	@Accept json
 //	@Produce json
 //	@Failure 400 {object} utility.ErrorResponseSchema
@@ -28,7 +28,7 @@ func SlackRedirect() gin.HandlerFunc {
 //	@Summary Link Slack to user
 //	@Description Link Slack to user
 //	@Tags Third-Party Auth
-//	@Security ApiToken
+//	@Security JWT
 //	@Accept json
 //	@Produce json
 //	@Failure 400 {object} utility.ErrorResponseSchema

@@ -43,6 +43,13 @@ definitions:
           $ref: '#/definitions/utility.KeyValueSchema'
         type: array
     type: object
+  utility.UserLoginRequestBodySchema:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
   utility.UserPostRequestBodySchema:
     properties:
       email:
@@ -87,7 +94,7 @@ paths:
           schema:
             $ref: '#/definitions/utility.ErrorResponseSchema'
       security:
-      - ApiToken: []
+      - JWT: []
       summary: Redirect to Slack auth login
       tags:
       - Third-Party Auth
@@ -116,7 +123,7 @@ paths:
           schema:
             $ref: '#/definitions/utility.ErrorResponseSchema'
       security:
-      - ApiToken: []
+      - JWT: []
       summary: Link Slack to user
       tags:
       - Third-Party Auth
@@ -131,7 +138,7 @@ paths:
         "201":
           description: Created
       security:
-      - ApiToken: []
+      - JWT: []
       summary: Create an incident
       tags:
       - Incidents
@@ -165,7 +172,7 @@ paths:
           schema:
             $ref: '#/definitions/utility.ErrorResponseSchema'
       security:
-      - ApiToken: []
+      - JWT: []
       summary: Get a list of Providers
       tags:
       - Settings
@@ -183,7 +190,7 @@ paths:
           schema:
             $ref: '#/definitions/utility.ErrorResponseSchema'
       security:
-      - ApiToken: []
+      - JWT: []
       summary: Create a provider
       tags:
       - Settings
@@ -209,7 +216,7 @@ paths:
           schema:
             $ref: '#/definitions/utility.ErrorResponseSchema'
       security:
-      - ApiToken: []
+      - JWT: []
       summary: Update a provider
       tags:
       - Settings
@@ -253,7 +260,7 @@ paths:
           schema:
             $ref: '#/definitions/utility.ErrorResponseSchema'
       security:
-      - ApiToken: []
+      - JWT: []
       summary: Get a list of Settings for a given Provider
       tags:
       - Settings
@@ -286,7 +293,7 @@ paths:
           schema:
             $ref: '#/definitions/utility.ErrorResponseSchema'
       security:
-      - ApiToken: []
+      - JWT: []
       summary: Create or Update the Settings for a given Provider
       tags:
       - Settings
@@ -311,7 +318,7 @@ paths:
           schema:
             $ref: '#/definitions/utility.ErrorResponseSchema'
       security:
-      - ApiToken: []
+      - JWT: []
       summary: Create a Team
       tags:
       - Teams
@@ -343,7 +350,7 @@ paths:
           schema:
             $ref: '#/definitions/utility.ErrorResponseSchema'
       security:
-      - ApiToken: []
+      - JWT: []
       summary: Delete a Team
       tags:
       - Teams
@@ -388,6 +395,13 @@ paths:
       consumes:
       - application/json
       description: Login as a user
+      parameters:
+      - description: Request Body
+        in: body
+        name: request_body
+        required: true
+        schema:
+          $ref: '#/definitions/utility.UserLoginRequestBodySchema'
       produces:
       - application/json
       responses:
@@ -413,9 +427,9 @@ produces:
 schemes:
 - https
 securityDefinitions:
-  ApiToken:
-    description: The API Token
-    in: cookie
-    name: token
+  JWT:
+    description: The JWT
+    in: header
+    name: Authorization
     type: apiKey
 swagger: "2.0"

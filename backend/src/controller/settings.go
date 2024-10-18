@@ -15,7 +15,7 @@ import (
 //	@Summary Get a list of Providers
 //	@Description Get a list of Providers
 //	@Tags Settings
-//	@Security ApiToken
+//	@Security JWT
 //	@Accept json
 //	@Produce json
 //	@Param provider_type query string true "The type of provider" Enums(log, alert)
@@ -88,7 +88,7 @@ func GetProviders() gin.HandlerFunc {
 //	@Summary Create a provider
 //	@Description Create a provider
 //	@Tags Settings
-//	@Security ApiToken
+//	@Security JWT
 //	@Accept json
 //	@Produce json
 //	@Success 204
@@ -105,7 +105,7 @@ func CreateProvider() gin.HandlerFunc {
 //	@Summary Update a provider
 //	@Description Update a provider
 //	@Tags Settings
-//	@Security ApiToken
+//	@Security JWT
 //	@Accept json
 //	@Produce json
 //	@Param provider_id path string true "Provider ID" format(uuid)
@@ -123,7 +123,7 @@ func UpdateProvider() gin.HandlerFunc {
 //	@Summary Get a list of Settings for a given Provider
 //	@Description Get a list of Settings for a given Provider
 //	@Tags Settings
-//	@Security ApiToken
+//	@Security JWT
 //	@Accept json
 //	@Produce json
 //	@Param provider_type query string true "The type of provider" Enums(log, alert)
@@ -231,7 +231,7 @@ func GetSettings() gin.HandlerFunc {
 //	@Summary Create or Update the Settings for a given Provider
 //	@Description Create or Update the Settings for a given Provider
 //	@Tags Settings
-//	@Security ApiToken
+//	@Security JWT
 //	@Accept json
 //	@Produce json
 //	@Param provider_type query string true "The type of provider" Enums(log, alert)

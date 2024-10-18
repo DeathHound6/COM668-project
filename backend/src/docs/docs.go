@@ -26,7 +26,7 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "ApiToken": []
+                        "JWT": []
                     }
                 ],
                 "description": "Redirect to Slack auth login",
@@ -72,7 +72,7 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "ApiToken": []
+                        "JWT": []
                     }
                 ],
                 "description": "Link Slack to user",
@@ -118,7 +118,7 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "ApiToken": []
+                        "JWT": []
                     }
                 ],
                 "description": "Create an incident",
@@ -143,7 +143,7 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "ApiToken": []
+                        "JWT": []
                     }
                 ],
                 "description": "Get a list of Providers",
@@ -194,7 +194,7 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "ApiToken": []
+                        "JWT": []
                     }
                 ],
                 "description": "Create a provider",
@@ -225,7 +225,7 @@ const docTemplate = `{
             "put": {
                 "security": [
                     {
-                        "ApiToken": []
+                        "JWT": []
                     }
                 ],
                 "description": "Update a provider",
@@ -266,7 +266,7 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "ApiToken": []
+                        "JWT": []
                     }
                 ],
                 "description": "Get a list of Settings for a given Provider",
@@ -331,7 +331,7 @@ const docTemplate = `{
             "put": {
                 "security": [
                     {
-                        "ApiToken": []
+                        "JWT": []
                     }
                 ],
                 "description": "Create or Update the Settings for a given Provider",
@@ -383,7 +383,7 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "ApiToken": []
+                        "JWT": []
                     }
                 ],
                 "description": "Create a Team",
@@ -423,7 +423,7 @@ const docTemplate = `{
             "delete": {
                 "security": [
                     {
-                        "ApiToken": []
+                        "JWT": []
                     }
                 ],
                 "description": "Delete a Team",
@@ -537,6 +537,17 @@ const docTemplate = `{
                     "Users"
                 ],
                 "summary": "Login as a user",
+                "parameters": [
+                    {
+                        "description": "Request Body",
+                        "name": "request_body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/utility.UserLoginRequestBodySchema"
+                        }
+                    }
+                ],
                 "responses": {
                     "204": {
                         "description": "No Content"
@@ -628,6 +639,17 @@ const docTemplate = `{
                 }
             }
         },
+        "utility.UserLoginRequestBodySchema": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
         "utility.UserPostRequestBodySchema": {
             "type": "object",
             "properties": {
@@ -650,11 +672,11 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
-        "ApiToken": {
-            "description": "The API Token",
+        "JWT": {
+            "description": "The JWT",
             "type": "apiKey",
-            "name": "token",
-            "in": "cookie"
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`

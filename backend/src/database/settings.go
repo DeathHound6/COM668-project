@@ -133,7 +133,7 @@ func GetAlertProviders(ctx *gin.Context, filters map[string]any) ([]*AlertProvid
 func GetLogSettings(ctx *gin.Context, providerID uint) (*LogProviderSettings, error) {
 	tx := GetDBTransaction(ctx)
 	settings := make([]*LogProviderSettings, 0)
-	tx = tx.Where("provider_id=?", providerID).Find(&settings)
+	tx = tx.Preload("Provider").Where("provider_id=?", providerID).Find(&settings)
 	if tx.Error != nil {
 		return nil, handleError(ctx, tx.Error)
 	}
@@ -146,7 +146,7 @@ func GetLogSettings(ctx *gin.Context, providerID uint) (*LogProviderSettings, er
 func GetAlertSettings(ctx *gin.Context, providerID uint) (*AlertProviderSettings, error) {
 	tx := GetDBTransaction(ctx)
 	settings := make([]*AlertProviderSettings, 0)
-	tx = tx.Where("provider_id=?", providerID).Find(&settings)
+	tx = tx.Preload("Provider").Where("provider_id=?", providerID).Find(&settings)
 	if tx.Error != nil {
 		return nil, handleError(ctx, tx.Error)
 	}
