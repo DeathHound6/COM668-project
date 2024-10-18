@@ -90,7 +90,7 @@ func GetLogProviders(ctx *gin.Context, filters map[string]any) ([]*LogProvider, 
 	}
 	tx := GetDBTransaction(ctx)
 	providers := make([]*LogProvider, 0)
-	filter(filters, allowedFilters, tx)
+	tx = filter(filters, allowedFilters, tx)
 	tx = tx.Find(&providers)
 	if tx.Error != nil {
 		return nil, handleError(ctx, tx.Error)
@@ -122,7 +122,7 @@ func GetAlertProviders(ctx *gin.Context, filters map[string]any) ([]*AlertProvid
 	}
 	tx := GetDBTransaction(ctx)
 	providers := make([]*AlertProvider, 0)
-	filter(filters, allowedFilters, tx)
+	tx = filter(filters, allowedFilters, tx)
 	tx = tx.Find(&providers)
 	if tx.Error != nil {
 		return nil, handleError(ctx, tx.Error)

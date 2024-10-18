@@ -1,20 +1,24 @@
 package test_test
 
 import (
+	"com668-backend/middleware"
 	"com668-backend/utility"
 	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 
 func TestGetProviders(t *testing.T) {
 	engine := setup()
+	jwtString, err := getJWT(engine, TestUserEmail, TestUserPassword)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	t.Run("LogProviders", func(t *testing.T) {
-		writer := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/providers?provider_type=log", nil)
-		engine.ServeHTTP(writer, req)
+		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
+		writer := makeRequest(engine, req)
 
 		if code := writer.Code; code != http.StatusOK {
 			errorResp, err := utility.ReadJSONStruct[utility.ErrorResponseSchema](writer.Body.Bytes())
@@ -34,9 +38,9 @@ func TestGetProviders(t *testing.T) {
 	})
 
 	t.Run("AlertProviders", func(t *testing.T) {
-		writer := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/providers?provider_type=alert", nil)
-		engine.ServeHTTP(writer, req)
+		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
+		writer := makeRequest(engine, req)
 
 		if code := writer.Code; code != http.StatusOK {
 			errorResp, err := utility.ReadJSONStruct[utility.ErrorResponseSchema](writer.Body.Bytes())
@@ -56,9 +60,9 @@ func TestGetProviders(t *testing.T) {
 	})
 
 	t.Run("InvalidProviderType", func(t *testing.T) {
-		writer := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/providers?provider_type=invalid", nil)
-		engine.ServeHTTP(writer, req)
+		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
+		writer := makeRequest(engine, req)
 
 		if code := writer.Code; code != http.StatusBadRequest {
 			switch code {
@@ -86,11 +90,15 @@ func TestGetProviders(t *testing.T) {
 
 func TestGetSettings(t *testing.T) {
 	engine := setup()
+	jwtString, err := getJWT(engine, TestUserEmail, TestUserPassword)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	t.Run("LogSettings", func(t *testing.T) {
-		writer := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/providers?provider_type=log", nil)
-		engine.ServeHTTP(writer, req)
+		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
+		writer := makeRequest(engine, req)
 
 		if code := writer.Code; code != http.StatusOK {
 			errorResp, err := utility.ReadJSONStruct[utility.ErrorResponseSchema](writer.Body.Bytes())
@@ -109,9 +117,9 @@ func TestGetSettings(t *testing.T) {
 		}
 		uuid := providerResp.Providers[0].ID
 
-		writer = httptest.NewRecorder()
 		req, _ = http.NewRequest(http.MethodGet, fmt.Sprintf("/providers/%s/settings?provider_type=log", uuid), nil)
-		engine.ServeHTTP(writer, req)
+		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
+		writer = makeRequest(engine, req)
 
 		if code := writer.Code; code != http.StatusOK {
 			errorResp, err := utility.ReadJSONStruct[utility.ErrorResponseSchema](writer.Body.Bytes())
@@ -127,13 +135,27 @@ func TestGetSettings(t *testing.T) {
 		}
 		if len(settingsResp.Settings) == 0 {
 			t.Fatal("no data was returned")
+		}
+		if providerResp.Providers[0].Name != settingsResp.Provider {
+			t.Fatal("provider names donot match")
+		}
+		for _, settingField := range settingsResp.Settings {
+			hasField := false
+			for _, providerField := range providerResp.Providers[0].Fields {
+				if settingField.Key == providerField.Key {
+					hasField = true
+				}
+			}
+			if !hasField {
+				t.Fatalf("provider does not contain field %v from settings", settingField)
+			}
 		}
 	})
 
 	t.Run("AlertSettings", func(t *testing.T) {
-		writer := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/providers?provider_type=alert", nil)
-		engine.ServeHTTP(writer, req)
+		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
+		writer := makeRequest(engine, req)
 
 		if code := writer.Code; code != http.StatusOK {
 			errorResp, err := utility.ReadJSONStruct[utility.ErrorResponseSchema](writer.Body.Bytes())
@@ -152,9 +174,9 @@ func TestGetSettings(t *testing.T) {
 		}
 		uuid := providerResp.Providers[0].ID
 
-		writer = httptest.NewRecorder()
 		req, _ = http.NewRequest(http.MethodGet, fmt.Sprintf("/providers/%s/settings?provider_type=alert", uuid), nil)
-		engine.ServeHTTP(writer, req)
+		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
+		writer = makeRequest(engine, req)
 
 		if code := writer.Code; code != http.StatusOK {
 			errorResp, err := utility.ReadJSONStruct[utility.ErrorResponseSchema](writer.Body.Bytes())
@@ -170,6 +192,20 @@ func TestGetSettings(t *testing.T) {
 		}
 		if len(settingsResp.Settings) == 0 {
 			t.Fatal("no data was returned")
+		}
+		if providerResp.Providers[0].Name != settingsResp.Provider {
+			t.Fatal("provider names donot match")
+		}
+		for _, settingField := range settingsResp.Settings {
+			hasField := false
+			for _, providerField := range providerResp.Providers[0].Fields {
+				if settingField.Key == providerField.Key {
+					hasField = true
+				}
+			}
+			if !hasField {
+				t.Fatalf("provider does not contain field %v from settings", settingField)
+			}
 		}
 	})
 
@@ -179,9 +215,9 @@ func TestGetSettings(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		writer := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/providers/%s/settings?provider_type=alert", uuid), nil)
-		engine.ServeHTTP(writer, req)
+		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
+		writer := makeRequest(engine, req)
 
 		if code := writer.Code; code != http.StatusNotFound {
 			switch code {
@@ -194,7 +230,7 @@ func TestGetSettings(t *testing.T) {
 			default:
 				break
 			}
-			t.Fatalf("Status code %d != %d", code, http.StatusBadRequest)
+			t.Fatalf("Status code %d != %d", code, http.StatusNotFound)
 		}
 		resp, err := utility.ReadJSONStruct[utility.ErrorResponseSchema](writer.Body.Bytes())
 		if err != nil {
@@ -212,9 +248,9 @@ func TestGetSettings(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		writer := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/providers/%s/settings?provider_type=invalid", uuid), nil)
-		engine.ServeHTTP(writer, req)
+		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
+		writer := makeRequest(engine, req)
 
 		if code := writer.Code; code != http.StatusBadRequest {
 			switch code {

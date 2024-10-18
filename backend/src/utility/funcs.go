@@ -3,13 +3,12 @@ package utility
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"strings"
 
 	"github.com/google/uuid"
 )
 
-func SliceHasElement(slice []reflect.Type, element reflect.Type) bool {
+func SliceHasElement[T comparable](slice []T, element T) bool {
 	for _, elem := range slice {
 		if elem == element {
 			return true

@@ -19,25 +19,25 @@ var (
 	defaultLogProviders []*LogProvider = []*LogProvider{
 		{
 			Name:   "Sentry",
-			Fields: "",
+			Fields: "authUrl;http://example.com;string",
 		},
 	}
 	defaultLogSettings []*LogProviderSettings = []*LogProviderSettings{
 		{
 			Provider: *defaultLogProviders[0],
-			Settings: "",
+			Settings: "authUrl;http://example.com;string",
 		},
 	}
 	defaultAlertProviders []*AlertProvider = []*AlertProvider{
 		{
 			Name:   "Slack",
-			Fields: "",
+			Fields: "authUrl;http://example.com;string",
 		},
 	}
 	defaultAlertSettings []*AlertProviderSettings = []*AlertProviderSettings{
 		{
 			Provider: *defaultAlertProviders[0],
-			Settings: "",
+			Settings: "authUrl;http://example.com;string",
 		},
 	}
 	defaultTeams []*Team = []*Team{
@@ -175,7 +175,7 @@ func handleError(ctx *gin.Context, err error) error {
 	}
 }
 
-func filter(filters map[string]any, allowedFilters [][]string, tx *gorm.DB) {
+func filter(filters map[string]any, allowedFilters [][]string, tx *gorm.DB) *gorm.DB {
 	for _, filterMap := range allowedFilters {
 		value, ok := filters[filterMap[0]]
 		if !ok {
@@ -201,4 +201,5 @@ func filter(filters map[string]any, allowedFilters [][]string, tx *gorm.DB) {
 		// Column filters
 		tx = tx.Where(fmt.Sprintf("%s = ?", filterMap[1]), value)
 	}
+	return tx
 }
