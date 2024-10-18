@@ -16,25 +16,11 @@ type LogProvider struct {
 	Fields string `gorm:"column:fields;size:200;not null"`
 }
 
-type LogProviderSettings struct {
-	ID         uint        `gorm:"column:id;primaryKey;autoIncrement"`
-	ProviderID uint        `gorm:"column:provider_id;not null"`
-	Provider   LogProvider `gorm:"foreignKey:provider_id;references:id"`
-	Settings   string      `gorm:"column:settings;size:200;not null"`
-}
-
 type AlertProvider struct {
 	ID     uint   `gorm:"column:id;primaryKey;autoIncrement"`
 	UUID   string `gorm:"column:uuid;size:36;unique;not null"`
 	Name   string `gorm:"column:name;size:30;unique;not null"`
 	Fields string `gorm:"column:fields;size:200;not null"`
-}
-
-type AlertProviderSettings struct {
-	ID         uint          `gorm:"column:id;primaryKey;autoIncrement"`
-	ProviderID uint          `gorm:"column:provider_id;not null"`
-	Provider   AlertProvider `gorm:"foreignKey:provider_id;references:id"`
-	Settings   string        `gorm:"column:settings;size:200;not null"`
 }
 
 func (p *LogProvider) BeforeCreate(tx *gorm.DB) error {
@@ -128,30 +114,4 @@ func GetAlertProviders(ctx *gin.Context, filters map[string]any) ([]*AlertProvid
 		return nil, handleError(ctx, tx.Error)
 	}
 	return providers, nil
-}
-
-func GetLogSettings(ctx *gin.Context, providerID uint) (*LogProviderSettings, error) {
-	tx := GetDBTransaction(ctx)
-	settings := make([]*LogProviderSettings, 0)
-	tx = tx.Preload("Provider").Where("provider_id=?", providerID).Find(&settings)
-	if tx.Error != nil {
-		return nil, handleError(ctx, tx.Error)
-	}
-	if len(settings) == 0 {
-		return nil, nil
-	}
-	return settings[0], nil
-}
-
-func GetAlertSettings(ctx *gin.Context, providerID uint) (*AlertProviderSettings, error) {
-	tx := GetDBTransaction(ctx)
-	settings := make([]*AlertProviderSettings, 0)
-	tx = tx.Preload("Provider").Where("provider_id=?", providerID).Find(&settings)
-	if tx.Error != nil {
-		return nil, handleError(ctx, tx.Error)
-	}
-	if len(settings) == 0 {
-		return nil, nil
-	}
-	return settings[0], nil
 }

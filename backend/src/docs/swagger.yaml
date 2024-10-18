@@ -34,15 +34,6 @@ definitions:
           $ref: '#/definitions/utility.ProviderGetResponseSchema'
         type: array
     type: object
-  utility.SettingsGetResponseSchema:
-    properties:
-      provider:
-        type: string
-      settings:
-        items:
-          $ref: '#/definitions/utility.KeyValueSchema'
-        type: array
-    type: object
   utility.UserLoginRequestBodySchema:
     properties:
       email:
@@ -218,83 +209,6 @@ paths:
       security:
       - JWT: []
       summary: Update a provider
-      tags:
-      - Settings
-  /providers/{provider_id}/settings:
-    get:
-      consumes:
-      - application/json
-      description: Get a list of Settings for a given Provider
-      parameters:
-      - description: The type of provider
-        enum:
-        - log
-        - alert
-        in: query
-        name: provider_type
-        required: true
-        type: string
-      - description: Provider ID
-        format: uuid
-        in: path
-        name: provider_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/utility.SettingsGetResponseSchema'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/utility.ErrorResponseSchema'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/utility.ErrorResponseSchema'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/utility.ErrorResponseSchema'
-      security:
-      - JWT: []
-      summary: Get a list of Settings for a given Provider
-      tags:
-      - Settings
-    put:
-      consumes:
-      - application/json
-      description: Create or Update the Settings for a given Provider
-      parameters:
-      - description: The type of provider
-        enum:
-        - log
-        - alert
-        in: query
-        name: provider_type
-        required: true
-        type: string
-      - description: Provider ID
-        format: uuid
-        in: path
-        name: provider_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/utility.ErrorResponseSchema'
-      security:
-      - JWT: []
-      summary: Create or Update the Settings for a given Provider
       tags:
       - Settings
   /teams:

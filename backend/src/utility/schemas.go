@@ -34,12 +34,3 @@ type ProviderGetResponseSchema struct {
 type ProvidersGetResponseSchema struct {
 	Providers []ProviderGetResponseSchema `json:"providers"`
 }
-
-type SettingsGetResponseSchema struct {
-	Provider string           `json:"provider"`
-	Settings []KeyValueSchema `json:"settings"`
-}
-
-type SettingsPatchRequestBody struct {
-	Settings []KeyValueSchema `json:"settings"`
-}

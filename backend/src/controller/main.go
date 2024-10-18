@@ -64,14 +64,6 @@ func RegisterControllers(engine *gin.Engine) {
 		useAuth: true,
 		useDB:   true,
 	})
-	register(engine, http.MethodGet, "/providers/:provider_id/settings", GetSettings(), registerControllerOptions{
-		useAuth: true,
-		useDB:   true,
-	})
-	register(engine, http.MethodPut, "/providers/:provider_id/settings", UpdateSettings(), registerControllerOptions{
-		useAuth: true,
-		useDB:   true,
-	})
 }
 
 func register(engine *gin.Engine, method string, endpoint string, handler gin.HandlerFunc, options registerControllerOptions) {

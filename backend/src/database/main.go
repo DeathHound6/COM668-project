@@ -22,22 +22,10 @@ var (
 			Fields: "authUrl;http://example.com;string",
 		},
 	}
-	defaultLogSettings []*LogProviderSettings = []*LogProviderSettings{
-		{
-			Provider: *defaultLogProviders[0],
-			Settings: "authUrl;http://example.com;string",
-		},
-	}
 	defaultAlertProviders []*AlertProvider = []*AlertProvider{
 		{
 			Name:   "Slack",
 			Fields: "authUrl;http://example.com;string",
-		},
-	}
-	defaultAlertSettings []*AlertProviderSettings = []*AlertProviderSettings{
-		{
-			Provider: *defaultAlertProviders[0],
-			Settings: "authUrl;http://example.com;string",
 		},
 	}
 	defaultTeams []*Team = []*Team{
@@ -103,9 +91,7 @@ func migrate(conn *gorm.DB) {
 		User{},
 		TeamUser{},
 		LogProvider{},
-		LogProviderSettings{},
 		AlertProvider{},
-		AlertProviderSettings{},
 		Incident{},
 		IncidentComment{},
 	}
@@ -130,9 +116,7 @@ func insert_default_data(tx *gorm.DB) error {
 		defaultTeams,
 		defaultUsers,
 		defaultAlertProviders,
-		defaultAlertSettings,
 		defaultLogProviders,
-		defaultLogSettings,
 	}
 	for _, slice := range data {
 		tx.Create(slice)
