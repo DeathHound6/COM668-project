@@ -4,9 +4,12 @@ import (
 	"com668-backend/database"
 	"com668-backend/middleware"
 	"com668-backend/utility"
+	"encoding/base64"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -14,18 +17,18 @@ import (
 
 // CreateUser godoc
 //
-//	@Summary Create a user
-//	@Description Create a user
-//	@Tags Users
-//	@Accept json
-//	@Produce json
-//	@Param user body utility.UserPostRequestBodySchema true "The request body"
-//	@Success 201
-//	@Header 201 {string} Location "GET URL of the created User"
-//	@Failure 400 {object} utility.ErrorResponseSchema
-//	@Failure 403 {object} utility.ErrorResponseSchema
-//	@Failure 500 {object} utility.ErrorResponseSchema
-//	@Router /users [post]
+//	@Summary		Create a user
+//	@Description	Create a user
+//	@Tags			Users
+//	@Accept			json
+//	@Produce		json
+//	@Param			user	body	utility.UserPostRequestBodySchema	true	"The request body"
+//	@Success		201
+//	@Header			201	{string}	Location	"GET URL of the created User"
+//	@Failure		400	{object}	utility.ErrorResponseSchema
+//	@Failure		403	{object}	utility.ErrorResponseSchema
+//	@Failure		500	{object}	utility.ErrorResponseSchema
+//	@Router			/users [post]
 func CreateUser() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var body *utility.UserPostRequestBodySchema
@@ -53,19 +56,30 @@ func CreateUser() gin.HandlerFunc {
 
 // LoginUser godoc
 //
-//	@Summary Login as a user
-//	@Description Login as a user
-//	@Tags Users
-//	@Accept json
-//	@Produce json
-//	@Param request_body body utility.UserLoginRequestBodySchema true "Request Body"
-//	@Success 204
-//	@Failure 403 {object} utility.ErrorResponseSchema
-//	@Failure 404 {object} utility.ErrorResponseSchema
-//	@Failure 500 {object} utility.ErrorResponseSchema
-//	@Router /users/login [post]
+//	@Summary		Login as a user
+//	@Description	Login as a user
+//	@Tags			Users
+//	@Accept			json
+//	@Produce		json
+//	@Param			request_body	body	utility.UserLoginRequestBodySchema	true	"Request Body"
+//	@Header			204				header	string								"JWT Token"
+//	@Success		204
+//	@Failure		403	{object}	utility.ErrorResponseSchema
+//	@Failure		404	{object}	utility.ErrorResponseSchema
+//	@Failure		500	{object}	utility.ErrorResponseSchema
+//	@Router			/users/login [post]
 func LoginUser() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		authToken := ctx.GetHeader(middleware.AuthHeaderNameString)
+		if authToken != "" {
+			ctx.Set("Status", http.StatusForbidden)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "user is already authenticated",
+			})
+			ctx.Next()
+			return
+		}
+
 		var body *utility.UserLoginRequestBodySchema
 		if err := ctx.BindJSON(&body); err != nil {
 			ctx.Set("Status", http.StatusBadRequest)
@@ -76,7 +90,26 @@ func LoginUser() gin.HandlerFunc {
 			return
 		}
 
+		user, err := database.GetUser(ctx, body.Email)
+		if user == nil || err != nil || !user.ValidatePassword(body.Password) {
+			if err != nil {
+				log.Default().Println(err)
+			}
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "invalid email or password",
+			})
+			ctx.Next()
+			return
+		}
+
 		token := jwt.New(middleware.JWTSigningMethod)
+		claims := jwt.MapClaims{}
+		claims["iss"] = "COM668"
+		claims["iat"] = jwt.NewNumericDate(time.Now())
+		claims["exp"] = jwt.NewNumericDate(time.Now().Add(time.Hour * 24))
+		claims["sub"] = base64.StdEncoding.EncodeToString([]byte(user.Email))
+		token.Claims = claims
 		jwtString, err := token.SignedString([]byte(os.Getenv("JWT_SIGNING_KEY")))
 		if err != nil {
 			ctx.Set("Status", http.StatusInternalServerError)

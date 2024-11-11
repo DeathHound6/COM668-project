@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
@@ -93,4 +94,18 @@ func (comment *IncidentComment) BeforeUpdate(tx *gorm.DB) error {
 
 func (comment *IncidentComment) BeforeDelete(tx *gorm.DB) error {
 	return nil
+}
+
+func CreateIncident(ctx *gin.Context, body *utility.IncidentPostRequestBodySchema) (*Incident, error) {
+	tx := GetDBTransaction(ctx)
+	// todo: Get Team by id
+	incident := &Incident{
+		TeamID:  body.Team,
+		Summary: body.Summary,
+	}
+	tx = tx.Create(incident)
+	if tx.Error != nil {
+		return nil, handleError(ctx, tx.Error)
+	}
+	return incident, nil
 }

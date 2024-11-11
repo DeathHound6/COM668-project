@@ -45,3 +45,13 @@ services:
     environment:
       - MARIADB_ROOT_PASSWORD=root
       - MARIADB_DATABASE=com668
+  test_app:
+    container_name: test_app
+    env_file: ./test_app/.env
+    build:
+      context: ./test_app
+      dockerfile: ./Dockerfile
+    ports:
+      - 3001:3001
+    volumes:
+      - ./test_app/src:/app/src

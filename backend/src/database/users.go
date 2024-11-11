@@ -83,8 +83,23 @@ type TeamUser struct {
 	User   User `gorm:"foreignKey:user_id;references:id"`
 }
 
-func GetUser(ctx *gin.Context) error {
-	return nil
+func GetUser(ctx *gin.Context, email string) (*User, error) {
+	tx := GetDBTransaction(ctx)
+	allowedFilters := [][]string{
+		{"email", "email"},
+	}
+	filters := make(map[string]any, 0)
+	filters["email"] = email
+	tx = filter(filters, allowedFilters, tx)
+	users := make([]*User, 0)
+	tx = tx.Find(&users)
+	if tx.Error != nil {
+		return nil, handleError(ctx, tx.Error)
+	}
+	if len(users) == 0 {
+		return nil, nil
+	}
+	return users[0], nil
 }
 
 func CreateUser(ctx *gin.Context, body *utility.UserPostRequestBodySchema) (*User, error) {

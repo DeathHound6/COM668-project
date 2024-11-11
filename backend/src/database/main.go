@@ -15,17 +15,17 @@ import (
 )
 
 var (
-	conn                *gorm.DB       = nil
-	defaultLogProviders []*LogProvider = []*LogProvider{
+	conn             *gorm.DB    = nil
+	defaultProviders []*Provider = []*Provider{
 		{
 			Name:   "Sentry",
-			Fields: "authUrl;http://example.com;string",
+			Fields: "enabled;true;bool|orgSlug;testing-77;string|projSlug;test_app;string",
+			Type:   "log",
 		},
-	}
-	defaultAlertProviders []*AlertProvider = []*AlertProvider{
 		{
 			Name:   "Slack",
-			Fields: "authUrl;http://example.com;string",
+			Fields: "enabled;false;bool",
+			Type:   "alert",
 		},
 	}
 	defaultTeams []*Team = []*Team{
@@ -90,8 +90,7 @@ func migrate(conn *gorm.DB) {
 		Team{},
 		User{},
 		TeamUser{},
-		LogProvider{},
-		AlertProvider{},
+		Provider{},
 		Incident{},
 		IncidentComment{},
 	}
@@ -115,8 +114,7 @@ func insert_default_data(tx *gorm.DB) error {
 	data := []interface{}{
 		defaultTeams,
 		defaultUsers,
-		defaultAlertProviders,
-		defaultLogProviders,
+		defaultProviders,
 	}
 	for _, slice := range data {
 		tx.Create(slice)

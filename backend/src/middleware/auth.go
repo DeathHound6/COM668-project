@@ -1,11 +1,14 @@
 package middleware
 
 import (
+	"com668-backend/database"
 	"com668-backend/utility"
+	"encoding/base64"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	jwt "github.com/golang-jwt/jwt/v5"
@@ -65,5 +68,56 @@ func UserAuthRequestMW() gin.HandlerFunc {
 			ctx.Next()
 			return
 		}
+
+		exp, err := token.Claims.GetExpirationTime()
+		if err != nil {
+			log.Default().Println(err)
+			ctx.Set("Status", http.StatusUnauthorized)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "could not parse jwt auth claims",
+			})
+			ctx.Next()
+			return
+		}
+		if time.Now().After(exp.Time) {
+			ctx.Set("Status", http.StatusUnauthorized)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "jwt auth token is no longer valid",
+			})
+			ctx.Next()
+			return
+		}
+
+		sub, err := token.Claims.GetSubject()
+		if err != nil {
+			log.Default().Println(err)
+			ctx.Set("Status", http.StatusUnauthorized)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "could not parse jwt auth claims",
+			})
+			ctx.Next()
+			return
+		}
+		subBytes, err := base64.StdEncoding.DecodeString(sub)
+		if err != nil {
+			ctx.Set("Status", http.StatusInternalServerError)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+		sub = string(subBytes)
+
+		user, err := database.GetUser(ctx, sub)
+		if err != nil {
+			ctx.Set("Status", http.StatusUnauthorized)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+		ctx.Set("user", user)
 	}
 }
