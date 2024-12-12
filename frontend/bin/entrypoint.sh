@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Install dependencies
-npm i -g pnpm
-# pnpm i
+cd /app
 
-BACKEND="com668-backend:5000" deno task start
+pnpm install
+
+pnpm run dev

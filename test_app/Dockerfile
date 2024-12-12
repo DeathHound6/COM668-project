@@ -1,4 +1,4 @@
-FROM node:20.18.0-bullseye
+FROM node:20.18
 
 # Setup the FS
 RUN mkdir /app
