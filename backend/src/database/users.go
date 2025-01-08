@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var (
@@ -21,6 +22,7 @@ type User struct {
 	Name     string `gorm:"column:name;size:30;unique;not null"`
 	Email    string `gorm:"column:email;size:30;unique;not null"`
 	Password string `gorm:"column:password;size:72;not null"`
+	Admin    bool   `gorm:"column:admin;not null"`
 	Teams    []Team `gorm:"many2many:team_user"`
 }
 
@@ -90,9 +92,10 @@ func GetUser(ctx *gin.Context, email string) (*User, error) {
 	}
 	filters := make(map[string]any, 0)
 	filters["email"] = email
-	tx = filter(filters, allowedFilters, tx)
+	filter(filters, allowedFilters, tx)
 	users := make([]*User, 0)
-	tx = tx.Find(&users)
+	// join to teams table
+	tx.Find(&users)
 	if tx.Error != nil {
 		return nil, handleError(ctx, tx.Error)
 	}
@@ -104,11 +107,11 @@ func GetUser(ctx *gin.Context, email string) (*User, error) {
 
 func CreateUser(ctx *gin.Context, body *utility.UserPostRequestBodySchema) (*User, error) {
 	tx := GetDBTransaction(ctx)
-	teams := getTeams(tx, body.Teams)
-	// If not all teams exist, fail out
-	if len(teams) < len(body.Teams) {
-		ctx.Set("errorCode", http.StatusNotFound)
-		return nil, errors.New("teams not found")
+	teams := make([]Team, 0)
+	for _, team := range body.Teams {
+		teams = append(teams, Team{
+			UUID: team,
+		})
 	}
 	user := &User{
 		Name:     body.Name,
@@ -116,7 +119,7 @@ func CreateUser(ctx *gin.Context, body *utility.UserPostRequestBodySchema) (*Use
 		Password: body.Password,
 		Teams:    teams,
 	}
-	tx = tx.Create(user)
+	tx.Clauses(clause.OnConflict{DoNothing: true}).Create(user)
 	if tx.Error != nil {
 		return nil, handleError(ctx, tx.Error)
 	}

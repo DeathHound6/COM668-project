@@ -14,7 +14,7 @@ type Provider struct {
 	UUID   string `gorm:"column:uuid;size:36;unique;not null"`
 	Name   string `gorm:"column:name;size:30;unique;not null"`
 	Fields string `gorm:"column:fields;size:200;not null"`
-	Type   string `gorm:"column:type;check:type IN ('log', 'alert');size:5"`
+	Type   string `gorm:"column:type;check:type IN ('log','alert');size:5;not null"`
 }
 
 func (p *Provider) BeforeCreate(tx *gorm.DB) error {
@@ -32,7 +32,7 @@ func (p *Provider) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-// Get a single Log Provider by UUID
+// Get a single Provider by UUID
 func GetProvider(ctx *gin.Context, uuid string, provider_type string) (*Provider, error) {
 	filters := make(map[string]any, 0)
 	filters["uuid"] = uuid
@@ -47,7 +47,7 @@ func GetProvider(ctx *gin.Context, uuid string, provider_type string) (*Provider
 	return providers[0], nil
 }
 
-// Get a list of Log providers
+// Get a list of providers
 func GetProviders(ctx *gin.Context, filters map[string]any) ([]*Provider, error) {
 	// mapped `filterMapField, dbField`
 	allowedFilters := [][]string{
@@ -58,8 +58,8 @@ func GetProviders(ctx *gin.Context, filters map[string]any) ([]*Provider, error)
 	}
 	tx := GetDBTransaction(ctx)
 	providers := make([]*Provider, 0)
-	tx = filter(filters, allowedFilters, tx)
-	tx = tx.Find(&providers)
+	filter(filters, allowedFilters, tx)
+	tx.Find(&providers)
 	if tx.Error != nil {
 		return nil, handleError(ctx, tx.Error)
 	}

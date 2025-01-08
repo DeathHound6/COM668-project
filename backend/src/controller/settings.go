@@ -20,10 +20,21 @@ import (
 //	@Param			provider_type	query		string	true	"The type of provider"	Enums(log, alert)
 //	@Success		200				{object}	utility.ProvidersGetResponseSchema
 //	@Failure		401				{object}	utility.ErrorResponseSchema
+//	@Failure		403				{object}	utility.ErrorResponseSchema
 //	@Failure		500				{object}	utility.ErrorResponseSchema
 //	@Router			/providers [get]
 func GetProviders() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		loggedInUser := ctx.MustGet("user").(*database.User)
+		if !loggedInUser.Admin {
+			ctx.Set("Status", http.StatusForbidden)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "logged in user must be an admin",
+			})
+			ctx.Next()
+			return
+		}
+
 		providerType := strings.ToLower(ctx.Query("provider_type"))
 		if !utility.SliceHasElement([]string{"alert", "log"}, providerType) {
 			ctx.Set("Status", http.StatusBadRequest)
@@ -71,11 +82,21 @@ func GetProviders() gin.HandlerFunc {
 //	@Accept			json
 //	@Produce		json
 //	@Success		204
+//	@Failure		401	{object}	utility.ErrorResponseSchema
+//	@Failure		403	{object}	utility.ErrorResponseSchema
 //	@Failure		500	{object}	utility.ErrorResponseSchema
 //	@Router			/providers [post]
 func CreateProvider() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-
+		loggedInUser := ctx.MustGet("user").(*database.User)
+		if !loggedInUser.Admin {
+			ctx.Set("Status", http.StatusForbidden)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "logged in user must be an admin",
+			})
+			ctx.Next()
+			return
+		}
 	}
 }
 
@@ -89,10 +110,20 @@ func CreateProvider() gin.HandlerFunc {
 //	@Produce		json
 //	@Param			provider_id	path	string	true	"Provider ID"	format(uuid)
 //	@Success		204
+//	@Failure		401	{object}	utility.ErrorResponseSchema
+//	@Failure		403	{object}	utility.ErrorResponseSchema
 //	@Failure		500	{object}	utility.ErrorResponseSchema
 //	@Router			/providers/{provider_id} [put]
 func UpdateProvider() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-
+		loggedInUser := ctx.MustGet("user").(*database.User)
+		if !loggedInUser.Admin {
+			ctx.Set("Status", http.StatusForbidden)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "logged in user must be an admin",
+			})
+			ctx.Next()
+			return
+		}
 	}
 }

@@ -52,9 +52,3 @@ func (team *Team) BeforeDelete(tx *gorm.DB) error {
 func CreateTeam(ctx *gin.Context, body *utility.TeamPostRequestBodySchema) error {
 	return nil
 }
-
-func getTeams(tx *gorm.DB, teamNames []string) []Team {
-	teams := make([]Team, 0)
-	tx.Where("name IN (?)", teamNames).Take(&teams)
-	return teams
-}

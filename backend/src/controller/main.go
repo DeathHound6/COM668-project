@@ -37,11 +37,15 @@ func RegisterControllers(engine *gin.Engine) {
 
 	// Register users endpoints
 	register(engine, http.MethodPost, "/users", CreateUser(), registerControllerOptions{
-		useAuth: false,
+		useAuth: true,
 		useDB:   true,
 	})
 	register(engine, http.MethodPost, "/users/login", LoginUser(), registerControllerOptions{
 		useAuth: false,
+		useDB:   true,
+	})
+	register(engine, http.MethodGet, "/me", GetUser(), registerControllerOptions{
+		useAuth: true,
 		useDB:   true,
 	})
 
@@ -102,7 +106,7 @@ func register(engine *gin.Engine, method string, endpoint string, handler gin.Ha
 		if ok {
 			_, ok = body.(*utility.ErrorResponseSchema)
 		}
-		if !ok {
+		if body == nil || !ok {
 			log.Default().Println("Running endpoint handler")
 			handler(ctx)
 		}

@@ -15,6 +15,47 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// GetUser godoc
+//
+//	@Summary		Get basic details about the currently logged in user
+//	@Description	Get basic details about the currently logged in user
+//	@Tags			Users
+//	@Accept			json
+//	@Produce		json
+//	@Security		JWT
+//	@Success		200	{object}	utility.UserGetResponseBodySchema
+//	@Failure		401	{object}	utility.ErrorResponseSchema
+//	@Router			/me [get]
+func GetUser() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		value, exists := ctx.Get("user")
+		if !exists {
+			ctx.Set("Status", http.StatusUnauthorized)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "user is not authenticated",
+			})
+			ctx.Next()
+			return
+		}
+		user := value.(*database.User)
+
+		teams := make([]utility.TeamGetResponseBodySchema, len(user.Teams))
+		for i, team := range user.Teams {
+			teams[i] = utility.TeamGetResponseBodySchema{
+				UUID: team.UUID,
+				Name: team.Name,
+			}
+		}
+		ctx.Set("Status", http.StatusOK)
+		ctx.Set("Body", &utility.UserGetResponseBodySchema{
+			UUID:  user.UUID,
+			Name:  user.Name,
+			Email: user.Email,
+			Teams: teams,
+		})
+	}
+}
+
 // CreateUser godoc
 //
 //	@Summary		Create a user
@@ -64,8 +105,8 @@ func CreateUser() gin.HandlerFunc {
 //	@Param			request_body	body	utility.UserLoginRequestBodySchema	true	"Request Body"
 //	@Header			204				header	string								"JWT Token"
 //	@Success		204
+//	@Failure		400	{object}	utility.ErrorResponseSchema
 //	@Failure		403	{object}	utility.ErrorResponseSchema
-//	@Failure		404	{object}	utility.ErrorResponseSchema
 //	@Failure		500	{object}	utility.ErrorResponseSchema
 //	@Router			/users/login [post]
 func LoginUser() gin.HandlerFunc {
@@ -81,7 +122,7 @@ func LoginUser() gin.HandlerFunc {
 		}
 
 		var body *utility.UserLoginRequestBodySchema
-		if err := ctx.BindJSON(&body); err != nil {
+		if err := ctx.ShouldBindJSON(&body); err != nil {
 			ctx.Set("Status", http.StatusBadRequest)
 			ctx.Set("Body", &utility.ErrorResponseSchema{
 				Error: err.Error(),

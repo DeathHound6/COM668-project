@@ -38,6 +38,18 @@ type ProvidersGetResponseSchema struct {
 }
 
 type IncidentPostRequestBodySchema struct {
-	Team    uint   `json:"team"`
-	Summary string `json:"summary"`
+	Summary       string   `json:"summary"`
+	HostsAffected []string `json:"hostsAffected"`
+}
+
+type UserGetResponseBodySchema struct {
+	UUID  string                      `json:"uuid"`
+	Name  string                      `json:"name"`
+	Email string                      `json:"email"`
+	Teams []TeamGetResponseBodySchema `json:"teams"`
+}
+
+type TeamGetResponseBodySchema struct {
+	UUID string `json:"uuid"`
+	Name string `json:"name"`
 }

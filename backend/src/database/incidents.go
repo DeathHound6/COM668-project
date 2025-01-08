@@ -11,15 +11,14 @@ import (
 )
 
 type Incident struct {
-	ID           uint       `gorm:"column:id;primaryKey;autoIncrement"`
-	UUID         string     `gorm:"column:uuid;size:36;unique;not null"`
-	TeamID       uint       `gorm:"column:team_id;not null"`
-	Team         Team       `gorm:"foreignKey:team_id;references:id"`
-	Summary      string     `gorm:"column:summary;size:500;not null"`
-	CreatedAt    time.Time  `gorm:"column:created_at;autoCreateTime;not null"`
-	ResolvedAt   *time.Time `gorm:"column:resolved_at"`
-	ResolvedByID *uint      `gorm:"column:resolved_by_id"`
-	ResolvedBy   *User      `gorm:"foreignKey:resolved_by_id;references:id"`
+	ID            uint          `gorm:"column:id;primaryKey;autoIncrement"`
+	UUID          string        `gorm:"column:uuid;size:36;unique;not null"`
+	HostsAffected []HostMachine `gorm:"foreignKey:id"`
+	Summary       string        `gorm:"column:summary;size:500;not null"`
+	CreatedAt     time.Time     `gorm:"column:created_at;autoCreateTime;not null"`
+	ResolvedAt    *time.Time    `gorm:"column:resolved_at"`
+	ResolvedByID  *uint         `gorm:"column:resolved_by_id"`
+	ResolvedBy    *User         `gorm:"foreignKey:resolved_by_id;references:id"`
 }
 
 func (incident *Incident) BeforeCreate(tx *gorm.DB) error {
@@ -96,12 +95,29 @@ func (comment *IncidentComment) BeforeDelete(tx *gorm.DB) error {
 	return nil
 }
 
+func GetIncidents(ctx *gin.Context) ([]Incident, error) {
+	tx := GetDBTransaction(ctx)
+	// TODO: join to user and host tables
+	incidents := make([]Incident, 0)
+	tx = tx.Find(&incidents)
+	if tx.Error != nil {
+		return nil, handleError(ctx, tx.Error)
+	}
+	return incidents, nil
+}
+
 func CreateIncident(ctx *gin.Context, body *utility.IncidentPostRequestBodySchema) (*Incident, error) {
 	tx := GetDBTransaction(ctx)
-	// todo: Get Team by id
+	hosts := make([]HostMachine, 0)
+	// todo: validate hosts
+	for _, host := range body.HostsAffected {
+		hosts = append(hosts, HostMachine{
+			UUID: host,
+		})
+	}
 	incident := &Incident{
-		TeamID:  body.Team,
-		Summary: body.Summary,
+		HostsAffected: hosts,
+		Summary:       body.Summary,
 	}
 	tx = tx.Create(incident)
 	if tx.Error != nil {

@@ -9,6 +9,45 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// GetIncidents godoc
+//
+//	@Summary		Get a list of incidents
+//	@Description	Get a list of incidents
+//	@Tags			Incidents
+//	@Security		JWT
+//	@Produce		json
+//	@Success		200	{array}	utility.IncidentGetResponseBodySchema
+//	@Failure		401	{object}	utility.ErrorResponseSchema
+//	@Failure		500	{object}	utility.ErrorResponseSchema
+//	@Router			/incidents [get]
+func GetIncidents() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// incidents, err := database.GetIncidents(ctx)
+		// if err != nil {
+		// 	ctx.Set("Status", ctx.GetInt("errorCode"))
+		// 	ctx.Set("Body", &utility.ErrorResponseSchema{
+		// 		Error: err.Error(),
+		// 	})
+		// 	ctx.Next()
+		// 	return
+		// }
+
+		// response := make([]utility.IncidentGetResponseBodySchema, len(incidents))
+		// for i, incident := range incidents {
+		// 	response[i] = utility.IncidentGetResponseBodySchema{
+		// 		UUID:        incident.UUID,
+		// 		Title:       incident.Title,
+		// 		Description: incident.Description,
+		// 		Status:      incident.Status,
+		// 		TeamUUID:    incident.TeamUUID,
+		// 	}
+		// }
+
+		ctx.Set("Status", http.StatusOK)
+		//ctx.Set("Body", response)
+	}
+}
+
 // CreateIncident godoc
 //
 //	@Summary		Create an incident

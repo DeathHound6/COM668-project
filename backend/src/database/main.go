@@ -43,6 +43,7 @@ var (
 					Name: "Engineering",
 				},
 			},
+			Admin: true,
 		},
 	}
 )
@@ -157,7 +158,7 @@ func handleError(ctx *gin.Context, err error) error {
 	}
 }
 
-func filter(filters map[string]any, allowedFilters [][]string, tx *gorm.DB) *gorm.DB {
+func filter(filters map[string]any, allowedFilters [][]string, tx *gorm.DB) {
 	for _, filterMap := range allowedFilters {
 		value, ok := filters[filterMap[0]]
 		if !ok {
@@ -165,7 +166,7 @@ func filter(filters map[string]any, allowedFilters [][]string, tx *gorm.DB) *gor
 		}
 		// Pagination filters
 		if strings.ToLower(filterMap[0]) == "pagesize" {
-			tx = tx.Limit(value.(int))
+			tx.Limit(value.(int))
 			continue
 		}
 		if strings.ToLower(filterMap[0]) == "page" {
@@ -176,12 +177,11 @@ func filter(filters map[string]any, allowedFilters [][]string, tx *gorm.DB) *gor
 			}
 			// Value = page number
 			page := value.(int) * pageSize.(int)
-			tx = tx.Offset(page)
+			tx.Offset(page)
 			continue
 		}
 
 		// Column filters
-		tx = tx.Where(fmt.Sprintf("%s = ?", filterMap[1]), value)
+		tx.Where(fmt.Sprintf("%s = ?", filterMap[1]), value)
 	}
-	return tx
 }
