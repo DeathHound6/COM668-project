@@ -60,6 +60,7 @@ func SlackRedirect() gin.HandlerFunc {
 				AuthURL:  "https://slack.com/oauth/authorize",
 				TokenURL: "https://slack.com/api/oauth.access", // not actually used here
 			},
+			RedirectURL: "https://localhost:5000/authorise/slack/callback",
 		}
 		url := conf.AuthCodeURL(globalState.auth)
 		ctx.Redirect(302, url)
@@ -158,6 +159,14 @@ func AuthoriseSlack() gin.HandlerFunc {
 			return
 		}
 		user.SlackID = test.UserID
-		database.UpdateUser(ctx, user)
+		if err := database.UpdateUser(ctx, user); err != nil {
+			ctx.Set("Status", http.StatusInternalServerError)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+		ctx.Redirect(302, "http://localhost:3000/dashboard")
 	}
 }
