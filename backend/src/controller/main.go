@@ -50,6 +50,10 @@ func RegisterControllers(engine *gin.Engine) {
 	})
 
 	// Register incident endpoints
+	register(engine, http.MethodGet, "/incidents", GetIncidents(), registerControllerOptions{
+		useAuth: true,
+		useDB:   true,
+	})
 	register(engine, http.MethodPost, "/incidents", CreateIncident(), registerControllerOptions{
 		useAuth: true,
 		useDB:   true,

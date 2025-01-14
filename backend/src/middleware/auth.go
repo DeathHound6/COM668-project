@@ -21,7 +21,18 @@ var (
 
 func UserAuthRequestMW() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		authType := "header"
 		jwtString := ctx.GetHeader(AuthHeaderNameString)
+		// if jwt not in header, check cookies
+		if jwtString == "" {
+			authType = "cookie"
+			jwt, err := ctx.Cookie(AuthHeaderNameString)
+			if err != nil {
+				jwtString = ""
+			}
+			jwtString = jwt
+		}
+		// if jwt not in header or cookies, fail
 		if jwtString == "" {
 			ctx.Set("Status", http.StatusUnauthorized)
 			ctx.Set("Body", &utility.ErrorResponseSchema{
@@ -31,16 +42,19 @@ func UserAuthRequestMW() gin.HandlerFunc {
 			return
 		}
 
-		parts := strings.Split(jwtString, " ")
-		if len(parts) != 2 || (len(parts) > 0 && strings.ToLower(parts[0]) != "bearer") {
-			ctx.Set("Status", http.StatusUnauthorized)
-			ctx.Set("Body", &utility.ErrorResponseSchema{
-				Error: "jwt auth token does not follow the format `Bearer <token>`",
-			})
-			ctx.Next()
-			return
+		// only attempt to parse `Bearer <token>` format if jwt is in header
+		if authType == "header" {
+			parts := strings.Split(jwtString, " ")
+			if len(parts) != 2 || (len(parts) > 0 && strings.ToLower(parts[0]) != "bearer") {
+				ctx.Set("Status", http.StatusUnauthorized)
+				ctx.Set("Body", &utility.ErrorResponseSchema{
+					Error: "jwt auth token does not follow the format `Bearer <token>`",
+				})
+				ctx.Next()
+				return
+			}
+			jwtString = parts[1]
 		}
-		jwtString = parts[1]
 
 		token, err := jwt.Parse(
 			jwtString,

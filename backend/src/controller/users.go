@@ -163,5 +163,6 @@ func LoginUser() gin.HandlerFunc {
 
 		ctx.Set("Status", http.StatusNoContent)
 		ctx.Header(middleware.AuthHeaderNameString, fmt.Sprintf("Bearer %s", jwtString))
+		ctx.SetCookie(middleware.AuthHeaderNameString, jwtString, int(time.Hour)*24, "/", ctx.Request.URL.Host, true, false)
 	}
 }

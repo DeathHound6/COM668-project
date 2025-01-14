@@ -16,7 +16,7 @@ import (
 //	@Tags			Incidents
 //	@Security		JWT
 //	@Produce		json
-//	@Success		200	{array}	utility.IncidentGetResponseBodySchema
+//	@Success		200	{array}		utility.IncidentGetResponseBodySchema
 //	@Failure		401	{object}	utility.ErrorResponseSchema
 //	@Failure		500	{object}	utility.ErrorResponseSchema
 //	@Router			/incidents [get]

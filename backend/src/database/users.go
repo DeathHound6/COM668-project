@@ -24,6 +24,7 @@ type User struct {
 	Password string `gorm:"column:password;size:72;not null"`
 	Admin    bool   `gorm:"column:admin;not null"`
 	Teams    []Team `gorm:"many2many:team_user"`
+	SlackID  string `gorm:"column:slack_id;size:20"`
 }
 
 func (user *User) hashPassword() (*string, error) {
@@ -126,7 +127,12 @@ func CreateUser(ctx *gin.Context, body *utility.UserPostRequestBodySchema) (*Use
 	return user, nil
 }
 
-func UpdateUser(tx *gorm.DB) error {
+func UpdateUser(ctx *gin.Context, user *User) error {
+	tx := GetDBTransaction(ctx)
+	tx.Save(user)
+	if tx.Error != nil {
+		return handleError(ctx, tx.Error)
+	}
 	return nil
 }
 
