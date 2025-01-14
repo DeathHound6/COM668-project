@@ -30,17 +30,13 @@ export async function login(state: FormState, form: FormData) {
         })
     });
     if (response.status != 204) return {"error": JSON.parse(await response.text())["error"]};
-    const jwt = (response.headers.get("Authorization") as string).split(" ")[1];
 
-    response = await fetch("/api/me", {
-        headers: {
-            "Authorization": `Bearer ${jwt}`
-        }
-    });
+    response = await fetch("/api/me");
     if (response.status != 200) return {"error": JSON.parse(await response.text())["error"]};
     const user = JSON.parse(await response.text());
 
-    localStorage.setItem("u", JSON.stringify({"j": jwt, "u": user}));
+    localStorage.setItem("u", JSON.stringify(user));
+    localStorage.setItem("e", (Date.now() + 86400000).toString());
 
     redirect("/dashboard", RedirectType.replace);
 }
