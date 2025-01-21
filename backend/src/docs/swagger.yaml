@@ -7,6 +7,40 @@ definitions:
       error:
         type: string
     type: object
+  utility.HostMachineGetResponseBodySchema:
+    properties:
+      hostname:
+        type: string
+      ip4:
+        type: string
+      ip6:
+        type: string
+      name:
+        type: string
+      os:
+        type: string
+      team:
+        $ref: '#/definitions/utility.TeamGetResponseBodySchema'
+      uuid:
+        type: string
+    type: object
+  utility.IncidentGetResponseBodySchema:
+    properties:
+      createdAt:
+        type: string
+      hostsAffected:
+        items:
+          $ref: '#/definitions/utility.HostMachineGetResponseBodySchema'
+        type: array
+      resolvedAt:
+        type: string
+      resolvedBy:
+        $ref: '#/definitions/utility.UserGetResponseBodySchema'
+      summary:
+        type: string
+      uuid:
+        type: string
+    type: object
   utility.KeyValueSchema:
     properties:
       key:
@@ -45,9 +79,13 @@ definitions:
     type: object
   utility.UserGetResponseBodySchema:
     properties:
+      admin:
+        type: boolean
       email:
         type: string
       name:
+        type: string
+      slackID:
         type: string
       teams:
         items:
@@ -141,6 +179,30 @@ paths:
       tags:
       - Third-Party Auth
   /incidents:
+    get:
+      description: Get a list of incidents
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/utility.IncidentGetResponseBodySchema'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+      security:
+      - JWT: []
+      summary: Get a list of incidents
+      tags:
+      - Incidents
     post:
       consumes:
       - application/json

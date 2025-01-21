@@ -55,3 +55,22 @@ type TeamGetResponseBodySchema struct {
 	UUID string `json:"uuid"`
 	Name string `json:"name"`
 }
+
+type IncidentGetResponseBodySchema struct {
+	UUID          string                             `json:"uuid"`
+	HostsAffected []HostMachineGetResponseBodySchema `json:"hostsAffected"`
+	Summary       string                             `json:"summary"`
+	CreatedAt     string                             `json:"createdAt"`
+	ResolvedAt    *string                            `json:"resolvedAt"`
+	ResolvedBy    *UserGetResponseBodySchema         `json:"resolvedBy"`
+}
+
+type HostMachineGetResponseBodySchema struct {
+	UUID     string                    `json:"uuid"`
+	Name     string                    `json:"name"`
+	OS       string                    `json:"os"`
+	Hostname string                    `json:"hostname"`
+	IP4      string                    `json:"ip4"`
+	IP6      string                    `json:"ip6"`
+	Team     TeamGetResponseBodySchema `json:"team"`
+}

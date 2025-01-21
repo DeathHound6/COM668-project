@@ -114,6 +114,44 @@ const docTemplate = `{
             }
         },
         "/incidents": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get a list of incidents",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Incidents"
+                ],
+                "summary": "Get a list of incidents",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/utility.IncidentGetResponseBodySchema"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -529,6 +567,58 @@ const docTemplate = `{
                 }
             }
         },
+        "utility.HostMachineGetResponseBodySchema": {
+            "type": "object",
+            "properties": {
+                "hostname": {
+                    "type": "string"
+                },
+                "ip4": {
+                    "type": "string"
+                },
+                "ip6": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "os": {
+                    "type": "string"
+                },
+                "team": {
+                    "$ref": "#/definitions/utility.TeamGetResponseBodySchema"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "utility.IncidentGetResponseBodySchema": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "hostsAffected": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utility.HostMachineGetResponseBodySchema"
+                    }
+                },
+                "resolvedAt": {
+                    "type": "string"
+                },
+                "resolvedBy": {
+                    "$ref": "#/definitions/utility.UserGetResponseBodySchema"
+                },
+                "summary": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
         "utility.KeyValueSchema": {
             "type": "object",
             "properties": {
@@ -588,10 +678,16 @@ const docTemplate = `{
         "utility.UserGetResponseBodySchema": {
             "type": "object",
             "properties": {
+                "admin": {
+                    "type": "boolean"
+                },
                 "email": {
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "slackID": {
                     "type": "string"
                 },
                 "teams": {

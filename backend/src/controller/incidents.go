@@ -22,29 +22,25 @@ import (
 //	@Router			/incidents [get]
 func GetIncidents() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		// incidents, err := database.GetIncidents(ctx)
-		// if err != nil {
-		// 	ctx.Set("Status", ctx.GetInt("errorCode"))
-		// 	ctx.Set("Body", &utility.ErrorResponseSchema{
-		// 		Error: err.Error(),
-		// 	})
-		// 	ctx.Next()
-		// 	return
-		// }
+		incidents, err := database.GetIncidents(ctx)
+		if err != nil {
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
 
-		// response := make([]utility.IncidentGetResponseBodySchema, len(incidents))
-		// for i, incident := range incidents {
-		// 	response[i] = utility.IncidentGetResponseBodySchema{
-		// 		UUID:        incident.UUID,
-		// 		Title:       incident.Title,
-		// 		Description: incident.Description,
-		// 		Status:      incident.Status,
-		// 		TeamUUID:    incident.TeamUUID,
-		// 	}
-		// }
+		response := make([]utility.IncidentGetResponseBodySchema, len(incidents))
+		for i, incident := range incidents {
+			response[i] = utility.IncidentGetResponseBodySchema{
+				UUID: incident.UUID,
+			}
+		}
 
 		ctx.Set("Status", http.StatusOK)
-		//ctx.Set("Body", response)
+		ctx.Set("Body", response)
 	}
 }
 
