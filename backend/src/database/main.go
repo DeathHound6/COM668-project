@@ -105,7 +105,7 @@ func migrate(conn *gorm.DB) {
 	if err := insert_default_data(tx); err != nil {
 		panic(err)
 	}
-	tx.Commit()
+	tx = tx.Commit()
 	if tx.Error != nil {
 		panic(tx.Error)
 	}
@@ -158,30 +158,33 @@ func handleError(ctx *gin.Context, err error) error {
 	}
 }
 
-func filter(filters map[string]any, allowedFilters [][]string, tx *gorm.DB) {
+func filter(filters map[string]any, allowedFilters [][]string, tx *gorm.DB) *gorm.DB {
 	for _, filterMap := range allowedFilters {
 		value, ok := filters[filterMap[0]]
 		if !ok {
+			log.Default().Printf("Filter %s not allowed. skipping...\n", filterMap[0])
 			continue
 		}
 		// Pagination filters
 		if strings.ToLower(filterMap[0]) == "pagesize" {
-			tx.Limit(value.(int))
+			tx = tx.Limit(value.(int))
 			continue
 		}
 		if strings.ToLower(filterMap[0]) == "page" {
 			// Ensure page size exists - this allows us to calculate offset
 			pageSize, ok := filters["pageSize"]
 			if !ok {
+				log.Default().Println("Page size not provided. skipping...")
 				continue
 			}
 			// Value = page number
 			page := value.(int) * pageSize.(int)
-			tx.Offset(page)
+			tx = tx.Offset(page)
 			continue
 		}
 
 		// Column filters
-		tx.Where(fmt.Sprintf("%s = ?", filterMap[1]), value)
+		tx = tx.Where(fmt.Sprintf("%s = ?", filterMap[1]), value)
 	}
+	return tx
 }

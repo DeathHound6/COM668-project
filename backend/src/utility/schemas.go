@@ -43,10 +43,12 @@ type IncidentPostRequestBodySchema struct {
 }
 
 type UserGetResponseBodySchema struct {
-	UUID  string                      `json:"uuid"`
-	Name  string                      `json:"name"`
-	Email string                      `json:"email"`
-	Teams []TeamGetResponseBodySchema `json:"teams"`
+	UUID    string                      `json:"uuid"`
+	Name    string                      `json:"name"`
+	Email   string                      `json:"email"`
+	Teams   []TeamGetResponseBodySchema `json:"teams"`
+	SlackID string                      `json:"slackID"`
+	Admin   bool                        `json:"admin"`
 }
 
 type TeamGetResponseBodySchema struct {

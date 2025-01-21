@@ -58,8 +58,8 @@ func GetProviders(ctx *gin.Context, filters map[string]any) ([]*Provider, error)
 	}
 	tx := GetDBTransaction(ctx)
 	providers := make([]*Provider, 0)
-	filter(filters, allowedFilters, tx)
-	tx.Find(&providers)
+	tx = filter(filters, allowedFilters, tx)
+	tx = tx.Find(&providers)
 	if tx.Error != nil {
 		return nil, handleError(ctx, tx.Error)
 	}

@@ -93,10 +93,10 @@ func GetUser(ctx *gin.Context, email string) (*User, error) {
 	}
 	filters := make(map[string]any, 0)
 	filters["email"] = email
-	filter(filters, allowedFilters, tx)
+	tx = filter(filters, allowedFilters, tx)
 	users := make([]*User, 0)
 	// join to teams table
-	tx.Find(&users)
+	tx = tx.Find(&users)
 	if tx.Error != nil {
 		return nil, handleError(ctx, tx.Error)
 	}
@@ -120,7 +120,7 @@ func CreateUser(ctx *gin.Context, body *utility.UserPostRequestBodySchema) (*Use
 		Password: body.Password,
 		Teams:    teams,
 	}
-	tx.Clauses(clause.OnConflict{DoNothing: true}).Create(user)
+	tx = tx.Clauses(clause.OnConflict{DoNothing: true}).Create(user)
 	if tx.Error != nil {
 		return nil, handleError(ctx, tx.Error)
 	}
@@ -129,7 +129,7 @@ func CreateUser(ctx *gin.Context, body *utility.UserPostRequestBodySchema) (*Use
 
 func UpdateUser(ctx *gin.Context, user *User) error {
 	tx := GetDBTransaction(ctx)
-	tx.Save(user)
+	tx = tx.Save(user)
 	if tx.Error != nil {
 		return handleError(ctx, tx.Error)
 	}
