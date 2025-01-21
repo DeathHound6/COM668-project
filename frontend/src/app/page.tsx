@@ -1,16 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-
+// this file doesn't have a purpose other than rendering the navbar from layout
+// that will redirect the user to the necessary page
 export default function Home() {
-    const router = useRouter();
-    useEffect(() => {
-        const token = localStorage.getItem("j");
-        if (token == null)
-            router.push("/login");
-        else
-            router.push("/dashboard");
-    }, []);
-    return (<></>);
+    return (<main></main>);
 }
