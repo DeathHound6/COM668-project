@@ -48,10 +48,12 @@ func GetUser() gin.HandlerFunc {
 		}
 		ctx.Set("Status", http.StatusOK)
 		ctx.Set("Body", &utility.UserGetResponseBodySchema{
-			UUID:  user.UUID,
-			Name:  user.Name,
-			Email: user.Email,
-			Teams: teams,
+			UUID:    user.UUID,
+			Name:    user.Name,
+			Email:   user.Email,
+			Teams:   teams,
+			SlackID: user.SlackID,
+			Admin:   user.Admin,
 		})
 	}
 }
