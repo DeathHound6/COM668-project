@@ -1,14 +1,50 @@
+"use client";
+
 import Navbar from "../components/navbar";
+import { redirect, RedirectType, usePathname } from "next/navigation";
+import { ToastContainer, Toast, ToastHeader, ToastBody } from "react-bootstrap";
+import { useEffect, useState } from "react";
+import { getMe } from "../actions/auth";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./globals.css";
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+    const url = usePathname();
+    const [authedFor, setAuthedFor] = useState(null as any);
+
+    useEffect(() => {
+        const authCompleteFor = localStorage.getItem("auth");
+        if (authCompleteFor == null)
+            return;
+        getMe()
+        .then(() => {
+            setAuthedFor(authCompleteFor);
+            localStorage.removeItem("auth");
+        })
+        .catch(e => {
+            console.error(e);
+            localStorage.removeItem("u");
+            localStorage.removeItem("e");
+            redirect("/login", RedirectType.replace);
+        });
+    }, [url]);
+
     return (
-      <html lang="en">
-          <body>
-              <Navbar />
-              {children}
-          </body>
-      </html>
+        <html lang="en">
+            <body>
+                <Navbar />
+                {children}
+                { url != "/login" && (
+                    <ToastContainer position="bottom-end" className="p-3">
+                        { authedFor && (
+                            <Toast autohide delay={5000} onClose={() => setAuthedFor(null)} bg="success">
+                                <ToastHeader>Authorised</ToastHeader>
+                                <ToastBody>Successfully authorised for {authedFor}</ToastBody>
+                            </Toast>
+                        )}
+                    </ToastContainer>
+                )}
+            </body>
+        </html>
     );
 }

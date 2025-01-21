@@ -1,6 +1,5 @@
 "use client";
 
-import { getMe } from "../actions/auth";
 import { redirect, RedirectType, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Navbar, NavbarText, NavItem, NavLink } from "react-bootstrap";
@@ -8,7 +7,6 @@ import { Navbar, NavbarText, NavItem, NavLink } from "react-bootstrap";
 export default function NavbarComponent() {
     const pathname = usePathname();
     const [user, setUser] = useState({} as any);
-    const [authedFor, setAuthedFor] = useState(null as any);
 
     useEffect(() => {
         // Handle the case where the JWT token is expired on page load
@@ -28,22 +26,6 @@ export default function NavbarComponent() {
         if (window.location.pathname.toLowerCase() == "/login" && userinfo != null)
             redirect("/dashboard", RedirectType.replace);
         setUser(userinfo != null ? JSON.parse(userinfo) : null);
-        
-        const authCompleteFor = localStorage.getItem("auth");
-        if (authCompleteFor == null)
-            return;
-        getMe()
-        .then(user => {
-            setAuthedFor(authCompleteFor);
-            setUser(user);
-            localStorage.removeItem("auth");
-        })
-        .catch(e => {
-            console.error(e);
-            localStorage.removeItem("u");
-            localStorage.removeItem("e");
-            redirect("/login", RedirectType.replace);
-        });
     }, [pathname]);
 
     function authSlack() {
@@ -56,7 +38,6 @@ export default function NavbarComponent() {
             <NavItem className="p-2 m-1 border rounded" hidden={user == null}>
                 <NavLink href="/dashboard">Dashboard</NavLink>
             </NavItem>
-            <hr style={{rotate: "90"}} className="my-1" />
             <NavItem className="p-2 m-1 border rounded" hidden={user == null || user["admin"] == false}>
                 <NavLink href="/settings">Settings</NavLink>
             </NavItem>
