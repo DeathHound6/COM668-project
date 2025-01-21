@@ -1,3 +1,4 @@
+import type { User } from "../interfaces/user";
 import { z } from "zod";
 import { redirect, RedirectType } from "next/navigation";
 
@@ -39,7 +40,6 @@ export async function login(state: FormState, form: FormData) {
     {
         await getMe();
         localStorage.setItem("e", (Date.now() + 86400000).toString());
-        redirect("/dashboard", RedirectType.replace);
     }
     catch(e)
     {
@@ -48,12 +48,13 @@ export async function login(state: FormState, form: FormData) {
             error: (e as Error).message
         };
     }
+    redirect("/dashboard", RedirectType.replace);
 }
 
 export async function getMe() {
     const response = await fetch("/api/me");
     if (response.status != 200) throw new Error(JSON.parse(await response.text())["error"]);
-    const userinfo = JSON.parse(await response.text());
+    const userinfo: User = JSON.parse(await response.text());
     localStorage.setItem("u", JSON.stringify(userinfo));
     return userinfo;
 }
