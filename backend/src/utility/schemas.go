@@ -67,7 +67,6 @@ type IncidentGetResponseBodySchema struct {
 
 type HostMachineGetResponseBodySchema struct {
 	UUID     string                    `json:"uuid"`
-	Name     string                    `json:"name"`
 	OS       string                    `json:"os"`
 	Hostname string                    `json:"hostname"`
 	IP4      string                    `json:"ip4"`

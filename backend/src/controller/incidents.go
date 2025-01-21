@@ -5,6 +5,7 @@ import (
 	"com668-backend/utility"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,7 +23,18 @@ import (
 //	@Router			/incidents [get]
 func GetIncidents() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		incidents, err := database.GetIncidents(ctx)
+		resolved := ctx.Query("resolved")
+		resolvedBool, err := strconv.ParseBool(resolved)
+		if err != nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		incidents, err := database.GetIncidents(ctx, &resolvedBool)
 		if err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
 			ctx.Set("Body", &utility.ErrorResponseSchema{

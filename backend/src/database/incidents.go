@@ -95,10 +95,17 @@ func (comment *IncidentComment) BeforeDelete(tx *gorm.DB) error {
 	return nil
 }
 
-func GetIncidents(ctx *gin.Context) ([]Incident, error) {
+func GetIncidents(ctx *gin.Context, resolved *bool) ([]Incident, error) {
 	tx := GetDBTransaction(ctx)
 	// TODO: join to user and host tables
 	incidents := make([]Incident, 0)
+	if resolved != nil {
+		if *resolved {
+			tx = tx.Where("resolved_at IS NOT NULL")
+		} else {
+			tx = tx.Where("resolved_at IS NULL")
+		}
+	}
 	tx = tx.Find(&incidents)
 	if tx.Error != nil {
 		return nil, handleError(ctx, tx.Error)
