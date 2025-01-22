@@ -45,7 +45,10 @@ export default function LoginPage() {
     function onCloseToast(index: number, type: string) {
         const errors = type == "email" ? [...showEmailError] : [...showPasswordError];
         errors[index] = false;
-        type == "email" ? setShowEmailError(errors) : setShowPasswordError(errors);
+        if (type == "email")
+            setShowEmailError(errors);
+        else
+            setShowPasswordError(errors);
     }
 
     return (

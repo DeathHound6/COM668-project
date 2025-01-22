@@ -62,7 +62,7 @@ func GetProviders() gin.HandlerFunc {
 		}
 		for _, provider := range providers {
 			prov := utility.ProviderGetResponseSchema{
-				ID:     provider.UUID,
+				UUID:   provider.UUID,
 				Name:   provider.Name,
 				Fields: utility.GetFieldsMapFromString(provider.Fields),
 				Type:   provider.Type,
@@ -134,7 +134,7 @@ func CreateProvider() gin.HandlerFunc {
 		log.Default().Println(provider)
 		ctx.Set("Status", http.StatusCreated)
 		ctx.Set("Body", &utility.ProviderGetResponseSchema{
-			ID:     provider.UUID,
+			UUID:   provider.UUID,
 			Name:   provider.Name,
 			Fields: utility.GetFieldsMapFromString(provider.Fields),
 			Type:   provider.Type,

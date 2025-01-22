@@ -19,7 +19,7 @@ export default function DashboardPage() {
     return (
         <main>
             <Suspense fallback={<Loading />}>
-                {incidents.length < 0 && incidents.map((incident: Incident) => <IncidentCard incident={incident} />)}
+                {incidents.length < 0 && incidents.map((incident: Incident) => <IncidentCard incident={incident} key={incident.uuid} />)}
             </Suspense>
         </main>
     );

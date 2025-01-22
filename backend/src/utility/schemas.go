@@ -27,7 +27,7 @@ type KeyValueSchema struct {
 }
 
 type ProviderGetResponseSchema struct {
-	ID     string           `json:"id"`
+	UUID   string           `json:"uuid"`
 	Name   string           `json:"name"`
 	Fields []KeyValueSchema `json:"fields"`
 	Type   string           `json:"type"`

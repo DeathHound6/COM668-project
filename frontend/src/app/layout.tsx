@@ -10,7 +10,7 @@ import "./globals.css";
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     const url = usePathname();
-    const [authedFor, setAuthedFor] = useState(null as any);
+    const [authedFor, setAuthedFor] = useState(null as string | null);
 
     useEffect(() => {
         const authCompleteFor = localStorage.getItem("auth");

@@ -1,5 +1,6 @@
 "use client";
 
+import type { User } from "../interfaces/user";
 import { redirect, RedirectType, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
@@ -20,11 +21,11 @@ import { Slack } from "react-bootstrap-icons";
 
 export default function NavbarComponent() {
     const pathname = usePathname();
-    const [user, setUser] = useState({} as any);
+    const [user, setUser] = useState({} as User);
 
     useEffect(() => {
         // Handle the case where the JWT token is expired on page load
-        let userinfo = localStorage.getItem("u");
+        const userinfo = localStorage.getItem("u");
         const expireTimestamp = localStorage.getItem("e");
         if (window.location.pathname.toLowerCase() != "/login" && (userinfo == null || expireTimestamp == null))
             redirect("/login", RedirectType.replace);
@@ -61,7 +62,7 @@ export default function NavbarComponent() {
                 </NavItem>
             </Nav>
             <NavItem className="me-auto"></NavItem>
-            <NavItem hidden={user == null}>
+            <NavItem>
                 <Dropdown>
                     <DropdownToggle>User Info</DropdownToggle>
                     <DropdownMenu align="end" style={{minWidth: "13rem"}}>

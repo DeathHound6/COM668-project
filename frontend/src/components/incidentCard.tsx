@@ -1,5 +1,6 @@
 "use client";
 
+import type { HostMachine } from "../interfaces/hosts";
 import type { Incident } from "../interfaces/incident";
 import {
     Card,
@@ -21,8 +22,8 @@ export default function IncidentCard({ incident }: Readonly<{ incident: Incident
                 <CardText>{incident.summary}</CardText>
                 <CardHeader>Hosts Affected</CardHeader>
                 <ListGroup>
-                    {incident.hostsAffected.map((host) => (
-                        <ListGroupItem>
+                    {incident.hostsAffected.map((host: HostMachine) => (
+                        <ListGroupItem key={`${incident.uuid}-${host.uuid}`}>
                             <CardLink href={`/hosts/${host.uuid}`}>{host.hostname}</CardLink>
                         </ListGroupItem>
                     ))}

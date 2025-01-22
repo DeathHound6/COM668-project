@@ -690,13 +690,13 @@ const docTemplate = `{
                         "$ref": "#/definitions/utility.KeyValueSchema"
                     }
                 },
-                "id": {
-                    "type": "string"
-                },
                 "name": {
                     "type": "string"
                 },
                 "type": {
+                    "type": "string"
+                },
+                "uuid": {
                     "type": "string"
                 }
             }

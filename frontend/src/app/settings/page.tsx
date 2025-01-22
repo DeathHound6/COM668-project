@@ -1,5 +1,6 @@
 "use client";
 
+import type { SettingField, Settings } from "../../interfaces/settings";
 import { startTransition, useActionState, useEffect, useState } from "react";
 import {
     Button,
@@ -51,7 +52,7 @@ export default function SettingsPage() {
     const [state, action, pending] = useActionState<FormState, FormData>(createNewField, { errors: { key: undefined, value: undefined, type: undefined, name: undefined } });
     const [settingState, settingAction, settingPending] = useActionState<FormState, FormData>(createSetting, { errors: { key: undefined, value: undefined, type: undefined, name: undefined } });
 
-    const [settings, setSettings] = useState([] as any[]);
+    const [settings, setSettings] = useState([] as Settings[]);
     const [providerType, setProviderType] = useState("log");
 
     const [newfieldProviderIndex, setNewFieldProviderIndex] = useState(-1);
@@ -94,7 +95,7 @@ export default function SettingsPage() {
 
     function updateSetting(index: number) {
         const setting = settings[index];
-        fetch(`/api/providers/${setting.id}`, {
+        fetch(`/api/providers/${setting.uuid}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json"
@@ -155,7 +156,7 @@ export default function SettingsPage() {
     function deleteField(providerIndex: number, fieldKey: string) {
         const newSettings = [...settings];
         const setting = newSettings[providerIndex];
-        setting.fields = setting.fields.filter((field: any) => field.key != fieldKey);
+        setting.fields = setting.fields.filter((field: SettingField) => field.key != fieldKey);
         newSettings[providerIndex] = setting;
         setSettings(newSettings);
     }
@@ -185,7 +186,7 @@ export default function SettingsPage() {
 
     function deleteSetting(index: number) {
         const setting = settings[index];
-        fetch(`/api/providers/${setting.id}`, {
+        fetch(`/api/providers/${setting.uuid}`, {
             method: "DELETE"
         })
         .then(
@@ -310,11 +311,11 @@ export default function SettingsPage() {
 
             <Row style={{alignContent: "center", textAlign: "center"}} xs={2} md={4} className="mx-5">
                 {
-                    settings.map((setting: any, index: number) => (
-                        <Col key={`col-${setting.id}`}>
-                            <Card className="m-2 p-2 border rounded" key={`c-${setting.id}`}>
-                                <CardBody key={`cb-${setting.id}`}>
-                                    <CardTitle key={`ct-${setting.id}`}>
+                    settings.map((setting: Settings, index: number) => (
+                        <Col key={`col-${setting.uuid}`}>
+                            <Card className="m-2 p-2 border rounded" key={`c-${setting.uuid}`}>
+                                <CardBody key={`cb-${setting.uuid}`}>
+                                    <CardTitle key={`ct-${setting.uuid}`}>
                                         <Row>
                                             <Col className="ms-5">{setting.name}</Col>
                                             <Col xs={2}>
@@ -325,12 +326,12 @@ export default function SettingsPage() {
                                         </Row>
                                     </CardTitle>
                                     {
-                                        setting.fields.map((field: any) => (
-                                            <InputGroup key={`ig-${setting.id}-${field.key}`} className="m-2">
-                                                <FloatingLabel controlId="floatingKey" label={field.key} key={`fl-${setting.id}-${field.key}`}>
-                                                    <FormControl type="text" defaultValue={field.value} key={`fc-${setting.id}-${field.key}`} />
+                                        setting.fields.map((field: SettingField) => (
+                                            <InputGroup key={`ig-${setting.uuid}-${field.key}`} className="m-2">
+                                                <FloatingLabel controlId="floatingKey" label={field.key} key={`fl-${setting.uuid}-${field.key}`}>
+                                                    <FormControl type="text" defaultValue={field.value} key={`fc-${setting.uuid}-${field.key}`} />
                                                 </FloatingLabel>
-                                                <InputGroupText key={`igt-${setting.id}-${field.key}`}>{field.type}</InputGroupText>
+                                                <InputGroupText key={`igt-${setting.uuid}-${field.key}`}>{field.type}</InputGroupText>
                                                 <OverlayTrigger overlay={<Tooltip>Delete Field</Tooltip>}>
                                                     <InputGroupText style={{cursor: "pointer", color: "red"}} onClick={() => deleteField(index, field.key)}>
                                                         <XLg />

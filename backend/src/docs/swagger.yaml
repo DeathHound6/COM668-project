@@ -54,11 +54,11 @@ definitions:
         items:
           $ref: '#/definitions/utility.KeyValueSchema'
         type: array
-      id:
-        type: string
       name:
         type: string
       type:
+        type: string
+      uuid:
         type: string
     type: object
   utility.ProvidersGetResponseSchema:
