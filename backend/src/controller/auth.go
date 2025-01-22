@@ -63,6 +63,11 @@ func SlackRedirect() gin.HandlerFunc {
 			RedirectURL: "https://localhost:5000/authorise/slack/callback",
 		}
 		url := conf.AuthCodeURL(globalState.auth)
+		go (func() {
+			// keep the state valid for 5 minutes
+			time.Sleep(time.Minute * 5)
+			delete(authStateMapper, user.UUID)
+		})()
 		ctx.Redirect(302, url)
 	}
 }

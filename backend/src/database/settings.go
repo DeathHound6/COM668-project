@@ -65,3 +65,33 @@ func GetProviders(ctx *gin.Context, filters map[string]any) ([]*Provider, error)
 	}
 	return providers, nil
 }
+
+// Create a Provider
+func CreateProvider(ctx *gin.Context, provider *Provider) error {
+	tx := GetDBTransaction(ctx)
+	tx = tx.Create(provider)
+	if tx.Error != nil {
+		return handleError(ctx, tx.Error)
+	}
+	return nil
+}
+
+// Update a Provider
+func UpdateProvider(ctx *gin.Context, uuid string, fields string) error {
+	tx := GetDBTransaction(ctx)
+	tx = tx.Model(&Provider{}).Where("uuid = ?", uuid).Update("fields", fields)
+	if tx.Error != nil {
+		return handleError(ctx, tx.Error)
+	}
+	return nil
+}
+
+// Delete a provider
+func DeleteProvider(ctx *gin.Context, uuid string) error {
+	tx := GetDBTransaction(ctx)
+	tx = tx.Where("uuid = ?", uuid).Delete(&Provider{})
+	if tx.Error != nil {
+		return handleError(ctx, tx.Error)
+	}
+	return nil
+}

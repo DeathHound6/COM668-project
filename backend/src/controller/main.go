@@ -72,6 +72,10 @@ func RegisterControllers(engine *gin.Engine) {
 		useAuth: true,
 		useDB:   true,
 	})
+	register(engine, http.MethodDelete, "/providers/:provider_id", DeleteProvider(), registerControllerOptions{
+		useAuth: true,
+		useDB:   true,
+	})
 }
 
 func register(engine *gin.Engine, method string, endpoint string, handler gin.HandlerFunc, options registerControllerOptions) {

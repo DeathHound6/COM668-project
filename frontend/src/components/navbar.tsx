@@ -63,7 +63,7 @@ export default function NavbarComponent() {
             <NavItem className="me-auto"></NavItem>
             <NavItem hidden={user == null}>
                 <Dropdown>
-                    <DropdownToggle>User</DropdownToggle>
+                    <DropdownToggle>User Info</DropdownToggle>
                     <DropdownMenu align="end" style={{minWidth: "13rem"}}>
                         { user == null
                             ? (<DropdownItemText>Not logged in</DropdownItemText>)

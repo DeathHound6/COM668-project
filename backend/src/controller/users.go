@@ -75,7 +75,7 @@ func GetUser() gin.HandlerFunc {
 func CreateUser() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var body *utility.UserPostRequestBodySchema
-		if err := ctx.BindJSON(&body); err != nil {
+		if err := ctx.ShouldBindJSON(&body); err != nil {
 			ctx.Set("Status", http.StatusBadRequest)
 			ctx.Set("Body", &utility.ErrorResponseSchema{
 				Error: err.Error(),

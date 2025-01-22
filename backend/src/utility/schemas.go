@@ -73,3 +73,11 @@ type HostMachineGetResponseBodySchema struct {
 	IP6      string                    `json:"ip6"`
 	Team     TeamGetResponseBodySchema `json:"team"`
 }
+
+type ProviderPostRequestBodySchema struct {
+	Name string `json:"name"`
+}
+
+type ProviderPutRequestBodySchema struct {
+	Fields []KeyValueSchema `json:"fields"`
+}

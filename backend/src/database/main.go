@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	mysql2 "github.com/go-sql-driver/mysql"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -141,20 +142,31 @@ func GetContext(tx *gorm.DB) *gin.Context {
 }
 
 func handleError(ctx *gin.Context, err error) error {
-	switch err.Error() {
-	case gorm.ErrDuplicatedKey.Error():
+	if errors.Is(err, gorm.ErrDuplicatedKey) {
 		ctx.Set("errorCode", http.StatusBadRequest)
-		return errors.New("duplicate data was provided")
-	case gorm.ErrForeignKeyViolated.Error():
+		return errors.New("duplicate primary key was provided")
+	} else if errors.Is(err, gorm.ErrForeignKeyViolated) {
 		ctx.Set("errorCode", http.StatusBadRequest)
-		return errors.New("")
-	case gorm.ErrCheckConstraintViolated.Error():
+		return errors.New("foreign key constraint violated")
+	} else if errors.Is(err, gorm.ErrCheckConstraintViolated) {
 		ctx.Set("errorCode", http.StatusBadRequest)
 		return errors.New("an invalid enum value was given")
-	default:
-		log.Default().Fatalf("unhandled error: %e\n", err)
-		ctx.Set("errorCode", http.StatusInternalServerError)
-		return errors.New("an unhandled error occurred")
+	} else {
+		if mysqlErr, ok := err.(*mysql2.MySQLError); ok {
+			switch mysqlErr.Number {
+			case 1062:
+				ctx.Set("errorCode", http.StatusBadRequest)
+				return errors.New("duplicate field value was provided")
+			default:
+				log.Default().Printf("unhandled error: %e\n", err)
+				ctx.Set("errorCode", http.StatusInternalServerError)
+				return errors.New("an unhandled error occurred")
+			}
+		} else {
+			log.Default().Printf("unhandled error: %e\n", err)
+			ctx.Set("errorCode", http.StatusInternalServerError)
+			return errors.New("an unhandled error occurred")
+		}
 	}
 }
 

@@ -3,6 +3,7 @@ package controller
 import (
 	"com668-backend/database"
 	"com668-backend/utility"
+	"log"
 	"net/http"
 	"strings"
 
@@ -81,7 +82,7 @@ func GetProviders() gin.HandlerFunc {
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Success		204
+//	@Success		201
 //	@Failure		401	{object}	utility.ErrorResponseSchema
 //	@Failure		403	{object}	utility.ErrorResponseSchema
 //	@Failure		500	{object}	utility.ErrorResponseSchema
@@ -97,6 +98,47 @@ func CreateProvider() gin.HandlerFunc {
 			ctx.Next()
 			return
 		}
+
+		providerType := strings.ToLower(ctx.Query("provider_type"))
+		if !utility.SliceHasElement([]string{"alert", "log"}, providerType) {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "'provider_type' query parameter must be either 'log' or 'alert'",
+			})
+			ctx.Next()
+			return
+		}
+		var body *utility.ProviderPostRequestBodySchema
+		if err := ctx.ShouldBindJSON(&body); err != nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		provider := &database.Provider{
+			Name:   body.Name,
+			Fields: "",
+			Type:   providerType,
+		}
+		if err := database.CreateProvider(ctx, provider); err != nil {
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+		log.Default().Println(provider)
+		ctx.Set("Status", http.StatusCreated)
+		ctx.Set("Body", &utility.ProviderGetResponseSchema{
+			ID:     provider.UUID,
+			Name:   provider.Name,
+			Fields: utility.GetFieldsMapFromString(provider.Fields),
+			Type:   provider.Type,
+		})
 	}
 }
 
@@ -125,5 +167,65 @@ func UpdateProvider() gin.HandlerFunc {
 			ctx.Next()
 			return
 		}
+
+		var body *utility.ProviderPutRequestBodySchema
+		if err := ctx.ShouldBindJSON(&body); err != nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		providerID := ctx.Param("provider_id")
+		if err := database.UpdateProvider(ctx, providerID, utility.GetStringFromFieldsMap(body.Fields)); err != nil {
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+		ctx.Set("Status", http.StatusNoContent)
+	}
+}
+
+// DeleteProvider godoc
+//
+//	@Summary		Delete a provider
+//	@Description	Delete a provider
+//	@Tags			Settings
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			provider_id	path	string	true	"Provider ID"	format(uuid)
+//	@Success		204
+//	@Failure		401	{object}	utility.ErrorResponseSchema
+//	@Failure		403	{object}	utility.ErrorResponseSchema
+//	@Failure		500	{object}	utility.ErrorResponseSchema
+//	@Router			/providers/{provider_id} [delete]
+func DeleteProvider() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		loggedInUser := ctx.MustGet("user").(*database.User)
+		if !loggedInUser.Admin {
+			ctx.Set("Status", http.StatusForbidden)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "logged in user must be an admin",
+			})
+			ctx.Next()
+			return
+		}
+
+		providerID := ctx.Param("provider_id")
+		if err := database.DeleteProvider(ctx, providerID); err != nil {
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+		ctx.Set("Status", http.StatusNoContent)
 	}
 }

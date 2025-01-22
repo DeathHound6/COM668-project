@@ -286,8 +286,8 @@ const docTemplate = `{
                 ],
                 "summary": "Create a provider",
                 "responses": {
-                    "204": {
-                        "description": "No Content"
+                    "201": {
+                        "description": "Created"
                     },
                     "401": {
                         "description": "Unauthorized",
@@ -328,6 +328,57 @@ const docTemplate = `{
                     "Settings"
                 ],
                 "summary": "Update a provider",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Provider ID",
+                        "name": "provider_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Delete a provider",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Delete a provider",
                 "parameters": [
                     {
                         "type": "string",
@@ -577,9 +628,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "ip6": {
-                    "type": "string"
-                },
-                "name": {
                     "type": "string"
                 },
                 "os": {

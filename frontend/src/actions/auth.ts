@@ -19,10 +19,11 @@ export async function login(state: FormState, form: FormData) {
     const password = form.get("password") as string;
 
     const validatedFields = loginSchema.safeParse({email, password});
-    if (!validatedFields.success) return {
-        errors: validatedFields.error.flatten().fieldErrors,
-        error: undefined
-    }
+    if (!validatedFields.success)
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+            error: undefined
+        };
 
     const response = await fetch("/api/users/login", {
         method: 'POST',
@@ -31,10 +32,11 @@ export async function login(state: FormState, form: FormData) {
             password: password
         })
     });
-    if (response.status != 204) return {
-        errors: {email: undefined, password: undefined},
-        error: JSON.parse(await response.text())["error"] as string
-    };
+    if (response.status != 204)
+        return {
+            errors: {email: undefined, password: undefined},
+            error: JSON.parse(await response.text())["error"] as string
+        };
 
     try
     {

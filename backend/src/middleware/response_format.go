@@ -16,8 +16,13 @@ func FormatResponseMW() gin.HandlerFunc {
 		}
 		body, bodyOk := ctx.Get("Body")
 		if !bodyOk {
-			log.Default().Println("Body not set in context. Assuming 204 No Content")
-			status = http.StatusNoContent
+			if http.MethodPost == ctx.Request.Method {
+				log.Default().Println("Body not set in context on POST. Assuming 201 Created")
+				status = http.StatusCreated
+			} else {
+				log.Default().Printf("Body not set in context on %s. Assuming 204 No Content\n", ctx.Request.Method)
+				status = http.StatusNoContent
+			}
 		}
 		if !bodyOk || status.(int) == http.StatusNoContent {
 			log.Default().Printf("No body to return. Returning with status %d\n", status.(int))
