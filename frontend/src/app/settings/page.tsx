@@ -315,8 +315,8 @@ export default function SettingsPage() {
                             <Card className="m-2 p-2 border rounded" key={`c-${setting.id}`}>
                                 <CardBody key={`cb-${setting.id}`}>
                                     <CardTitle key={`ct-${setting.id}`}>
-                                        <Row xs={12}>
-                                            <Col xs={10}>{setting.name}</Col>
+                                        <Row>
+                                            <Col className="ms-5">{setting.name}</Col>
                                             <Col xs={2}>
                                                 <OverlayTrigger overlay={<Tooltip>Delete Setting</Tooltip>}>
                                                     <Trash style={{color: "red", cursor: "pointer"}} onClick={() => deleteSetting(index)} />
