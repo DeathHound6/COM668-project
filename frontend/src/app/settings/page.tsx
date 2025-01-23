@@ -180,6 +180,9 @@ export default function SettingsPage() {
                 setShowTypeError(errors);
                 break;
             case "setting":
+                errors.push(...showSettingNameError);
+                errors[index] = false;
+                setShowSettingNameError(errors);
                 break;
         };
     }
@@ -309,10 +312,10 @@ export default function SettingsPage() {
                 </Col>
             </Row>
 
-            <Row style={{alignContent: "center", textAlign: "center"}} xs={2} md={4} className="mx-5">
+            <Row style={{textAlign: "center"}} xs={2} md={4} className="mx-5">
                 {
                     settings.map((setting: Settings, index: number) => (
-                        <Col key={`col-${setting.uuid}`}>
+                        <Col key={`col-${setting.uuid}`} className="mx-auto">
                             <Card className="m-2 p-2 border rounded" key={`c-${setting.uuid}`}>
                                 <CardBody key={`cb-${setting.uuid}`}>
                                     <CardTitle key={`ct-${setting.uuid}`}>
