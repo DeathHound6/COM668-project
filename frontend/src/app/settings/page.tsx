@@ -1,7 +1,7 @@
 "use client";
 
 import type { SettingField, Settings } from "../../interfaces/settings";
-import { startTransition, useActionState, useEffect, useState } from "react";
+import { startTransition, Suspense, useActionState, useEffect, useState } from "react";
 import {
     Button,
     ButtonGroup,
@@ -25,7 +25,8 @@ import {
     ToastContainer,
     Toast,
     ToastBody,
-    ToastHeader
+    ToastHeader,
+    Spinner
 } from "react-bootstrap";
 import InputGroupText from "react-bootstrap/esm/InputGroupText";
 import { XLg, Trash } from "react-bootstrap-icons";
@@ -312,46 +313,48 @@ export default function SettingsPage() {
                 </Col>
             </Row>
 
-            <Row style={{textAlign: "center"}} xs={2} md={4} className="mx-5">
-                {
-                    settings.map((setting: Settings, index: number) => (
-                        <Col key={`col-${setting.uuid}`} className="mx-auto">
-                            <Card className="m-2 p-2 border rounded" key={`c-${setting.uuid}`}>
-                                <CardBody key={`cb-${setting.uuid}`}>
-                                    <CardTitle key={`ct-${setting.uuid}`}>
-                                        <Row>
-                                            <Col className="ms-5">{setting.name}</Col>
-                                            <Col xs={2}>
-                                                <OverlayTrigger overlay={<Tooltip>Delete Setting</Tooltip>}>
-                                                    <Trash style={{color: "red", cursor: "pointer"}} onClick={() => deleteSetting(index)} />
-                                                </OverlayTrigger>
-                                            </Col>
-                                        </Row>
-                                    </CardTitle>
-                                    {
-                                        setting.fields.map((field: SettingField) => (
-                                            <InputGroup key={`ig-${setting.uuid}-${field.key}`} className="m-2">
-                                                <FloatingLabel controlId="floatingKey" label={field.key} key={`fl-${setting.uuid}-${field.key}`}>
-                                                    <FormControl type="text" defaultValue={field.value} key={`fc-${setting.uuid}-${field.key}`} />
-                                                </FloatingLabel>
-                                                <InputGroupText key={`igt-${setting.uuid}-${field.key}`}>{field.type}</InputGroupText>
-                                                <OverlayTrigger overlay={<Tooltip>Delete Field</Tooltip>}>
-                                                    <InputGroupText style={{cursor: "pointer", color: "red"}} onClick={() => deleteField(index, field.key)}>
-                                                        <XLg />
-                                                    </InputGroupText>
-                                                </OverlayTrigger>
-                                            </InputGroup>
-                                        ))
-                                    }
-                                    <Button variant="secondary" onClick={() => {setNewFieldProviderIndex(index); setShowNewFieldModal(true);}}>Create new field</Button>
-                                    <br />
-                                    <Button variant="primary" className="mt-2" onClick={() => updateSetting(index)}>Save</Button>
-                                </CardBody>
-                            </Card>
-                        </Col>
-                    ))
-                }
-            </Row>
+            <Suspense fallback={<Spinner role="status" animation="border" />}>
+                <Row style={{textAlign: "center"}} xs={2} md={4} className="mx-5">
+                    {
+                        settings && settings.map((setting: Settings, index: number) => (
+                            <Col key={`col-${setting.uuid}`} className="mx-auto">
+                                <Card className="m-2 p-2 border rounded" key={`c-${setting.uuid}`}>
+                                    <CardBody key={`cb-${setting.uuid}`}>
+                                        <CardTitle key={`ct-${setting.uuid}`}>
+                                            <Row>
+                                                <Col className="ms-5">{setting.name}</Col>
+                                                <Col xs={2}>
+                                                    <OverlayTrigger overlay={<Tooltip>Delete Setting</Tooltip>}>
+                                                        <Trash style={{color: "red", cursor: "pointer"}} onClick={() => deleteSetting(index)} />
+                                                    </OverlayTrigger>
+                                                </Col>
+                                            </Row>
+                                        </CardTitle>
+                                        {
+                                            setting.fields && setting.fields.map((field: SettingField) => (
+                                                <InputGroup key={`ig-${setting.uuid}-${field.key}`} className="m-2">
+                                                    <FloatingLabel controlId="floatingKey" label={field.key} key={`fl-${setting.uuid}-${field.key}`}>
+                                                        <FormControl type="text" defaultValue={field.value} key={`fc-${setting.uuid}-${field.key}`} />
+                                                    </FloatingLabel>
+                                                    <InputGroupText key={`igt-${setting.uuid}-${field.key}`}>{field.type}</InputGroupText>
+                                                    <OverlayTrigger overlay={<Tooltip>Delete Field</Tooltip>}>
+                                                        <InputGroupText style={{cursor: "pointer", color: "red"}} onClick={() => deleteField(index, field.key)}>
+                                                            <XLg />
+                                                        </InputGroupText>
+                                                    </OverlayTrigger>
+                                                </InputGroup>
+                                            ))
+                                        }
+                                        <Button variant="secondary" onClick={() => {setNewFieldProviderIndex(index); setShowNewFieldModal(true);}}>Create new field</Button>
+                                        <br />
+                                        <Button variant="primary" className="mt-2" onClick={() => updateSetting(index)}>Save</Button>
+                                    </CardBody>
+                                </Card>
+                            </Col>
+                        ))
+                    }
+                </Row>
+            </Suspense>
 
             {/* Toasts for showing error messages */}
             <ToastContainer position="bottom-end" className="p-3">
