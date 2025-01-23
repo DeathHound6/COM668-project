@@ -297,8 +297,8 @@ export default function SettingsPage() {
                 </Form>
             </Modal>
 
-            <Row>
-                <Col>
+            <Row className="mt-3">
+                <Col style={{textAlign: "left"}}>
                     <ButtonGroup aria-label="Settings Provider Type">
                         <Button variant={providerType == "log" ? "primary" : "secondary"}
                             onClick={() => setProviderType("log")}
@@ -308,13 +308,16 @@ export default function SettingsPage() {
                             disabled={providerType == "alert"}>Alerts</Button>
                     </ButtonGroup>
                 </Col>
+                <Col style={{textAlign: "center"}}>
+                    <h1 style={{fontSize: 24}}><b>Settings</b></h1>
+                </Col>
                 <Col style={{textAlign: "right"}}>
                     <Button variant="secondary" onClick={() => setShowNewSettingModal(true)}>Create Setting</Button>
                 </Col>
             </Row>
 
             <Suspense fallback={<Spinner role="status" animation="border" />}>
-                <Row style={{textAlign: "center"}} xs={2} md={4} className="mx-5">
+                <Row style={{textAlign: "center"}} xs={2} md={4} className="mx-5 mt-3">
                     {
                         settings && settings.map((setting: Settings, index: number) => (
                             <Col key={`col-${setting.uuid}`} className="mx-auto">
