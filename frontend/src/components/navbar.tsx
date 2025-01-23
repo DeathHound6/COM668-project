@@ -13,6 +13,7 @@ import {
     DropdownToggle,
     Nav,
     Navbar,
+    NavbarBrand,
     NavItem,
     NavLink,
     Row
@@ -50,6 +51,7 @@ export default function NavbarComponent() {
 
     return (
         <Navbar className="mt-1 mx-2 p-2 border-b">
+            <NavbarBrand href="/dashboard">A.I.M.S</NavbarBrand>
             <Nav activeKey={pathname}>
                 <NavItem className="p-2 m-1 border rounded" hidden={user == null}>
                     <NavLink href="/dashboard" eventKey="/dashboard">Dashboard</NavLink>
