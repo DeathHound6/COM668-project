@@ -3,7 +3,7 @@
 import type { Incident } from "../../interfaces/incident";
 import IncidentCard from "../../components/incidentCard";
 import { Suspense, useEffect, useState } from "react";
-import Loading from "./loading";
+import { Spinner } from "react-bootstrap";
 
 export default function DashboardPage() {
     const [incidents, setIncidents] = useState([] as Incident[]);
@@ -18,7 +18,7 @@ export default function DashboardPage() {
 
     return (
         <main>
-            <Suspense fallback={<Loading />}>
+            <Suspense fallback={<Spinner role="status" animation="border" />}>
                 {incidents.length < 0 && incidents.map((incident: Incident) => <IncidentCard incident={incident} key={incident.uuid} />)}
             </Suspense>
         </main>
