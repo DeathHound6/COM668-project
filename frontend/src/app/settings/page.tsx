@@ -79,10 +79,18 @@ export default function SettingsPage() {
 
     useEffect(() => {
         fetch(`/api/providers?provider_type=${providerType}`)
-            .then(res => res.json())
-            .then(data => {
-                setSettings(data.providers);
-            });
+            .then(
+                async(res) => {
+                    const data = await res.json();
+                    if (!res.ok)
+                        return setAPIError(data.error);
+                    setSettings(data.providers);
+                },
+                (err) => {
+                    setSettings([]);
+                    setAPIError((err as Error).message);
+                }
+            );
     }, [providerType]);
 
     useEffect(() => {
@@ -95,6 +103,11 @@ export default function SettingsPage() {
     }, [apiError, state?.errors.key, state?.errors.value, state?.errors.type, settingState?.errors.name, successToastMessage]);
 
     function updateSetting(index: number) {
+        if (settings.length <= index) {
+            setAPIError("invalid provider index");
+            return;
+        }
+
         const setting = settings[index];
         fetch(`/api/providers/${setting.uuid}`, {
             method: "PUT",
@@ -108,6 +121,9 @@ export default function SettingsPage() {
                 if (!res.ok)
                     return setAPIError((await res.json()).error);
                 setSuccessToastMessage("Setting updated successfully");
+            },
+            (err) => {
+                setAPIError((err as Error).message);
             }
         );
     }
@@ -115,6 +131,10 @@ export default function SettingsPage() {
     function createNewField(state: FormState, form: FormData) {
         if (newfieldProviderIndex == -1) {
             setAPIError("no provider selected");
+            return {errors: {key: undefined, value: undefined, type: undefined}};
+        }
+        if (settings.length <= newfieldProviderIndex) {
+            setAPIError("invalid provider index");
             return {errors: {key: undefined, value: undefined, type: undefined}};
         }
 
@@ -155,6 +175,11 @@ export default function SettingsPage() {
     }
 
     function deleteField(providerIndex: number, fieldKey: string) {
+        if (settings.length <= providerIndex) {
+            setAPIError("invalid provider index");
+            return;
+        }
+
         const newSettings = [...settings];
         const setting = newSettings[providerIndex];
         setting.fields = setting.fields.filter((field: SettingField) => field.key != fieldKey);
@@ -164,28 +189,36 @@ export default function SettingsPage() {
 
     function onCloseToast(index: number, type: string) {
         const errors = [] as boolean[];
+        let func;
         switch (type) {
             case "key":
                 errors.push(...showKeyError);
-                errors[index] = false;
-                setShowKeyError(errors);
+                func = setShowKeyError;
                 break;
             case "value":
                 errors.push(...showValueError);
-                errors[index] = false;
-                setShowValueError(errors);
+                func = setShowValueError;
                 break;
             case "type":
                 errors.push(...showTypeError);
-                errors[index] = false;
-                setShowTypeError(errors);
+                func = setShowTypeError;
                 break;
             case "setting":
                 errors.push(...showSettingNameError);
-                errors[index] = false;
-                setShowSettingNameError(errors);
+                func = setShowSettingNameError;
                 break;
         };
+        if (errors.length <= index) {
+            setAPIError("invalid error index");
+            return;
+        }
+        // this check shouldnt hit
+        if (func == undefined) {
+            setAPIError("invalid error type");
+            return;
+        }
+        errors[index] = false;
+        func(errors);
     }
 
     function deleteSetting(index: number) {
@@ -201,6 +234,9 @@ export default function SettingsPage() {
                 newSettings.splice(index, 1);
                 setSettings(newSettings);
                 setSuccessToastMessage("Setting deleted successfully");
+            },
+            (err) => {
+                setAPIError((err as Error).message);
             }
         );
     }
@@ -237,6 +273,9 @@ export default function SettingsPage() {
                 setSettings(newSettings);
                 setShowNewSettingModal(false);
                 setSuccessToastMessage("Setting created successfully");
+            },
+            (err) => {
+                setAPIError((err as Error).message);
             }
         );
     }
@@ -319,7 +358,8 @@ export default function SettingsPage() {
             <Suspense fallback={<Spinner role="status" animation="border" />}>
                 <Row style={{textAlign: "center"}} xs={2} md={4} className="mx-5 mt-3">
                     {
-                        settings && settings.map((setting: Settings, index: number) => (
+                        /* Render settings */
+                        settings.length > 0 && settings.map((setting: Settings, index: number) => (
                             <Col key={`col-${setting.uuid}`} className="mx-auto">
                                 <Card className="m-2 p-2 border rounded" key={`c-${setting.uuid}`}>
                                     <CardBody key={`cb-${setting.uuid}`}>
@@ -355,6 +395,17 @@ export default function SettingsPage() {
                                 </Card>
                             </Col>
                         ))
+                    }
+                    {
+                        /* Render no settings */
+                        settings.length == 0 && (
+                            <Col className="mx-auto my-3">
+                                <Row>
+                                    <h4 style={{fontSize: 24}} className="my-2">No settings found</h4>
+                                    <Button variant="primary" onClick={() => setShowNewSettingModal(true)}>Create Setting</Button>
+                                </Row>
+                            </Col>
+                        )
                     }
                 </Row>
             </Suspense>
