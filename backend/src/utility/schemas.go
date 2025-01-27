@@ -21,9 +21,10 @@ type TeamPostRequestBodySchema struct {
 }
 
 type KeyValueSchema struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-	Type  string `json:"type"`
+	Key      string `json:"key"`
+	Value    string `json:"value"`
+	Type     string `json:"type"`
+	Required bool   `json:"required"`
 }
 
 type ProviderGetResponseSchema struct {

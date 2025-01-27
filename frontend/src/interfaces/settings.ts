@@ -9,4 +9,5 @@ export interface SettingField {
     key: string;
     type: string;
     value: string;
+    required: boolean;
 }

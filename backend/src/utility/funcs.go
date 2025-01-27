@@ -22,15 +22,16 @@ func GetFieldsMapFromString(fieldsString string) []KeyValueSchema {
 	// Each field is separated by `|`
 	dbFields := strings.Split(fieldsString, "|")
 	for _, field := range dbFields {
-		// Each field is mapped `<key>;<value>;<dataType>`
+		// Each field is mapped `<key>;<value>;<dataType>;<required>`
 		fieldKV := strings.Split(field, ";")
-		if len(fieldKV) != 3 {
+		if len(fieldKV) != 4 {
 			continue
 		}
 		fields = append(fields, KeyValueSchema{
-			Key:   strings.TrimSpace(fieldKV[0]),
-			Value: strings.TrimSpace(fieldKV[1]),
-			Type:  strings.TrimSpace(fieldKV[2]),
+			Key:      strings.TrimSpace(fieldKV[0]),
+			Value:    strings.TrimSpace(fieldKV[1]),
+			Type:     strings.TrimSpace(fieldKV[2]),
+			Required: strings.TrimSpace(fieldKV[3]) == "true",
 		})
 	}
 	return fields
@@ -39,7 +40,7 @@ func GetFieldsMapFromString(fieldsString string) []KeyValueSchema {
 func GetStringFromFieldsMap(fieldsMap []KeyValueSchema) string {
 	parts := make([]string, 0)
 	for _, field := range fieldsMap {
-		parts = append(parts, fmt.Sprintf("%s;%s;%s", field.Key, field.Value, field.Type))
+		parts = append(parts, fmt.Sprintf("%s;%s;%s;%v", field.Key, field.Value, field.Type, field.Required))
 	}
 	return strings.Join(parts, "|")
 }

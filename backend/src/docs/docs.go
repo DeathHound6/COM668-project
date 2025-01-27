@@ -673,6 +673,9 @@ const docTemplate = `{
                 "key": {
                     "type": "string"
                 },
+                "required": {
+                    "type": "boolean"
+                },
                 "type": {
                     "type": "string"
                 },

@@ -20,12 +20,12 @@ var (
 	defaultProviders []*Provider = []*Provider{
 		{
 			Name:   "Sentry",
-			Fields: "enabled;true;bool|orgSlug;testing-77;string|projSlug;test_app;string",
+			Fields: "enabled;true;bool;true|orgSlug;testing-77;string;true|projSlug;test_app;string;true",
 			Type:   "log",
 		},
 		{
 			Name:   "Slack",
-			Fields: "enabled;false;bool",
+			Fields: "enabled;false;bool;true",
 			Type:   "alert",
 		},
 	}

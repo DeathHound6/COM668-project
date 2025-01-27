@@ -26,7 +26,8 @@ import {
     Toast,
     ToastBody,
     ToastHeader,
-    Spinner
+    Spinner,
+    FormCheck
 } from "react-bootstrap";
 import InputGroupText from "react-bootstrap/esm/InputGroupText";
 import { XLg, Trash } from "react-bootstrap-icons";
@@ -62,6 +63,7 @@ export default function SettingsPage() {
     const [fieldKey, setFieldKey] = useState("");
     const [fieldValue, setFieldValue] = useState("");
     const [fieldType, setFieldType] = useState("string");
+    const [fieldRequired, setFieldRequired] = useState(false);
 
     const [showAPIError, setShowAPIError] = useState(false);
     const [apiError, setAPIError] = useState(undefined as string | undefined);
@@ -141,6 +143,7 @@ export default function SettingsPage() {
         const key = form.get("key") as string;
         const value = form.get("value") as string;
         const type = form.get("type") as string;
+        const required = form.get("required") as string == "true";
         const validatedFields = newFieldSchema.safeParse({ key, value, type });
         if (!validatedFields.success)
             return { errors: validatedFields.error.flatten().fieldErrors };
@@ -160,7 +163,8 @@ export default function SettingsPage() {
         setting.fields.push({
             key,
             value,
-            type
+            type,
+            required
         });
         setShowNewFieldModal(false);
     }
@@ -171,6 +175,7 @@ export default function SettingsPage() {
         form.append("key", fieldKey);
         form.append("value", fieldValue);
         form.append("type", fieldType);
+        form.append("required", fieldRequired.toString());
         startTransition(() => action(form));
     }
 
@@ -307,6 +312,7 @@ export default function SettingsPage() {
                                 <option value="bool">Boolean</option>
                             </FormSelect>
                         </FloatingLabel>
+                        <FormCheck className="mx-auto" label="Required Field" checked={fieldRequired} onChange={(e) => setFieldRequired(e.target.checked)} />
                     </ModalBody>
                     <ModalFooter>
                         <Button variant="primary" disabled={pending} type="submit">Create Field</Button>
@@ -380,8 +386,10 @@ export default function SettingsPage() {
                                                         <FormControl type="text" defaultValue={field.value} key={`fc-${setting.uuid}-${field.key}`} />
                                                     </FloatingLabel>
                                                     <InputGroupText key={`igt-${setting.uuid}-${field.key}`}>{field.type}</InputGroupText>
-                                                    <OverlayTrigger overlay={<Tooltip>Delete Field</Tooltip>}>
-                                                        <InputGroupText style={{cursor: "pointer", color: "red"}} onClick={() => deleteField(index, field.key)}>
+                                                    <OverlayTrigger overlay={<Tooltip>{field.required ? "Field cannot be deleted" : "Delete Field"}</Tooltip>}>
+                                                        <InputGroupText
+                                                           style={{cursor: "pointer", color: field.required ? "grey" : "red"}}
+                                                           onClick={() => field.required ? null : deleteField(index, field.key)}>
                                                             <XLg />
                                                         </InputGroupText>
                                                     </OverlayTrigger>
