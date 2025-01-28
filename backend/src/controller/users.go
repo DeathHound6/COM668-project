@@ -28,16 +28,7 @@ import (
 //	@Router			/me [get]
 func GetUser() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		value, exists := ctx.Get("user")
-		if !exists {
-			ctx.Set("Status", http.StatusUnauthorized)
-			ctx.Set("Body", &utility.ErrorResponseSchema{
-				Error: "user is not authenticated",
-			})
-			ctx.Next()
-			return
-		}
-		user := value.(*database.User)
+		user := ctx.MustGet("user").(*database.User)
 
 		teams := make([]utility.TeamGetResponseBodySchema, len(user.Teams))
 		for i, team := range user.Teams {

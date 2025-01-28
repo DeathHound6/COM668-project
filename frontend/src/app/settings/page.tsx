@@ -86,7 +86,7 @@ export default function SettingsPage() {
                     const data = await res.json();
                     if (!res.ok)
                         return setAPIError(data.error);
-                    setSettings(data.providers);
+                    setSettings(data.data);
                 },
                 (err) => {
                     setSettings([]);

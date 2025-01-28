@@ -7,68 +7,24 @@ definitions:
       error:
         type: string
     type: object
-  utility.HostMachineGetResponseBodySchema:
+  utility.GetManyResponseSchema:
     properties:
-      hostname:
-        type: string
-      ip4:
-        type: string
-      ip6:
-        type: string
-      os:
-        type: string
-      team:
-        $ref: '#/definitions/utility.TeamGetResponseBodySchema'
-      uuid:
-        type: string
-    type: object
-  utility.IncidentGetResponseBodySchema:
-    properties:
-      createdAt:
-        type: string
-      hostsAffected:
-        items:
-          $ref: '#/definitions/utility.HostMachineGetResponseBodySchema'
+      data:
+        items: {}
         type: array
-      resolvedAt:
-        type: string
-      resolvedBy:
-        $ref: '#/definitions/utility.UserGetResponseBodySchema'
-      summary:
-        type: string
-      uuid:
-        type: string
+      meta:
+        $ref: '#/definitions/utility.MetaSchema'
     type: object
-  utility.KeyValueSchema:
+  utility.MetaSchema:
     properties:
-      key:
-        type: string
-      required:
-        type: boolean
-      type:
-        type: string
-      value:
-        type: string
-    type: object
-  utility.ProviderGetResponseSchema:
-    properties:
-      fields:
-        items:
-          $ref: '#/definitions/utility.KeyValueSchema'
-        type: array
-      name:
-        type: string
-      type:
-        type: string
-      uuid:
-        type: string
-    type: object
-  utility.ProvidersGetResponseSchema:
-    properties:
-      providers:
-        items:
-          $ref: '#/definitions/utility.ProviderGetResponseSchema'
-        type: array
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      pages:
+        type: integer
+      total:
+        type: integer
     type: object
   utility.TeamGetResponseBodySchema:
     properties:
@@ -178,18 +134,67 @@ paths:
       summary: Link Slack to user
       tags:
       - Third-Party Auth
-  /incidents:
+  /hosts:
     get:
-      description: Get a list of incidents
+      consumes:
+      - application/json
+      description: Get a list of Hosts
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: query
+        name: pageSize
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/utility.IncidentGetResponseBodySchema'
-            type: array
+            $ref: '#/definitions/utility.GetManyResponseSchema'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+      security:
+      - JWT: []
+      summary: Get a list of Hosts
+      tags:
+      - Hosts
+  /incidents:
+    get:
+      description: Get a list of incidents
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: query
+        name: pageSize
+        type: integer
+      - description: Filter by resolved status
+        in: query
+        name: resolved
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utility.GetManyResponseSchema'
         "401":
           description: Unauthorized
           schema:
@@ -252,13 +257,21 @@ paths:
         name: provider_type
         required: true
         type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: query
+        name: pageSize
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/utility.ProvidersGetResponseSchema'
+            $ref: '#/definitions/utility.GetManyResponseSchema'
         "401":
           description: Unauthorized
           schema:

@@ -1,5 +1,7 @@
 package utility
 
+import "time"
+
 type ErrorResponseSchema struct {
 	Error string `json:"error"`
 }
@@ -34,8 +36,16 @@ type ProviderGetResponseSchema struct {
 	Type   string           `json:"type"`
 }
 
-type ProvidersGetResponseSchema struct {
-	Providers []ProviderGetResponseSchema `json:"providers"`
+type MetaSchema struct {
+	TotalItems int64 `json:"total"`
+	Pages      int   `json:"pages"`
+	Page       int   `json:"page"`
+	PageSize   int   `json:"pageSize"`
+}
+
+type GetManyResponseSchema struct {
+	Data []any      `json:"data"`
+	Meta MetaSchema `json:"meta"`
 }
 
 type IncidentPostRequestBodySchema struct {
@@ -61,8 +71,8 @@ type IncidentGetResponseBodySchema struct {
 	UUID          string                             `json:"uuid"`
 	HostsAffected []HostMachineGetResponseBodySchema `json:"hostsAffected"`
 	Summary       string                             `json:"summary"`
-	CreatedAt     string                             `json:"createdAt"`
-	ResolvedAt    *string                            `json:"resolvedAt"`
+	CreatedAt     time.Time                          `json:"createdAt"`
+	ResolvedAt    *time.Time                         `json:"resolvedAt"`
 	ResolvedBy    *UserGetResponseBodySchema         `json:"resolvedBy"`
 }
 

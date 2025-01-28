@@ -87,15 +87,10 @@ type TeamUser struct {
 }
 
 func GetUser(ctx *gin.Context, email string) (*User, error) {
-	tx := GetDBTransaction(ctx)
-	allowedFilters := [][]string{
-		{"email", "email"},
-	}
-	filters := make(map[string]any, 0)
-	filters["email"] = email
-	tx = filter(filters, allowedFilters, tx)
+	tx := GetDBTransaction(ctx).Model(&User{})
+	tx = tx.Where("email = ?", email)
 	users := make([]*User, 0)
-	// join to teams table
+	tx = tx.Preload("Teams")
 	tx = tx.Find(&users)
 	if tx.Error != nil {
 		return nil, handleError(ctx, tx.Error)
@@ -107,7 +102,7 @@ func GetUser(ctx *gin.Context, email string) (*User, error) {
 }
 
 func CreateUser(ctx *gin.Context, body *utility.UserPostRequestBodySchema) (*User, error) {
-	tx := GetDBTransaction(ctx)
+	tx := GetDBTransaction(ctx).Model(&User{})
 	teams := make([]Team, 0)
 	for _, team := range body.Teams {
 		teams = append(teams, Team{
@@ -128,7 +123,23 @@ func CreateUser(ctx *gin.Context, body *utility.UserPostRequestBodySchema) (*Use
 }
 
 func UpdateUser(ctx *gin.Context, user *User) error {
-	tx := GetDBTransaction(ctx)
+	tx := GetDBTransaction(ctx).Model(&User{})
+	teams, _, err := GetTeams(ctx, GetTeamFilters{
+		UserUUID: &user.UUID,
+	})
+	if err != nil {
+		return err
+	}
+	// remove the teams that the user is known to be part of
+	// this prevents the teams from being inserted again
+	for _, team1 := range teams {
+		for idx, team2 := range user.Teams {
+			if team1.UUID == team2.UUID {
+				user.Teams = utility.RemoveElementFromSlice(user.Teams, idx)
+				continue
+			}
+		}
+	}
 	tx = tx.Save(user)
 	if tx.Error != nil {
 		return handleError(ctx, tx.Error)

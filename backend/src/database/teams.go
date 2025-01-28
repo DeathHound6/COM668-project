@@ -49,6 +49,38 @@ func (team *Team) BeforeDelete(tx *gorm.DB) error {
 	return nil
 }
 
+type GetTeamFilters struct {
+	UserUUID *string
+	Page     *int
+	PageSize *int
+}
+
+func GetTeams(ctx *gin.Context, filters GetTeamFilters) ([]*Team, int64, error) {
+	tx := GetDBTransaction(ctx).Model(&Team{})
+
+	if filters.UserUUID != nil {
+		tx = tx.Joins("JOIN team_user ON team_user.team_id = teams.id").
+			Joins("JOIN users ON users.id = team_user.user_id").
+			Where("users.uuid = ?", *filters.UserUUID)
+	}
+
+	var count int64
+	tx = tx.Count(&count)
+	if filters.PageSize != nil {
+		tx = tx.Limit(*filters.PageSize)
+		if filters.Page != nil {
+			tx = tx.Offset((*filters.Page - 1) * *filters.PageSize)
+		}
+	}
+
+	var teams []*Team
+	tx = tx.Find(&teams)
+	if tx.Error != nil {
+		return nil, -1, tx.Error
+	}
+	return teams, count, nil
+}
+
 func CreateTeam(ctx *gin.Context, body *utility.TeamPostRequestBodySchema) error {
 	return nil
 }

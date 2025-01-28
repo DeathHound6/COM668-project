@@ -4,6 +4,7 @@ import (
 	"com668-backend/database"
 	"com668-backend/utility"
 	"log"
+	"math"
 	"net/http"
 	"strings"
 
@@ -19,22 +20,26 @@ import (
 //	@Accept			json
 //	@Produce		json
 //	@Param			provider_type	query		string	true	"The type of provider"	Enums(log, alert)
-//	@Success		200				{object}	utility.ProvidersGetResponseSchema
+//	@Param			page			query		int		false	"Page number"
+//	@Param			pageSize		query		int		false	"Number of items per page"
+//	@Success		200				{object}	utility.GetManyResponseSchema
 //	@Failure		401				{object}	utility.ErrorResponseSchema
 //	@Failure		403				{object}	utility.ErrorResponseSchema
 //	@Failure		500				{object}	utility.ErrorResponseSchema
 //	@Router			/providers [get]
 func GetProviders() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		loggedInUser := ctx.MustGet("user").(*database.User)
-		if !loggedInUser.Admin {
-			ctx.Set("Status", http.StatusForbidden)
+		params, err := getCommonParams(ctx)
+		if err != nil {
+			ctx.Set("Status", http.StatusBadRequest)
 			ctx.Set("Body", &utility.ErrorResponseSchema{
-				Error: "logged in user must be an admin",
+				Error: err.Error(),
 			})
 			ctx.Next()
 			return
 		}
+		page := params["page"].(int)
+		pageSize := params["pageSize"].(int)
 
 		providerType := strings.ToLower(ctx.Query("provider_type"))
 		if !utility.SliceHasElement([]string{"alert", "log"}, providerType) {
@@ -46,9 +51,9 @@ func GetProviders() gin.HandlerFunc {
 			return
 		}
 
-		filters := make(map[string]any)
-		filters["type"] = providerType
-		providers, err := database.GetProviders(ctx, filters)
+		providers, count, err := database.GetProviders(ctx, database.GetProvidersFilters{
+			ProviderType: &providerType,
+		})
 		if err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
 			ctx.Set("Body", &utility.ErrorResponseSchema{
@@ -57,8 +62,14 @@ func GetProviders() gin.HandlerFunc {
 			ctx.Next()
 			return
 		}
-		resp := &utility.ProvidersGetResponseSchema{
-			Providers: make([]utility.ProviderGetResponseSchema, 0),
+		resp := &utility.GetManyResponseSchema{
+			Data: make([]any, 0),
+			Meta: utility.MetaSchema{
+				Page:       page,
+				PageSize:   pageSize,
+				TotalItems: count,
+				Pages:      int(math.Ceil(float64(count) / float64(pageSize))),
+			},
 		}
 		for _, provider := range providers {
 			prov := utility.ProviderGetResponseSchema{
@@ -67,7 +78,7 @@ func GetProviders() gin.HandlerFunc {
 				Fields: utility.GetFieldsMapFromString(provider.Fields),
 				Type:   provider.Type,
 			}
-			resp.Providers = append(resp.Providers, prov)
+			resp.Data = append(resp.Data, prov)
 		}
 		ctx.Set("Status", http.StatusOK)
 		ctx.Set("Body", resp)
@@ -89,16 +100,6 @@ func GetProviders() gin.HandlerFunc {
 //	@Router			/providers [post]
 func CreateProvider() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		loggedInUser := ctx.MustGet("user").(*database.User)
-		if !loggedInUser.Admin {
-			ctx.Set("Status", http.StatusForbidden)
-			ctx.Set("Body", &utility.ErrorResponseSchema{
-				Error: "logged in user must be an admin",
-			})
-			ctx.Next()
-			return
-		}
-
 		providerType := strings.ToLower(ctx.Query("provider_type"))
 		if !utility.SliceHasElement([]string{"alert", "log"}, providerType) {
 			ctx.Set("Status", http.StatusBadRequest)
@@ -158,16 +159,6 @@ func CreateProvider() gin.HandlerFunc {
 //	@Router			/providers/{provider_id} [put]
 func UpdateProvider() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		loggedInUser := ctx.MustGet("user").(*database.User)
-		if !loggedInUser.Admin {
-			ctx.Set("Status", http.StatusForbidden)
-			ctx.Set("Body", &utility.ErrorResponseSchema{
-				Error: "logged in user must be an admin",
-			})
-			ctx.Next()
-			return
-		}
-
 		var body *utility.ProviderPutRequestBodySchema
 		if err := ctx.ShouldBindJSON(&body); err != nil {
 			ctx.Set("Status", http.StatusBadRequest)
@@ -207,16 +198,6 @@ func UpdateProvider() gin.HandlerFunc {
 //	@Router			/providers/{provider_id} [delete]
 func DeleteProvider() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		loggedInUser := ctx.MustGet("user").(*database.User)
-		if !loggedInUser.Admin {
-			ctx.Set("Status", http.StatusForbidden)
-			ctx.Set("Body", &utility.ErrorResponseSchema{
-				Error: "logged in user must be an admin",
-			})
-			ctx.Next()
-			return
-		}
-
 		providerID := ctx.Param("provider_id")
 		if err := database.DeleteProvider(ctx, providerID); err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))

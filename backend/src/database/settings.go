@@ -32,43 +32,64 @@ func (p *Provider) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
+type GetProvidersFilters struct {
+	UUID         *string
+	ProviderType *string
+	Name         *string
+	Page         *int
+	PageSize     *int
+}
+
 // Get a single Provider by UUID
 func GetProvider(ctx *gin.Context, uuid string, provider_type string) (*Provider, error) {
-	filters := make(map[string]any, 0)
-	filters["uuid"] = uuid
-	filters["type"] = provider_type
-	providers, err := GetProviders(ctx, filters)
+	providers, count, err := GetProviders(ctx, GetProvidersFilters{
+		UUID:         &uuid,
+		ProviderType: &provider_type,
+	})
 	if err != nil {
 		return nil, err
 	}
-	if len(providers) == 0 {
+	if count == 0 {
 		return nil, nil
 	}
 	return providers[0], nil
 }
 
 // Get a list of providers
-func GetProviders(ctx *gin.Context, filters map[string]any) ([]*Provider, error) {
-	// mapped `filterMapField, dbField`
-	allowedFilters := [][]string{
-		{"id", "id"},
-		{"uuid", "uuid"},
-		{"name", "name"},
-		{"type", "type"},
+func GetProviders(ctx *gin.Context, filters GetProvidersFilters) ([]*Provider, int64, error) {
+	tx := GetDBTransaction(ctx).Model(&Provider{})
+
+	// apply filters
+	if filters.UUID != nil {
+		tx = tx.Where("uuid = ?", *filters.UUID)
 	}
-	tx := GetDBTransaction(ctx)
+	if filters.ProviderType != nil {
+		tx = tx.Where("type = ?", *filters.ProviderType)
+	}
+	if filters.Name != nil {
+		tx = tx.Where("name = ?", *filters.Name)
+	}
+
+	var count int64
+	tx.Count(&count)
+	if filters.PageSize != nil {
+		tx = tx.Limit(*filters.PageSize)
+		if filters.Page != nil {
+			tx = tx.Offset((*filters.Page - 1) * *filters.PageSize)
+		}
+	}
+
 	providers := make([]*Provider, 0)
-	tx = filter(filters, allowedFilters, tx)
 	tx = tx.Find(&providers)
 	if tx.Error != nil {
-		return nil, handleError(ctx, tx.Error)
+		return nil, -1, handleError(ctx, tx.Error)
 	}
-	return providers, nil
+	return providers, count, nil
 }
 
 // Create a Provider
 func CreateProvider(ctx *gin.Context, provider *Provider) error {
-	tx := GetDBTransaction(ctx)
+	tx := GetDBTransaction(ctx).Model(&Provider{})
 	tx = tx.Create(provider)
 	if tx.Error != nil {
 		return handleError(ctx, tx.Error)
@@ -78,8 +99,8 @@ func CreateProvider(ctx *gin.Context, provider *Provider) error {
 
 // Update a Provider
 func UpdateProvider(ctx *gin.Context, uuid string, fields string) error {
-	tx := GetDBTransaction(ctx)
-	tx = tx.Model(&Provider{}).Where("uuid = ?", uuid).Update("fields", fields)
+	tx := GetDBTransaction(ctx).Model(&Provider{})
+	tx = tx.Where("uuid = ?", uuid).Update("fields", fields)
 	if tx.Error != nil {
 		return handleError(ctx, tx.Error)
 	}
@@ -88,7 +109,7 @@ func UpdateProvider(ctx *gin.Context, uuid string, fields string) error {
 
 // Delete a provider
 func DeleteProvider(ctx *gin.Context, uuid string) error {
-	tx := GetDBTransaction(ctx)
+	tx := GetDBTransaction(ctx).Model(&Provider{})
 	tx = tx.Where("uuid = ?", uuid).Delete(&Provider{})
 	if tx.Error != nil {
 		return handleError(ctx, tx.Error)

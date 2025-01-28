@@ -113,6 +113,66 @@ const docTemplate = `{
                 }
             }
         },
+        "/hosts": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get a list of Hosts",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Hosts"
+                ],
+                "summary": "Get a list of Hosts",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of items per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utility.GetManyResponseSchema"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    }
+                }
+            }
+        },
         "/incidents": {
             "get": {
                 "security": [
@@ -128,14 +188,31 @@ const docTemplate = `{
                     "Incidents"
                 ],
                 "summary": "Get a list of incidents",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of items per page",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by resolved status",
+                        "name": "resolved",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/utility.IncidentGetResponseBodySchema"
-                            }
+                            "$ref": "#/definitions/utility.GetManyResponseSchema"
                         }
                     },
                     "401": {
@@ -239,13 +316,25 @@ const docTemplate = `{
                         "name": "provider_type",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of items per page",
+                        "name": "pageSize",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/utility.ProvidersGetResponseSchema"
+                            "$ref": "#/definitions/utility.GetManyResponseSchema"
                         }
                     },
                     "401": {
@@ -618,100 +707,32 @@ const docTemplate = `{
                 }
             }
         },
-        "utility.HostMachineGetResponseBodySchema": {
+        "utility.GetManyResponseSchema": {
             "type": "object",
             "properties": {
-                "hostname": {
-                    "type": "string"
-                },
-                "ip4": {
-                    "type": "string"
-                },
-                "ip6": {
-                    "type": "string"
-                },
-                "os": {
-                    "type": "string"
-                },
-                "team": {
-                    "$ref": "#/definitions/utility.TeamGetResponseBodySchema"
-                },
-                "uuid": {
-                    "type": "string"
-                }
-            }
-        },
-        "utility.IncidentGetResponseBodySchema": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "hostsAffected": {
+                "data": {
                     "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/utility.HostMachineGetResponseBodySchema"
-                    }
+                    "items": {}
                 },
-                "resolvedAt": {
-                    "type": "string"
-                },
-                "resolvedBy": {
-                    "$ref": "#/definitions/utility.UserGetResponseBodySchema"
-                },
-                "summary": {
-                    "type": "string"
-                },
-                "uuid": {
-                    "type": "string"
+                "meta": {
+                    "$ref": "#/definitions/utility.MetaSchema"
                 }
             }
         },
-        "utility.KeyValueSchema": {
+        "utility.MetaSchema": {
             "type": "object",
             "properties": {
-                "key": {
-                    "type": "string"
+                "page": {
+                    "type": "integer"
                 },
-                "required": {
-                    "type": "boolean"
+                "pageSize": {
+                    "type": "integer"
                 },
-                "type": {
-                    "type": "string"
+                "pages": {
+                    "type": "integer"
                 },
-                "value": {
-                    "type": "string"
-                }
-            }
-        },
-        "utility.ProviderGetResponseSchema": {
-            "type": "object",
-            "properties": {
-                "fields": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/utility.KeyValueSchema"
-                    }
-                },
-                "name": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                },
-                "uuid": {
-                    "type": "string"
-                }
-            }
-        },
-        "utility.ProvidersGetResponseSchema": {
-            "type": "object",
-            "properties": {
-                "providers": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/utility.ProviderGetResponseSchema"
-                    }
+                "total": {
+                    "type": "integer"
                 }
             }
         },

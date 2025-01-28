@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
@@ -65,4 +66,31 @@ func (host *HostMachine) BeforeUpdate(tx *gorm.DB) error {
 		return errors.New("ipv6 address cannot be greater than 39 characters")
 	}
 	return nil
+}
+
+type GetHostsFilters struct {
+	Page     *int
+	PageSize *int
+}
+
+func GetHosts(ctx *gin.Context, filters GetHostsFilters) ([]*HostMachine, int64, error) {
+	tx := GetDBTransaction(ctx).Model(&HostMachine{})
+
+	var count int64
+	tx.Count(&count)
+	if filters.PageSize != nil {
+		tx = tx.Limit(*filters.PageSize)
+		if filters.Page != nil {
+			tx = tx.Offset(*filters.PageSize * (*filters.Page - 1))
+		}
+	}
+
+	tx = tx.Preload("Team")
+	var hosts []*HostMachine
+	tx = tx.Find(&hosts)
+	if tx.Error != nil {
+		ctx.Set("errorCode", http.StatusInternalServerError)
+		return nil, -1, tx.Error
+	}
+	return hosts, count, nil
 }

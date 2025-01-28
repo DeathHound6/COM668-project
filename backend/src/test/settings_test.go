@@ -27,11 +27,11 @@ func TestGetProviders(t *testing.T) {
 			t.Log(errorResp.Error)
 			t.Fatalf("Status code %d != %d", code, http.StatusOK)
 		}
-		resp, err := utility.ReadJSONStruct[utility.ProvidersGetResponseSchema](writer.Body.Bytes())
+		resp, err := utility.ReadJSONStruct[utility.GetManyResponseSchema](writer.Body.Bytes())
 		if err != nil {
 			t.Fatal(err)
 		}
-		if len(resp.Providers) == 0 {
+		if len(resp.Data) == 0 {
 			t.Fatal("no data was returned")
 		}
 	})
@@ -49,11 +49,11 @@ func TestGetProviders(t *testing.T) {
 			t.Log(errorResp.Error)
 			t.Fatalf("Status code %d != %d", code, http.StatusOK)
 		}
-		resp, err := utility.ReadJSONStruct[utility.ProvidersGetResponseSchema](writer.Body.Bytes())
+		resp, err := utility.ReadJSONStruct[utility.GetManyResponseSchema](writer.Body.Bytes())
 		if err != nil {
 			t.Fatal(err)
 		}
-		if len(resp.Providers) == 0 {
+		if len(resp.Data) == 0 {
 			t.Fatal("no data was returned")
 		}
 	})

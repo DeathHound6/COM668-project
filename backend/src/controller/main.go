@@ -5,76 +5,98 @@ import (
 	"com668-backend/utility"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 type registerControllerOptions struct {
-	useAuth bool
-	useDB   bool
+	useAdminAuth bool
+	useAuth      bool
+	useDB        bool
 }
 
 func RegisterControllers(engine *gin.Engine) {
 	// Register authentication endpoints
 	register(engine, http.MethodGet, "/authorise/slack", SlackRedirect(), registerControllerOptions{
-		useAuth: true,
-		useDB:   true,
+		useAuth:      true,
+		useDB:        true,
+		useAdminAuth: false,
 	})
 	register(engine, http.MethodGet, "/authorise/slack/callback", AuthoriseSlack(), registerControllerOptions{
-		useAuth: true,
-		useDB:   true,
+		useAuth:      true,
+		useDB:        true,
+		useAdminAuth: false,
 	})
 
 	// Register teams endpoints
 	register(engine, http.MethodPost, "/teams", CreateTeam(), registerControllerOptions{
-		useAuth: true,
-		useDB:   true,
+		useAuth:      true,
+		useDB:        true,
+		useAdminAuth: true,
 	})
 	register(engine, http.MethodDelete, "/teams/:team_id", DeleteTeam(), registerControllerOptions{
-		useAuth: true,
-		useDB:   true,
+		useAuth:      true,
+		useDB:        true,
+		useAdminAuth: true,
 	})
 
 	// Register users endpoints
 	register(engine, http.MethodPost, "/users", CreateUser(), registerControllerOptions{
-		useAuth: true,
-		useDB:   true,
+		useAuth:      true,
+		useDB:        true,
+		useAdminAuth: true,
 	})
 	register(engine, http.MethodPost, "/users/login", LoginUser(), registerControllerOptions{
-		useAuth: false,
-		useDB:   true,
+		useAuth:      false,
+		useDB:        true,
+		useAdminAuth: false,
 	})
 	register(engine, http.MethodGet, "/me", GetUser(), registerControllerOptions{
-		useAuth: true,
-		useDB:   true,
+		useAuth:      true,
+		useDB:        true,
+		useAdminAuth: false,
 	})
 
 	// Register incident endpoints
 	register(engine, http.MethodGet, "/incidents", GetIncidents(), registerControllerOptions{
-		useAuth: true,
-		useDB:   true,
+		useAuth:      true,
+		useDB:        true,
+		useAdminAuth: false,
 	})
 	register(engine, http.MethodPost, "/incidents", CreateIncident(), registerControllerOptions{
-		useAuth: true,
-		useDB:   true,
+		useAuth:      true,
+		useDB:        true,
+		useAdminAuth: true,
 	})
 
 	// Register settings endpoints
 	register(engine, http.MethodGet, "/providers", GetProviders(), registerControllerOptions{
-		useAuth: true,
-		useDB:   true,
+		useAuth:      true,
+		useDB:        true,
+		useAdminAuth: true,
 	})
 	register(engine, http.MethodPost, "/providers", CreateProvider(), registerControllerOptions{
-		useAuth: true,
-		useDB:   true,
+		useAuth:      true,
+		useDB:        true,
+		useAdminAuth: true,
 	})
 	register(engine, http.MethodPut, "/providers/:provider_id", UpdateProvider(), registerControllerOptions{
-		useAuth: true,
-		useDB:   true,
+		useAuth:      true,
+		useDB:        true,
+		useAdminAuth: true,
 	})
 	register(engine, http.MethodDelete, "/providers/:provider_id", DeleteProvider(), registerControllerOptions{
-		useAuth: true,
-		useDB:   true,
+		useAuth:      true,
+		useDB:        true,
+		useAdminAuth: true,
+	})
+
+	// Register hosts endpoints
+	register(engine, http.MethodGet, "/hosts", GetHosts(), registerControllerOptions{
+		useAuth:      true,
+		useDB:        true,
+		useAdminAuth: true,
 	})
 }
 
@@ -133,4 +155,30 @@ func register(engine *gin.Engine, method string, endpoint string, handler gin.Ha
 		endpoint,
 		handlers...,
 	)
+}
+
+func getCommonParams(ctx *gin.Context) (map[string]any, error) {
+	params := make(map[string]any)
+
+	pageStr := ctx.Query("page")
+	if pageStr == "" {
+		pageStr = "1"
+	}
+	pageInt, err := strconv.Atoi(pageStr)
+	if err != nil {
+		return nil, err
+	}
+	params["page"] = pageInt
+
+	pageSizeStr := ctx.Query("pageSize")
+	if pageSizeStr == "" {
+		pageSizeStr = "10"
+	}
+	pageSizeInt, err := strconv.Atoi(pageSizeStr)
+	if err != nil {
+		return nil, err
+	}
+	params["pageSize"] = pageSizeInt
+
+	return params, nil
 }

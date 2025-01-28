@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	mysql2 "github.com/go-sql-driver/mysql"
@@ -93,6 +92,7 @@ func migrate(conn *gorm.DB) {
 		User{},
 		TeamUser{},
 		Provider{},
+		HostMachine{},
 		Incident{},
 		IncidentComment{},
 	}
@@ -168,35 +168,4 @@ func handleError(ctx *gin.Context, err error) error {
 			return errors.New("an unhandled error occurred")
 		}
 	}
-}
-
-func filter(filters map[string]any, allowedFilters [][]string, tx *gorm.DB) *gorm.DB {
-	for _, filterMap := range allowedFilters {
-		value, ok := filters[filterMap[0]]
-		if !ok {
-			log.Default().Printf("Filter %s not allowed. skipping...\n", filterMap[0])
-			continue
-		}
-		// Pagination filters
-		if strings.ToLower(filterMap[0]) == "pagesize" {
-			tx = tx.Limit(value.(int))
-			continue
-		}
-		if strings.ToLower(filterMap[0]) == "page" {
-			// Ensure page size exists - this allows us to calculate offset
-			pageSize, ok := filters["pageSize"]
-			if !ok {
-				log.Default().Println("Page size not provided. skipping...")
-				continue
-			}
-			// Value = page number
-			page := value.(int) * pageSize.(int)
-			tx = tx.Offset(page)
-			continue
-		}
-
-		// Column filters
-		tx = tx.Where(fmt.Sprintf("%s = ?", filterMap[1]), value)
-	}
-	return tx
 }

@@ -95,26 +95,45 @@ func (comment *IncidentComment) BeforeDelete(tx *gorm.DB) error {
 	return nil
 }
 
-func GetIncidents(ctx *gin.Context, resolved *bool) ([]Incident, error) {
-	tx := GetDBTransaction(ctx)
+type GetIncidentsFilters struct {
+	Resolved *bool
+	Page     *int
+	PageSize *int
+}
+
+func GetIncidents(ctx *gin.Context, filters GetIncidentsFilters) ([]*Incident, int64, error) {
+	tx := GetDBTransaction(ctx).Model(&Incident{})
 	// TODO: join to user and host tables
-	incidents := make([]Incident, 0)
-	if resolved != nil {
-		if *resolved {
+	incidents := make([]*Incident, 0)
+
+	// apply filters
+	if filters.Resolved != nil {
+		if *filters.Resolved {
 			tx = tx.Where("resolved_at IS NOT NULL")
 		} else {
 			tx = tx.Where("resolved_at IS NULL")
 		}
 	}
+
+	var count int64
+	tx.Count(&count)
+	if filters.PageSize != nil {
+		tx = tx.Limit(*filters.PageSize)
+		if filters.Page != nil {
+			tx = tx.Offset(*filters.PageSize * (*filters.Page - 1))
+		}
+	}
+
+	tx = tx.Preload("HostMachine").Preload("User")
 	tx = tx.Find(&incidents)
 	if tx.Error != nil {
-		return nil, handleError(ctx, tx.Error)
+		return nil, -1, handleError(ctx, tx.Error)
 	}
-	return incidents, nil
+	return incidents, count, nil
 }
 
 func CreateIncident(ctx *gin.Context, body *utility.IncidentPostRequestBodySchema) (*Incident, error) {
-	tx := GetDBTransaction(ctx)
+	tx := GetDBTransaction(ctx).Model(&Incident{})
 	hosts := make([]HostMachine, 0)
 	// todo: validate hosts
 	for _, host := range body.HostsAffected {

@@ -135,3 +135,17 @@ func UserAuthRequestMW() gin.HandlerFunc {
 		ctx.Set("user", user)
 	}
 }
+
+func AdminUserAuthRequestMW() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		user := ctx.MustGet("user").(*database.User)
+		if !user.Admin {
+			ctx.Set("Status", http.StatusForbidden)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "logged in user must be an admin",
+			})
+			ctx.Next()
+			return
+		}
+	}
+}

@@ -15,17 +15,17 @@ import (
 	swaggerGin "github.com/swaggo/gin-swagger"
 )
 
-//	@title						A.I.M.S Swagger
-//	@version					1.0
-//	@host						localhost:5000
-//	@BasePath					/
-//	@schemes					https
-//	@accept						json
-//	@produce					json
-//	@securitydefinitions.apikey	JWT
-//	@in							header
-//	@name						Authorization
-//	@description				The JWT
+// @title						A.I.M.S Swagger
+// @version					1.0
+// @host						localhost:5000
+// @BasePath					/
+// @schemes					https
+// @accept						json
+// @produce					json
+// @securitydefinitions.apikey	JWT
+// @in							header
+// @name						Authorization
+// @description				The JWT
 func main() {
 	if err := database.Connect(); err != nil {
 		panic(err)
