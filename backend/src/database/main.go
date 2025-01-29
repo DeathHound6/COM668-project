@@ -18,23 +18,39 @@ var (
 	conn             *gorm.DB    = nil
 	defaultProviders []*Provider = []*Provider{
 		{
+			ID:     1,
 			Name:   "Sentry",
 			Fields: "enabled;true;bool;true|orgSlug;testing-77;string;true|projSlug;test_app;string;true",
 			Type:   "log",
 		},
 		{
+			ID:     2,
+			Name:   "DynaTrace",
+			Fields: "enabled;false;bool;true",
+			Type:   "log",
+		},
+		{
+			ID:     3,
 			Name:   "Slack",
+			Fields: "enabled;false;bool;true",
+			Type:   "alert",
+		},
+		{
+			ID:     4,
+			Name:   "Microsoft Teams",
 			Fields: "enabled;false;bool;true",
 			Type:   "alert",
 		},
 	}
 	defaultTeams []*Team = []*Team{
 		{
+			ID:   1,
 			Name: "Engineering",
 		},
 	}
 	defaultUsers []*User = []*User{
 		{
+			ID:       1,
 			Name:     "System",
 			Email:    "test@example.com",
 			Password: "system_user",
@@ -44,6 +60,16 @@ var (
 				},
 			},
 			Admin: true,
+		},
+	}
+	defaultHosts []*HostMachine = []*HostMachine{
+		{
+			ID:       1,
+			Hostname: "test-host",
+			IP4:      "172.18.0.3",
+			IP6:      "",
+			OS:       "Linux",
+			TeamID:   1,
 		},
 	}
 )
@@ -95,19 +121,24 @@ func migrate(conn *gorm.DB) {
 		HostMachine{},
 		Incident{},
 		IncidentComment{},
+		IncidentHost{},
 	}
 	if err := tx.Migrator().DropTable(structs...); err != nil {
+		tx.Rollback()
 		panic(err)
 	}
 	if err := tx.AutoMigrate(structs...); err != nil {
+		tx.Rollback()
 		panic(err)
 	}
 	log.Default().Println("Inserting default data")
 	if err := insert_default_data(tx); err != nil {
+		tx.Rollback()
 		panic(err)
 	}
 	tx = tx.Commit()
 	if tx.Error != nil {
+		tx.Rollback()
 		panic(tx.Error)
 	}
 }
@@ -117,6 +148,7 @@ func insert_default_data(tx *gorm.DB) error {
 		defaultTeams,
 		defaultUsers,
 		defaultProviders,
+		defaultHosts,
 	}
 	for _, slice := range data {
 		tx.Create(slice)

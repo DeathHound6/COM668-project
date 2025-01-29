@@ -8,12 +8,21 @@ import { Spinner } from "react-bootstrap";
 export default function DashboardPage() {
     const [incidents, setIncidents] = useState([] as Incident[]);
 
+    const [apiError, setAPIError] = useState(null as string | null);
+
     useEffect(() => {
         fetch("/api/incidents?resolved=false")
-            .then(res => res.json())
-            .then(data => {
-                setIncidents(data);
-            });
+            .then(
+                async(res) => {
+                    const data = await res.json();
+                    if (!res.ok)
+                        return setAPIError(data.message);
+                    setIncidents(data.data);
+                },
+                (err) => {
+                    setAPIError((err as Error).message);
+                }
+            );
     }, []);
 
     return (

@@ -27,13 +27,12 @@ type User struct {
 	SlackID  string `gorm:"column:slack_id;size:20"`
 }
 
-func (user *User) hashPassword() (*string, error) {
+func (user *User) hashPassword() (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	pass := string(bytes)
-	return &pass, nil
+	return string(bytes), nil
 }
 
 func (user *User) ValidatePassword(password string) bool {
@@ -74,15 +73,47 @@ func (user *User) BeforeCreate(tx *gorm.DB) error {
 		ctx.Set("errorCode", http.StatusBadRequest)
 		return errors.New("user must be part of at least 1 team")
 	}
-	user.Password = *password
+	user.Password = password
 	user.UUID = uuid
 	return nil
 }
 
+func (user *User) BeforeUpdate(tx *gorm.DB) error {
+	ctx := GetContext(tx)
+	if len(user.Name) > 30 {
+		ctx.Set("errorCode", http.StatusBadRequest)
+		return errors.New("user name cannot be greater than 30 characters")
+	}
+	if len(user.Email) > 30 {
+		ctx.Set("errorCode", http.StatusBadRequest)
+		return errors.New("user email cannot be greater than 30 characters")
+	}
+	if matched, err := regexp.MatchString(EmailRegexp, user.Email); !matched || err != nil {
+		ctx.Set("errorCode", http.StatusBadRequest)
+		return errors.New("user email is not a valid email")
+	}
+	// NOTE: 72 chars is the max bcrypt supports
+	if len(user.Password) > 72 {
+		ctx.Set("errorCode", http.StatusBadRequest)
+		return errors.New("user password cannot be greater than 72 characters")
+	}
+	password, err := user.hashPassword()
+	if err != nil {
+		ctx.Set("errorCode", http.StatusInternalServerError)
+		return err
+	}
+	if len(user.Teams) == 0 {
+		ctx.Set("errorCode", http.StatusBadRequest)
+		return errors.New("user must be part of at least 1 team")
+	}
+	user.Password = password
+	return nil
+}
+
 type TeamUser struct {
-	TeamID uint `gorm:"column:team_id;not null"`
+	TeamID uint `gorm:"column:team_id;primaryKey"`
 	Team   Team `gorm:"foreignKey:team_id;references:id"`
-	UserID uint `gorm:"column:user_id;not null"`
+	UserID uint `gorm:"column:user_id;primaryKey"`
 	User   User `gorm:"foreignKey:user_id;references:id"`
 }
 
@@ -124,22 +155,6 @@ func CreateUser(ctx *gin.Context, body *utility.UserPostRequestBodySchema) (*Use
 
 func UpdateUser(ctx *gin.Context, user *User) error {
 	tx := GetDBTransaction(ctx).Model(&User{})
-	teams, _, err := GetTeams(ctx, GetTeamFilters{
-		UserUUID: &user.UUID,
-	})
-	if err != nil {
-		return err
-	}
-	// remove the teams that the user is known to be part of
-	// this prevents the teams from being inserted again
-	for _, team1 := range teams {
-		for idx, team2 := range user.Teams {
-			if team1.UUID == team2.UUID {
-				user.Teams = utility.RemoveElementFromSlice(user.Teams, idx)
-				continue
-			}
-		}
-	}
 	tx = tx.Save(user)
 	if tx.Error != nil {
 		return handleError(ctx, tx.Error)

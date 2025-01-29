@@ -13,9 +13,12 @@ func TransactionRequestMW() gin.HandlerFunc {
 		conn := database.GetDBConn()
 		tx := conn.Begin()
 		if tx.Error != nil {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, &utility.ErrorResponseSchema{
+			ctx.Set("Status", http.StatusInternalServerError)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
 				Error: tx.Error.Error(),
 			})
+			ctx.Next()
+			return
 		}
 		ctx.Set("transaction", tx)
 		tx.Set("context", ctx)
@@ -28,9 +31,12 @@ func TransactionResponseMW() gin.HandlerFunc {
 		tx := database.GetDBTransaction(ctx)
 		if tx.Error != nil {
 			tx.Rollback()
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, &utility.ErrorResponseSchema{
+			ctx.Set("Status", http.StatusInternalServerError)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
 				Error: tx.Error.Error(),
 			})
+			ctx.Next()
+			return
 		}
 		tx.Commit()
 		ctx.Next()

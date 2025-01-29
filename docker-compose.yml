@@ -54,3 +54,13 @@ services:
       - 3001:3001
     volumes:
       - ./test_app/src:/app/src
+    networks:
+      default:
+        ipv4_address: 172.18.0.3 # keep the ip of the test app static so that it will line up with the address stored in db
+
+networks:
+  default:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/24

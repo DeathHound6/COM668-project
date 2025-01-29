@@ -32,6 +32,7 @@ func TimingResponseMW() gin.HandlerFunc {
 				Error: err.Error(),
 			})
 			ctx.Next()
+			return
 		}
 		ctx.Header("X-Timing", duration.String())
 		ctx.Next()

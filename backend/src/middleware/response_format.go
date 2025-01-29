@@ -28,7 +28,9 @@ func FormatResponseMW() gin.HandlerFunc {
 			ctx.AbortWithStatus(status.(int))
 			return
 		}
-		log.Default().Printf("Returning body with status %d\n%v\n", status.(int), body)
+		if gin.IsDebugging() {
+			log.Default().Printf("Returning body with status %d\n%v\n", status.(int), body)
+		}
 		ctx.AbortWithStatusJSON(status.(int), body)
 	}
 }

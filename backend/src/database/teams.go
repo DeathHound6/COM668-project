@@ -50,19 +50,12 @@ func (team *Team) BeforeDelete(tx *gorm.DB) error {
 }
 
 type GetTeamFilters struct {
-	UserUUID *string
 	Page     *int
 	PageSize *int
 }
 
 func GetTeams(ctx *gin.Context, filters GetTeamFilters) ([]*Team, int64, error) {
 	tx := GetDBTransaction(ctx).Model(&Team{})
-
-	if filters.UserUUID != nil {
-		tx = tx.Joins("JOIN team_user ON team_user.team_id = teams.id").
-			Joins("JOIN users ON users.id = team_user.user_id").
-			Where("users.uuid = ?", *filters.UserUUID)
-	}
 
 	var count int64
 	tx = tx.Count(&count)

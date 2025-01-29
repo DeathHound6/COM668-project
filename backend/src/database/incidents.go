@@ -8,17 +8,19 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Incident struct {
-	ID            uint          `gorm:"column:id;primaryKey;autoIncrement"`
-	UUID          string        `gorm:"column:uuid;size:36;unique;not null"`
-	HostsAffected []HostMachine `gorm:"foreignKey:id"`
-	Summary       string        `gorm:"column:summary;size:500;not null"`
-	CreatedAt     time.Time     `gorm:"column:created_at;autoCreateTime;not null"`
-	ResolvedAt    *time.Time    `gorm:"column:resolved_at"`
-	ResolvedByID  *uint         `gorm:"column:resolved_by_id"`
-	ResolvedBy    *User         `gorm:"foreignKey:resolved_by_id;references:id"`
+	ID            uint              `gorm:"column:id;primaryKey;autoIncrement"`
+	UUID          string            `gorm:"column:uuid;size:36;unique;not null"`
+	HostsAffected []HostMachine     `gorm:"many2many:incident_host"`
+	Summary       string            `gorm:"column:summary;size:500;not null"`
+	Comments      []IncidentComment `gorm:"foreignKey:incident_id"`
+	CreatedAt     time.Time         `gorm:"column:created_at;autoCreateTime;not null"`
+	ResolvedAt    *time.Time        `gorm:"column:resolved_at"`
+	ResolvedByID  *uint             `gorm:"column:resolved_by_id"`
+	ResolvedBy    *User             `gorm:"foreignKey:resolved_by_id;references:id"`
 }
 
 func (incident *Incident) BeforeCreate(tx *gorm.DB) error {
@@ -95,6 +97,13 @@ func (comment *IncidentComment) BeforeDelete(tx *gorm.DB) error {
 	return nil
 }
 
+type IncidentHost struct {
+	IncidentID    uint        `gorm:"column:incident_id;primaryKey"`
+	Incident      Incident    `gorm:"foreignKey:incident_id;references:id"`
+	HostMachineID uint        `gorm:"column:host_machine_id;primaryKey"`
+	HostMachine   HostMachine `gorm:"foreignKey:host_machine_id;references:id"`
+}
+
 type GetIncidentsFilters struct {
 	Resolved *bool
 	Page     *int
@@ -103,7 +112,7 @@ type GetIncidentsFilters struct {
 
 func GetIncidents(ctx *gin.Context, filters GetIncidentsFilters) ([]*Incident, int64, error) {
 	tx := GetDBTransaction(ctx).Model(&Incident{})
-	// TODO: join to user and host tables
+	tx = tx.Preload(clause.Associations)
 	incidents := make([]*Incident, 0)
 
 	// apply filters
@@ -124,7 +133,6 @@ func GetIncidents(ctx *gin.Context, filters GetIncidentsFilters) ([]*Incident, i
 		}
 	}
 
-	tx = tx.Preload("HostMachine").Preload("User")
 	tx = tx.Find(&incidents)
 	if tx.Error != nil {
 		return nil, -1, handleError(ctx, tx.Error)
