@@ -49,6 +49,12 @@ export default function NavbarComponent() {
         redirect("https://localhost:5000/authorise/slack", RedirectType.replace);
     }
 
+    function logout() {
+        localStorage.removeItem("u");
+        localStorage.removeItem("e");
+        redirect("/login", RedirectType.replace);
+    }
+
     return (
         <Navbar className="mt-1 mx-2 p-2 border-b">
             <NavbarBrand href="/dashboard">A.I.M.S</NavbarBrand>
@@ -75,7 +81,7 @@ export default function NavbarComponent() {
                         { user != null && (
                             <>
                                 <DropdownDivider />
-                                <DropdownItem onClick={authSlack}>
+                                <DropdownItem onClick={() => authSlack()}>
                                     <Row xs={4}>
                                         <Col xs={1}>
                                             <Slack />
@@ -84,6 +90,10 @@ export default function NavbarComponent() {
                                             Connect with Slack
                                         </Col>
                                     </Row>
+                                </DropdownItem>
+                                <DropdownDivider />
+                                <DropdownItem onClick={() => logout()}>
+                                    Logout
                                 </DropdownItem>
                             </>
                         )}

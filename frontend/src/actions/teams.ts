@@ -9,8 +9,8 @@ export async function GetTeams({ page, pageSize }: { page?: number, pageSize?: n
     if (pageSize) query.set("pageSize", pageSize.toString());
 
     const response = await fetch(`/api/teams${query.size > 0 ? `?${query.toString()}` : ""}`);
-    if (response.status != 200) {
-        handleUnauthorized(response);
+    if (!response.ok) {
+        handleUnauthorized({ res: response });
         const data: ErrorResponse = JSON.parse(await response.text());
         throw new APIError(data.error, response.status);
     }

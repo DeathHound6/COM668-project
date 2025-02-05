@@ -5,7 +5,7 @@ import { handleUnauthorized } from "./api";
 
 export async function GetHost({ uuid }: { uuid: string }): Promise<HostMachine> {
     const response = await fetch(`/api/hosts/${uuid}`);
-    if (response.status != 200) {
+    if (!response.ok) {
         handleUnauthorized({ res: response });
         const data: ErrorResponse = JSON.parse(await response.text());
         throw new APIError(data.error, response.status);
@@ -19,7 +19,7 @@ export async function GetHosts({ page, pageSize }: { page?: number, pageSize?: n
     if (pageSize) query.set("pageSize", pageSize.toString());
 
     const response = await fetch(`/api/hosts${query.size > 0 ? `?${query.toString()}` : ""}`);
-    if (response.status != 200) {
+    if (!response.ok) {
         handleUnauthorized({ res: response });
         const data: ErrorResponse = JSON.parse(await response.text());
         throw new APIError(data.error, response.status);
@@ -35,7 +35,7 @@ export async function CreateHost({ hostname, os, ip4, ip6, teamID }: { hostname:
         },
         body: JSON.stringify({ hostname, os, ip4, ip6, teamID })
     });
-    if (response.status != 201) {
+    if (!response.ok) {
         handleUnauthorized({ res: response });
         const data: ErrorResponse = JSON.parse(await response.text());
         throw new APIError(data.error, response.status);
@@ -52,7 +52,7 @@ export async function UpdateHost({ uuid, body }: {uuid: string, body: { hostname
         },
         body: JSON.stringify(body)
     });
-    if (response.status != 200) {
+    if (!response.ok) {
         handleUnauthorized({ res: response });
         const data: ErrorResponse = JSON.parse(await response.text());
         throw new APIError(data.error, response.status);
@@ -63,7 +63,7 @@ export async function DeleteHost(uuid: string): Promise<void> {
     const response = await fetch(`/api/hosts/${uuid}`, {
         method: "DELETE"
     });
-    if (response.status != 204) {
+    if (!response.ok) {
         handleUnauthorized({ res: response });
         const data: ErrorResponse = JSON.parse(await response.text());
         throw new APIError(data.error, response.status);

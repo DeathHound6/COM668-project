@@ -50,7 +50,7 @@ export async function login(state: FormState, form: FormData) {
             password: password
         })
     });
-    if (response.status != 204)
+    if (!response.ok)
         return {
             errors: {email: undefined, password: undefined},
             error: JSON.parse(await response.text())["error"] as string

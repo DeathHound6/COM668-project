@@ -19,13 +19,13 @@ func FormatResponseMW() gin.HandlerFunc {
 		}
 		body, bodyOk := ctx.Get("Body")
 		if strings.HasPrefix(strconv.Itoa(status.(int)), "2") {
-			if !bodyOk {
-				log.Default().Printf("[%s] Body not set in context. Assuming 204 No Content\n", reqID)
-				status = http.StatusNoContent
-			}
 			if http.MethodPost == ctx.Request.Method {
 				log.Default().Printf("[%s] Body not set in context on POST. Assuming 201 Created\n", reqID)
 				status = http.StatusCreated
+			}
+			if !bodyOk {
+				log.Default().Printf("[%s] Body not set in context. Assuming 204 No Content\n", reqID)
+				status = http.StatusNoContent
 			}
 		}
 		if !bodyOk || status == http.StatusNoContent {
