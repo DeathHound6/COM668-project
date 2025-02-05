@@ -3,6 +3,7 @@ package controller
 import (
 	"com668-backend/database"
 	"com668-backend/utility"
+	"fmt"
 	"math"
 	"net/http"
 
@@ -76,5 +77,226 @@ func GetHosts() gin.HandlerFunc {
 		}
 		ctx.Set("Status", http.StatusOK)
 		ctx.Set("Body", resp)
+	}
+}
+
+// GetHost godoc
+//
+//	@Summary		Get a Host
+//	@Description	Get a Host
+//	@Tags			Hosts
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			uuid	path		string	true	"Host UUID"
+//	@Success		200		{object}	utility.HostMachineGetResponseBodySchema
+//	@Failure		400		{object}	utility.ErrorResponseSchema
+//	@Failure		401		{object}	utility.ErrorResponseSchema
+//	@Failure		403		{object}	utility.ErrorResponseSchema
+//	@Failure		404		{object}	utility.ErrorResponseSchema
+//	@Failure		500		{object}	utility.ErrorResponseSchema
+//	@Router			/hosts/{uuid} [get]
+func GetHost() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		uuid := ctx.Param("host_id")
+		host, err := database.GetHost(ctx, database.GetHostsFilters{
+			UUID: &uuid,
+		})
+		if err != nil {
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		h := &utility.HostMachineGetResponseBodySchema{
+			UUID:     host.UUID,
+			Hostname: host.Hostname,
+			IP4:      host.IP4,
+			IP6:      host.IP6,
+			OS:       host.OS,
+			Team: utility.TeamGetResponseBodySchema{
+				UUID: host.Team.UUID,
+				Name: host.Team.Name,
+			},
+		}
+		ctx.Set("Status", http.StatusOK)
+		ctx.Set("Body", h)
+	}
+}
+
+// CreateHost godoc
+//
+//	@Summary		Create a Host
+//	@Description	Create a Host
+//	@Tags			Hosts
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body	utility.HostMachinePostPutRequestBodySchema	true	"Host creation request"
+//	@Header			201		header	string										"GET URL"
+//	@Success		201
+//	@Failure		400	{object}	utility.ErrorResponseSchema
+//	@Failure		401	{object}	utility.ErrorResponseSchema
+//	@Failure		403	{object}	utility.ErrorResponseSchema
+//	@Failure		500	{object}	utility.ErrorResponseSchema
+//	@Router			/hosts [post]
+func CreateHost() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var body *utility.HostMachinePostPutRequestBodySchema
+		if err := ctx.ShouldBindJSON(&body); err != nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+		team, err := database.GetTeam(ctx, database.GetTeamsFilters{
+			UUID: &body.TeamID,
+		})
+		if err != nil {
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		host := &database.HostMachine{
+			OS:       body.OS,
+			Hostname: body.Hostname,
+			IP4:      &body.IP4,
+			IP6:      &body.IP6,
+			TeamID:   team.ID,
+		}
+		if err := database.CreateHost(ctx, host); err != nil {
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+		ctx.Header("Location", fmt.Sprintf("%s://%s/hosts/%s", ctx.Request.URL.Scheme, ctx.Request.URL.Host, host.UUID))
+		ctx.Set("Status", http.StatusCreated)
+	}
+}
+
+// UpdateHost godoc
+//
+//	@Summary		Update a Host
+//	@Description	Update a Host
+//	@Tags			Hosts
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			uuid	path	string										true	"Host UUID"
+//	@Param			body	body	utility.HostMachinePostPutRequestBodySchema	true	"Host update request"
+//	@Success		204
+//	@Failure		400	{object}	utility.ErrorResponseSchema
+//	@Failure		401	{object}	utility.ErrorResponseSchema
+//	@Failure		403	{object}	utility.ErrorResponseSchema
+//	@Failure		404	{object}	utility.ErrorResponseSchema
+//	@Failure		500	{object}	utility.ErrorResponseSchema
+//	@Router			/hosts/{uuid} [put]
+func UpdateHost() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var body *utility.HostMachinePostPutRequestBodySchema
+		if err := ctx.ShouldBindJSON(&body); err != nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		uuid := ctx.Param("host_id")
+		host, err := database.GetHost(ctx, database.GetHostsFilters{
+			UUID: &uuid,
+		})
+		if err != nil {
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		team, err := database.GetTeam(ctx, database.GetTeamsFilters{
+			UUID: &body.TeamID,
+		})
+		if err != nil {
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+		host.TeamID = team.ID
+		host.OS = body.OS
+		host.Hostname = body.Hostname
+		host.IP4 = &body.IP4
+		host.IP6 = &body.IP6
+
+		if err := database.UpdateHost(ctx, host); err != nil {
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		ctx.Set("Status", http.StatusNoContent)
+	}
+}
+
+// DeleteHost godoc
+//
+//	@Summary		Delete a Host
+//	@Description	Delete a Host
+//	@Tags			Hosts
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			uuid	path	string	true	"Host UUID"
+//	@Success		204
+//	@Failure		400	{object}	utility.ErrorResponseSchema
+//	@Failure		401	{object}	utility.ErrorResponseSchema
+//	@Failure		403	{object}	utility.ErrorResponseSchema
+//	@Failure		404	{object}	utility.ErrorResponseSchema
+//	@Failure		500	{object}	utility.ErrorResponseSchema
+//	@Router			/hosts/{uuid} [delete]
+func DeleteHost() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		uuid := ctx.Param("host_id")
+		_, err := database.GetHost(ctx, database.GetHostsFilters{
+			UUID: &uuid,
+		})
+		if err != nil {
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		if err := database.DeleteHost(ctx, uuid); err != nil {
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+		ctx.Set("Status", http.StatusNoContent)
 	}
 }

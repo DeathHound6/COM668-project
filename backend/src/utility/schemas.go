@@ -80,8 +80,8 @@ type HostMachineGetResponseBodySchema struct {
 	UUID     string                    `json:"uuid"`
 	OS       string                    `json:"os"`
 	Hostname string                    `json:"hostname"`
-	IP4      string                    `json:"ip4"`
-	IP6      string                    `json:"ip6"`
+	IP4      *string                   `json:"ip4"`
+	IP6      *string                   `json:"ip6"`
 	Team     TeamGetResponseBodySchema `json:"team"`
 }
 
@@ -91,4 +91,12 @@ type ProviderPostRequestBodySchema struct {
 
 type ProviderPutRequestBodySchema struct {
 	Fields []KeyValueSchema `json:"fields"`
+}
+
+type HostMachinePostPutRequestBodySchema struct {
+	OS       string `json:"os"`
+	Hostname string `json:"hostname"`
+	IP4      string `json:"ip4"`
+	IP6      string `json:"ip6"`
+	TeamID   string `json:"teamID"`
 }

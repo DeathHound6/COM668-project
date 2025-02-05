@@ -15,6 +15,34 @@ definitions:
       meta:
         $ref: '#/definitions/utility.MetaSchema'
     type: object
+  utility.HostMachineGetResponseBodySchema:
+    properties:
+      hostname:
+        type: string
+      ip4:
+        type: string
+      ip6:
+        type: string
+      os:
+        type: string
+      team:
+        $ref: '#/definitions/utility.TeamGetResponseBodySchema'
+      uuid:
+        type: string
+    type: object
+  utility.HostMachinePostPutRequestBodySchema:
+    properties:
+      hostname:
+        type: string
+      ip4:
+        type: string
+      ip6:
+        type: string
+      os:
+        type: string
+      teamID:
+        type: string
+    type: object
   utility.MetaSchema:
     properties:
       page:
@@ -170,6 +198,172 @@ paths:
       security:
       - JWT: []
       summary: Get a list of Hosts
+      tags:
+      - Hosts
+    post:
+      consumes:
+      - application/json
+      description: Create a Host
+      parameters:
+      - description: Host creation request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/utility.HostMachinePostPutRequestBodySchema'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+      security:
+      - JWT: []
+      summary: Create a Host
+      tags:
+      - Hosts
+  /hosts/{uuid}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a Host
+      parameters:
+      - description: Host UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+      security:
+      - JWT: []
+      summary: Delete a Host
+      tags:
+      - Hosts
+    get:
+      consumes:
+      - application/json
+      description: Get a Host
+      parameters:
+      - description: Host UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utility.HostMachineGetResponseBodySchema'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+      security:
+      - JWT: []
+      summary: Get a Host
+      tags:
+      - Hosts
+    put:
+      consumes:
+      - application/json
+      description: Update a Host
+      parameters:
+      - description: Host UUID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      - description: Host update request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/utility.HostMachinePostPutRequestBodySchema'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+      security:
+      - JWT: []
+      summary: Update a Host
       tags:
       - Hosts
   /incidents:
@@ -340,6 +534,10 @@ paths:
           description: Forbidden
           schema:
             $ref: '#/definitions/utility.ErrorResponseSchema'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
         "500":
           description: Internal Server Error
           schema:
@@ -373,6 +571,10 @@ paths:
           description: Forbidden
           schema:
             $ref: '#/definitions/utility.ErrorResponseSchema'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
         "500":
           description: Internal Server Error
           schema:
@@ -383,6 +585,47 @@ paths:
       tags:
       - Settings
   /teams:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of Teams
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utility.GetManyResponseSchema'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+      security:
+      - JWT: []
+      summary: Get a list of Teams
+      tags:
+      - Teams
     post:
       consumes:
       - application/json

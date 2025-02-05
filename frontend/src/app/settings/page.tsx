@@ -233,8 +233,9 @@ export default function SettingsPage() {
         })
         .then(
             async(res) => {
+                const data = await res.json();
                 if (!res.ok)
-                    return setAPIError((await res.json()).error);
+                    return setAPIError(data.error);
                 const newSettings = [...settings];
                 newSettings.splice(index, 1);
                 setSettings(newSettings);
@@ -366,7 +367,7 @@ export default function SettingsPage() {
                     {
                         /* Render settings */
                         settings.length > 0 && settings.map((setting: Settings, index: number) => (
-                            <Col key={`col-${setting.uuid}`} className="mx-auto">
+                            <Col key={`col-${setting.uuid}`}>
                                 <Card className="m-2 p-2 border rounded" key={`c-${setting.uuid}`}>
                                     <CardBody key={`cb-${setting.uuid}`}>
                                         <CardTitle key={`ct-${setting.uuid}`}>
@@ -406,12 +407,10 @@ export default function SettingsPage() {
                     }
                     {
                         /* Render no settings */
-                        settings.length == 0 && (
+                        settings.length == 0 && apiError == undefined && (
                             <Col className="mx-auto my-3">
-                                <Row>
-                                    <h4 style={{fontSize: 24}} className="my-2">No settings found</h4>
-                                    <Button variant="primary" onClick={() => setShowNewSettingModal(true)}>Create Setting</Button>
-                                </Row>
+                                <h4 style={{fontSize: 24}} className="my-2">No settings found</h4>
+                                <Button variant="primary" onClick={() => setShowNewSettingModal(true)} className="mt-2">Create Setting</Button>
                             </Col>
                         )
                     }
@@ -444,12 +443,6 @@ export default function SettingsPage() {
                         </Toast>
                     ))
                 )}
-                { showAPIError && (
-                    <Toast bg="danger" onClose={() => { setAPIError(undefined); }} key={"error"}>
-                        <ToastHeader>Error</ToastHeader>
-                        <ToastBody>{apiError}</ToastBody>
-                    </Toast>
-                )}
                 { settingState?.errors.name?.map((error: string, index: number) => (
                     showSettingNameError[index] && (
                         <Toast bg="danger" onClose={() => onCloseToast(index, "setting")} key={`s-${index}`}>
@@ -457,6 +450,12 @@ export default function SettingsPage() {
                             <ToastBody>{error}</ToastBody>
                         </Toast>
                     ))
+                )}
+                { showAPIError && (
+                    <Toast bg="danger" onClose={() => { setAPIError(undefined); }} key={"error"}>
+                        <ToastHeader>Error</ToastHeader>
+                        <ToastBody>{apiError}</ToastBody>
+                    </Toast>
                 )}
                 { showSuccessToast && (
                     <Toast bg="success" onClose={() => { setSuccessToastMessage(undefined); }} key={"success"}>

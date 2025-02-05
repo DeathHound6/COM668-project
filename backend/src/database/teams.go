@@ -49,13 +49,32 @@ func (team *Team) BeforeDelete(tx *gorm.DB) error {
 	return nil
 }
 
-type GetTeamFilters struct {
+type GetTeamsFilters struct {
+	UUID     *string
 	Page     *int
 	PageSize *int
 }
 
-func GetTeams(ctx *gin.Context, filters GetTeamFilters) ([]*Team, int64, error) {
+func GetTeam(ctx *gin.Context, filters GetTeamsFilters) (*Team, error) {
+	teams, count, err := GetTeams(ctx, GetTeamsFilters{
+		UUID: filters.UUID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if count == 0 {
+		ctx.Set("errorCode", http.StatusNotFound)
+		return nil, errors.New("team not found")
+	}
+	return teams[0], nil
+}
+
+func GetTeams(ctx *gin.Context, filters GetTeamsFilters) ([]*Team, int64, error) {
 	tx := GetDBTransaction(ctx).Model(&Team{})
+
+	if filters.UUID != nil {
+		tx = tx.Where("uuid = ?", *filters.UUID)
+	}
 
 	var count int64
 	tx = tx.Count(&count)
@@ -69,7 +88,7 @@ func GetTeams(ctx *gin.Context, filters GetTeamFilters) ([]*Team, int64, error) 
 	var teams []*Team
 	tx = tx.Find(&teams)
 	if tx.Error != nil {
-		return nil, -1, tx.Error
+		return nil, -1, handleError(ctx, tx.Error)
 	}
 	return teams, count, nil
 }

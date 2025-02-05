@@ -65,3 +65,7 @@ func ReadJSONStruct[T any](bytes []byte) (*T, error) {
 func RemoveElementFromSlice[T any](slice []T, index int) []T {
 	return append(slice[:index], slice[index+1:]...)
 }
+
+func Pointer[T any](value T) *T {
+	return &value
+}

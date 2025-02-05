@@ -15,7 +15,18 @@ const (
 
 func TimingRequestMW() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		// generate a random request ID (uuid) to identify the request in logs
+		reqID, err := utility.GenerateRandomUUID()
+		if err != nil {
+			ctx.Set("Status", http.StatusInternalServerError)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
 		now := time.Now().UnixNano()
+		ctx.Set("ReqID", reqID)
 		ctx.Set(timingField, now)
 		ctx.Next()
 	}

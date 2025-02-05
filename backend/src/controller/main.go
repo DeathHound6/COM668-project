@@ -30,6 +30,11 @@ func RegisterControllers(engine *gin.Engine) {
 	})
 
 	// Register teams endpoints
+	register(engine, http.MethodGet, "/teams", GetTeams(), registerControllerOptions{
+		useAuth:      true,
+		useDB:        true,
+		useAdminAuth: false,
+	})
 	register(engine, http.MethodPost, "/teams", CreateTeam(), registerControllerOptions{
 		useAuth:      true,
 		useDB:        true,
@@ -98,6 +103,26 @@ func RegisterControllers(engine *gin.Engine) {
 		useDB:        true,
 		useAdminAuth: true,
 	})
+	register(engine, http.MethodGet, "/hosts/:host_id", GetHost(), registerControllerOptions{
+		useAuth:      true,
+		useDB:        true,
+		useAdminAuth: true,
+	})
+	register(engine, http.MethodPost, "/hosts", CreateHost(), registerControllerOptions{
+		useAuth:      true,
+		useDB:        true,
+		useAdminAuth: true,
+	})
+	register(engine, http.MethodPut, "/hosts/:host_id", UpdateHost(), registerControllerOptions{
+		useAuth:      true,
+		useDB:        true,
+		useAdminAuth: true,
+	})
+	register(engine, http.MethodDelete, "/hosts/:host_id", DeleteHost(), registerControllerOptions{
+		useAuth:      true,
+		useDB:        true,
+		useAdminAuth: true,
+	})
 }
 
 func register(engine *gin.Engine, method string, endpoint string, handler gin.HandlerFunc, options registerControllerOptions) {
@@ -123,13 +148,14 @@ func register(engine *gin.Engine, method string, endpoint string, handler gin.Ha
 	handlers = append(handlers, middleware.TimingRequestMW())
 	if options.useDB {
 		handlers = append(handlers, middleware.TransactionRequestMW())
-	}
-	if options.useAuth {
-		handlers = append(handlers, middleware.UserAuthRequestMW())
+		if options.useAuth {
+			handlers = append(handlers, middleware.UserAuthRequestMW())
+		}
 	}
 
 	// Endpoint handler
 	handlers = append(handlers, func(ctx *gin.Context) {
+		reqID := ctx.GetString("ReqID")
 		// Check if we have set an error response already
 		// If we have, we skip the normal endpoint handler
 		body, ok := ctx.Get("Body")
@@ -137,9 +163,10 @@ func register(engine *gin.Engine, method string, endpoint string, handler gin.Ha
 			_, ok = body.(*utility.ErrorResponseSchema)
 		}
 		if body == nil || !ok {
-			log.Default().Println("Running endpoint handler")
+			log.Default().Printf("[%s] Running endpoint handler for %s %s\n", reqID, ctx.Request.Method, ctx.Request.URL.Path)
 			handler(ctx)
 		}
+		log.Default().Printf("[%s] Endpoint handler for %s %s completed\n", reqID, ctx.Request.Method, ctx.Request.URL.Path)
 		ctx.Next()
 	})
 

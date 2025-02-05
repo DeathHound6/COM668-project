@@ -1,6 +1,6 @@
 "use client";
 
-import { login, FormState } from "../../actions/auth";
+import { GetMe } from "../../actions/users";
 import { startTransition, useActionState, useEffect, useState } from "react";
 import {
     FloatingLabel,
@@ -17,6 +17,59 @@ import {
     Eye,
     EyeSlash
 } from "react-bootstrap-icons";
+import { z } from "zod";
+import { redirect, RedirectType } from "next/navigation";
+
+const loginSchema = z.object({
+    email: z.string().trim().min(1, "email address is required").email("invalid email address"),
+    password: z.string().trim().min(1, "password is required")
+});
+export type FormState = {
+    errors: {
+        email?: string[] | undefined,
+        password?: string[] | undefined
+    },
+    error?: string | undefined
+};
+
+export async function login(state: FormState, form: FormData) {
+    const email = form.get("email") as string;
+    const password = form.get("password") as string;
+
+    const validatedFields = loginSchema.safeParse({email, password});
+    if (!validatedFields.success)
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+            error: undefined
+        };
+
+    const response = await fetch("/api/users/login", {
+        method: 'POST',
+        body: JSON.stringify({
+            email: email,
+            password: password
+        })
+    });
+    if (response.status != 204)
+        return {
+            errors: {email: undefined, password: undefined},
+            error: JSON.parse(await response.text())["error"] as string
+        };
+
+    try
+    {
+        await GetMe();
+        localStorage.setItem("e", (Date.now() + 86400000).toString());
+    }
+    catch(e)
+    {
+        return {
+            errors: {email: undefined, password: undefined},
+            error: (e as Error).message
+        };
+    }
+    redirect("/dashboard", RedirectType.replace);
+}
 
 export default function LoginPage() {
     const [state, action, pending] = useActionState<FormState, FormData>(login, { error: undefined, errors: { email: undefined, password: undefined } });

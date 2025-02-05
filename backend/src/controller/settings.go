@@ -3,7 +3,6 @@ package controller
 import (
 	"com668-backend/database"
 	"com668-backend/utility"
-	"log"
 	"math"
 	"net/http"
 	"strings"
@@ -132,7 +131,6 @@ func CreateProvider() gin.HandlerFunc {
 			ctx.Next()
 			return
 		}
-		log.Default().Println(provider)
 		ctx.Set("Status", http.StatusCreated)
 		ctx.Set("Body", &utility.ProviderGetResponseSchema{
 			UUID:   provider.UUID,
@@ -155,6 +153,7 @@ func CreateProvider() gin.HandlerFunc {
 //	@Success		204
 //	@Failure		401	{object}	utility.ErrorResponseSchema
 //	@Failure		403	{object}	utility.ErrorResponseSchema
+//	@Failure		404	{object}	utility.ErrorResponseSchema
 //	@Failure		500	{object}	utility.ErrorResponseSchema
 //	@Router			/providers/{provider_id} [put]
 func UpdateProvider() gin.HandlerFunc {
@@ -170,6 +169,16 @@ func UpdateProvider() gin.HandlerFunc {
 		}
 
 		providerID := ctx.Param("provider_id")
+		_, err := database.GetProvider(ctx, database.GetProvidersFilters{UUID: &providerID})
+		if err != nil {
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
 		if err := database.UpdateProvider(ctx, providerID, utility.GetStringFromFieldsMap(body.Fields)); err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
 			ctx.Set("Body", &utility.ErrorResponseSchema{
@@ -194,11 +203,22 @@ func UpdateProvider() gin.HandlerFunc {
 //	@Success		204
 //	@Failure		401	{object}	utility.ErrorResponseSchema
 //	@Failure		403	{object}	utility.ErrorResponseSchema
+//	@Failure		404	{object}	utility.ErrorResponseSchema
 //	@Failure		500	{object}	utility.ErrorResponseSchema
 //	@Router			/providers/{provider_id} [delete]
 func DeleteProvider() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		providerID := ctx.Param("provider_id")
+		provider, _ := database.GetProvider(ctx, database.GetProvidersFilters{UUID: &providerID})
+		if provider == nil {
+			ctx.Set("Status", http.StatusNotFound)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "provider not found",
+			})
+			ctx.Next()
+			return
+		}
+
 		if err := database.DeleteProvider(ctx, providerID); err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
 			ctx.Set("Body", &utility.ErrorResponseSchema{

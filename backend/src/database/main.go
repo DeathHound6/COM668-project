@@ -1,6 +1,7 @@
 package database
 
 import (
+	"com668-backend/utility"
 	"errors"
 	"fmt"
 	"log"
@@ -32,7 +33,7 @@ var (
 		{
 			ID:     3,
 			Name:   "Slack",
-			Fields: "enabled;false;bool;true",
+			Fields: "enabled;true;bool;true",
 			Type:   "alert",
 		},
 		{
@@ -46,6 +47,14 @@ var (
 		{
 			ID:   1,
 			Name: "Engineering",
+		},
+		{
+			ID:   2,
+			Name: "DevOps",
+		},
+		{
+			ID:   3,
+			Name: "Monitoring",
 		},
 	}
 	defaultUsers []*User = []*User{
@@ -65,9 +74,9 @@ var (
 	defaultHosts []*HostMachine = []*HostMachine{
 		{
 			ID:       1,
-			Hostname: "test-host",
-			IP4:      "172.18.0.3",
-			IP6:      "",
+			Hostname: "test_app",
+			IP4:      utility.Pointer("172.18.0.3"),
+			IP6:      nil,
 			OS:       "Linux",
 			TeamID:   1,
 		},
@@ -98,7 +107,9 @@ func Connect() error {
 		return err
 	}
 	db = db.Session(&gorm.Session{Context: db.Statement.Context, NewDB: true})
-	migrate(db)
+	if gin.IsDebugging() {
+		migrate(db)
+	}
 	conn = db
 	return nil
 }
@@ -174,6 +185,7 @@ func GetContext(tx *gorm.DB) *gin.Context {
 }
 
 func handleError(ctx *gin.Context, err error) error {
+	reqID := ctx.GetString("ReqID")
 	if errors.Is(err, gorm.ErrDuplicatedKey) {
 		ctx.Set("errorCode", http.StatusBadRequest)
 		return errors.New("duplicate primary key was provided")
@@ -190,12 +202,12 @@ func handleError(ctx *gin.Context, err error) error {
 				ctx.Set("errorCode", http.StatusBadRequest)
 				return errors.New("duplicate field value was provided")
 			default:
-				log.Default().Printf("unhandled error: %e\n", err)
+				log.Default().Printf("[%s] unhandled error: %e\n", reqID, err)
 				ctx.Set("errorCode", http.StatusInternalServerError)
 				return errors.New("an unhandled error occurred")
 			}
 		} else {
-			log.Default().Printf("unhandled error: %e\n", err)
+			log.Default().Printf("[%s] unhandled error: %e\n", reqID, err)
 			ctx.Set("errorCode", http.StatusInternalServerError)
 			return errors.New("an unhandled error occurred")
 		}

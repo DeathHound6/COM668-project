@@ -4,7 +4,7 @@ import Navbar from "../components/navbar";
 import { redirect, RedirectType, usePathname } from "next/navigation";
 import { ToastContainer, Toast, ToastHeader, ToastBody } from "react-bootstrap";
 import { useEffect, useState } from "react";
-import { getMe } from "../actions/auth";
+import { GetMe } from "../actions/users";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./globals.css";
 
@@ -16,17 +16,18 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         const authCompleteFor = localStorage.getItem("auth");
         if (authCompleteFor == null)
             return;
-        getMe()
-        .then(() => {
-            setAuthedFor(authCompleteFor);
-            localStorage.removeItem("auth");
-        })
-        .catch(e => {
-            console.error(e);
-            localStorage.removeItem("u");
-            localStorage.removeItem("e");
-            redirect("/login", RedirectType.replace);
-        });
+        GetMe()
+        .then(
+            () => {
+                setAuthedFor(authCompleteFor);
+                localStorage.removeItem("auth");
+            },
+            () => {
+                localStorage.removeItem("u");
+                localStorage.removeItem("e");
+                redirect("/login", RedirectType.replace);
+            }
+        );
     }, [url]);
 
     return (

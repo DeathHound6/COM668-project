@@ -41,16 +41,17 @@ type GetProvidersFilters struct {
 }
 
 // Get a single Provider by UUID
-func GetProvider(ctx *gin.Context, uuid string, provider_type string) (*Provider, error) {
+func GetProvider(ctx *gin.Context, filters GetProvidersFilters) (*Provider, error) {
 	providers, count, err := GetProviders(ctx, GetProvidersFilters{
-		UUID:         &uuid,
-		ProviderType: &provider_type,
+		UUID:         filters.UUID,
+		ProviderType: filters.ProviderType,
 	})
 	if err != nil {
 		return nil, err
 	}
 	if count == 0 {
-		return nil, nil
+		ctx.Set("errorCode", http.StatusNotFound)
+		return nil, errors.New("setting not found")
 	}
 	return providers[0], nil
 }

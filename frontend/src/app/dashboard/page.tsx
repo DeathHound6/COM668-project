@@ -16,7 +16,7 @@ export default function DashboardPage() {
                 async(res) => {
                     const data = await res.json();
                     if (!res.ok)
-                        return setAPIError(data.message);
+                        return setAPIError(data.error);
                     setIncidents(data.data);
                 },
                 (err) => {
@@ -28,7 +28,11 @@ export default function DashboardPage() {
     return (
         <main>
             <Suspense fallback={<Spinner role="status" animation="border" />}>
-                {incidents.length < 0 && incidents.map((incident: Incident) => <IncidentCard incident={incident} key={incident.uuid} />)}
+                {
+                    incidents.length < 0 && incidents.map((incident: Incident) => (
+                        <IncidentCard incident={incident} key={incident.uuid} />)
+                    )
+                }
             </Suspense>
         </main>
     );
