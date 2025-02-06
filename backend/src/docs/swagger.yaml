@@ -6,6 +6,8 @@ definitions:
     properties:
       error:
         type: string
+    required:
+    - error
     type: object
   utility.GetManyResponseSchema:
     properties:
@@ -14,6 +16,9 @@ definitions:
         type: array
       meta:
         $ref: '#/definitions/utility.MetaSchema'
+    required:
+    - data
+    - meta
     type: object
   utility.HostMachineGetResponseBodySchema:
     properties:
@@ -29,6 +34,13 @@ definitions:
         $ref: '#/definitions/utility.TeamGetResponseBodySchema'
       uuid:
         type: string
+    required:
+    - hostname
+    - ip4
+    - ip6
+    - os
+    - team
+    - uuid
     type: object
   utility.HostMachinePostPutRequestBodySchema:
     properties:
@@ -42,6 +54,12 @@ definitions:
         type: string
       teamID:
         type: string
+    required:
+    - hostname
+    - ip4
+    - ip6
+    - os
+    - teamID
     type: object
   utility.MetaSchema:
     properties:
@@ -53,6 +71,11 @@ definitions:
         type: integer
       total:
         type: integer
+    required:
+    - page
+    - pageSize
+    - pages
+    - total
     type: object
   utility.TeamGetResponseBodySchema:
     properties:
@@ -60,6 +83,9 @@ definitions:
         type: string
       uuid:
         type: string
+    required:
+    - name
+    - uuid
     type: object
   utility.UserGetResponseBodySchema:
     properties:
@@ -77,6 +103,13 @@ definitions:
         type: array
       uuid:
         type: string
+    required:
+    - admin
+    - email
+    - name
+    - slackID
+    - teams
+    - uuid
     type: object
   utility.UserLoginRequestBodySchema:
     properties:
@@ -84,6 +117,9 @@ definitions:
         type: string
       password:
         type: string
+    required:
+    - email
+    - password
     type: object
   utility.UserPostRequestBodySchema:
     properties:
@@ -97,6 +133,11 @@ definitions:
         items:
           type: string
         type: array
+    required:
+    - email
+    - name
+    - password
+    - teams
     type: object
 host: localhost:5000
 info:
@@ -237,7 +278,7 @@ paths:
       summary: Create a Host
       tags:
       - Hosts
-  /hosts/{uuid}:
+  /hosts/{host_id}:
     delete:
       consumes:
       - application/json
@@ -245,7 +286,7 @@ paths:
       parameters:
       - description: Host UUID
         in: path
-        name: uuid
+        name: host_id
         required: true
         type: string
       produces:
@@ -285,7 +326,7 @@ paths:
       parameters:
       - description: Host UUID
         in: path
-        name: uuid
+        name: host_id
         required: true
         type: string
       produces:
@@ -327,7 +368,7 @@ paths:
       parameters:
       - description: Host UUID
         in: path
-        name: uuid
+        name: host_id
         required: true
         type: string
       - description: Host update request
@@ -487,6 +528,15 @@ paths:
       consumes:
       - application/json
       description: Create a provider
+      parameters:
+      - description: The type of provider
+        enum:
+        - log
+        - alert
+        in: query
+        name: provider_type
+        required: true
+        type: string
       produces:
       - application/json
       responses:

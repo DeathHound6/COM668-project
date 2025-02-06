@@ -3,6 +3,7 @@ package controller
 import (
 	"com668-backend/middleware"
 	"com668-backend/utility"
+	"errors"
 	"log"
 	"net/http"
 	"strconv"
@@ -193,7 +194,7 @@ func getCommonParams(ctx *gin.Context) (map[string]any, error) {
 	}
 	pageInt, err := strconv.Atoi(pageStr)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("page query parameter must be an integer")
 	}
 	params["page"] = pageInt
 
@@ -203,7 +204,7 @@ func getCommonParams(ctx *gin.Context) (map[string]any, error) {
 	}
 	pageSizeInt, err := strconv.Atoi(pageSizeStr)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("pageSize query parameter must be an integer")
 	}
 	params["pageSize"] = pageSizeInt
 

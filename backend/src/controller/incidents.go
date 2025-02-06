@@ -67,8 +67,8 @@ func GetIncidents() gin.HandlerFunc {
 			return
 		}
 
-		response := &utility.GetManyResponseSchema{
-			Data: make([]any, 0),
+		response := &utility.GetManyResponseSchema[*utility.IncidentGetResponseBodySchema]{
+			Data: make([]*utility.IncidentGetResponseBodySchema, 0),
 			Meta: utility.MetaSchema{
 				TotalItems: count,
 				Pages:      int(math.Ceil(float64(count) / float64(pageSize))),
@@ -77,7 +77,7 @@ func GetIncidents() gin.HandlerFunc {
 			},
 		}
 		for _, incident := range incidents {
-			inc := utility.IncidentGetResponseBodySchema{
+			inc := &utility.IncidentGetResponseBodySchema{
 				UUID:          incident.UUID,
 				HostsAffected: make([]utility.HostMachineGetResponseBodySchema, 0),
 				Summary:       incident.Summary,

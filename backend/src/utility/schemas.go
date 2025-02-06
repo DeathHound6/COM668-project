@@ -1,102 +1,105 @@
 package utility
 
-import "time"
+import (
+	"time"
+)
 
 type ErrorResponseSchema struct {
-	Error string `json:"error"`
+	Error string `json:"error" binding:"required"`
 }
 
 type UserPostRequestBodySchema struct {
-	Name     string   `json:"name"`
-	Email    string   `json:"email"`
-	Password string   `json:"password"`
-	Teams    []string `json:"teams"`
+	Name     string   `json:"name" binding:"required"`
+	Email    string   `json:"email" binding:"required"`
+	Password string   `json:"password" binding:"required"`
+	Teams    []string `json:"teams" binding:"required"`
 }
 
 type UserLoginRequestBodySchema struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 type TeamPostRequestBodySchema struct {
-	Name string `json:"name"`
+	Name string `json:"name" binding:"required"`
 }
 
 type KeyValueSchema struct {
-	Key      string `json:"key"`
-	Value    string `json:"value"`
-	Type     string `json:"type"`
-	Required bool   `json:"required"`
+	Key      string `json:"key" binding:"required"`
+	Value    string `json:"value" binding:"required"`
+	Type     string `json:"type" binding:"required"`
+	Required bool   `json:"required" binding:"required"`
 }
 
 type ProviderGetResponseSchema struct {
-	UUID   string           `json:"uuid"`
-	Name   string           `json:"name"`
-	Fields []KeyValueSchema `json:"fields"`
-	Type   string           `json:"type"`
+	UUID   string           `json:"uuid" binding:"required"`
+	Name   string           `json:"name" binding:"required"`
+	Fields []KeyValueSchema `json:"fields" binding:"required"`
+	Type   string           `json:"type" binding:"required"`
 }
 
 type MetaSchema struct {
-	TotalItems int64 `json:"total"`
-	Pages      int   `json:"pages"`
-	Page       int   `json:"page"`
-	PageSize   int   `json:"pageSize"`
+	TotalItems int64 `json:"total" binding:"required"`
+	Pages      int   `json:"pages" binding:"required"`
+	Page       int   `json:"page" binding:"required"`
+	PageSize   int   `json:"pageSize" binding:"required"`
 }
 
-type GetManyResponseSchema struct {
-	Data []any      `json:"data"`
-	Meta MetaSchema `json:"meta"`
+type GetManyResponseSchema[T any] struct {
+	Data []T        `json:"data" binding:"required"`
+	Meta MetaSchema `json:"meta" binding:"required"`
 }
 
 type IncidentPostRequestBodySchema struct {
-	Summary       string   `json:"summary"`
-	HostsAffected []string `json:"hostsAffected"`
+	Summary       string   `json:"summary" binding:"required"`
+	HostsAffected []string `json:"hostsAffected" binding:"required"`
 }
 
 type UserGetResponseBodySchema struct {
-	UUID    string                      `json:"uuid"`
-	Name    string                      `json:"name"`
-	Email   string                      `json:"email"`
-	Teams   []TeamGetResponseBodySchema `json:"teams"`
-	SlackID string                      `json:"slackID"`
-	Admin   bool                        `json:"admin"`
+	UUID    string                      `json:"uuid" binding:"required"`
+	Name    string                      `json:"name" binding:"required"`
+	Email   string                      `json:"email" binding:"required"`
+	Teams   []TeamGetResponseBodySchema `json:"teams" binding:"required"`
+	SlackID string                      `json:"slackID" binding:"required"`
+	Admin   bool                        `json:"admin" binding:"required"`
 }
 
 type TeamGetResponseBodySchema struct {
-	UUID string `json:"uuid"`
-	Name string `json:"name"`
+	UUID string `json:"uuid" binding:"required"`
+	Name string `json:"name" binding:"required"`
 }
 
 type IncidentGetResponseBodySchema struct {
-	UUID          string                             `json:"uuid"`
-	HostsAffected []HostMachineGetResponseBodySchema `json:"hostsAffected"`
-	Summary       string                             `json:"summary"`
-	CreatedAt     time.Time                          `json:"createdAt"`
-	ResolvedAt    *time.Time                         `json:"resolvedAt"`
-	ResolvedBy    *UserGetResponseBodySchema         `json:"resolvedBy"`
+	UUID          string                             `json:"uuid" binding:"required"`
+	HostsAffected []HostMachineGetResponseBodySchema `json:"hostsAffected" binding:"required"`
+	Summary       string                             `json:"summary" binding:"required"`
+	CreatedAt     time.Time                          `json:"createdAt" binding:"required"`
+	ResolvedAt    *time.Time                         `json:"resolvedAt" binding:"required"`
+	ResolvedBy    *UserGetResponseBodySchema         `json:"resolvedBy" binding:"required"`
 }
 
 type HostMachineGetResponseBodySchema struct {
-	UUID     string                    `json:"uuid"`
-	OS       string                    `json:"os"`
-	Hostname string                    `json:"hostname"`
-	IP4      *string                   `json:"ip4"`
-	IP6      *string                   `json:"ip6"`
-	Team     TeamGetResponseBodySchema `json:"team"`
+	UUID     string                    `json:"uuid" binding:"required"`
+	OS       string                    `json:"os" binding:"required"`
+	Hostname string                    `json:"hostname" binding:"required"`
+	IP4      *string                   `json:"ip4" binding:"required"`
+	IP6      *string                   `json:"ip6" binding:"required"`
+	Team     TeamGetResponseBodySchema `json:"team" binding:"required"`
 }
 
 type ProviderPostRequestBodySchema struct {
-	Name string `json:"name"`
+	Name string `json:"name" binding:"required"`
 }
 
 type ProviderPutRequestBodySchema struct {
-	Fields []KeyValueSchema `json:"fields"`
+	ProviderPostRequestBodySchema
+	Fields []KeyValueSchema `json:"fields" binding:"required"`
 }
 
 type HostMachinePostPutRequestBodySchema struct {
-	OS       string `json:"os"`
-	Hostname string `json:"hostname"`
-	IP4      string `json:"ip4"`
-	IP6      string `json:"ip6"`
-	TeamID   string `json:"teamID"`
+	OS       string  `json:"os" binding:"required"`
+	Hostname string  `json:"hostname" binding:"required"`
+	IP4      *string `json:"ip4" binding:"required"`
+	IP6      *string `json:"ip6" binding:"required"`
+	TeamID   string  `json:"teamID" binding:"required"`
 }

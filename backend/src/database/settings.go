@@ -99,9 +99,12 @@ func CreateProvider(ctx *gin.Context, provider *Provider) error {
 }
 
 // Update a Provider
-func UpdateProvider(ctx *gin.Context, uuid string, fields string) error {
+func UpdateProvider(ctx *gin.Context, filters GetProvidersFilters, body *utility.ProviderPutRequestBodySchema) error {
 	tx := GetDBTransaction(ctx).Model(&Provider{})
-	tx = tx.Where("uuid = ?", uuid).Update("fields", fields)
+	if filters.UUID != nil {
+		tx = tx.Where("uuid = ?", *filters.UUID)
+	}
+	tx = tx.Update("fields", utility.GetStringFromFieldsMap(body.Fields)).Update("name", body.Name)
 	if tx.Error != nil {
 		return handleError(ctx, tx.Error)
 	}

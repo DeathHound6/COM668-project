@@ -61,8 +61,8 @@ func GetProviders() gin.HandlerFunc {
 			ctx.Next()
 			return
 		}
-		resp := &utility.GetManyResponseSchema{
-			Data: make([]any, 0),
+		resp := &utility.GetManyResponseSchema[*utility.ProviderGetResponseSchema]{
+			Data: make([]*utility.ProviderGetResponseSchema, 0),
 			Meta: utility.MetaSchema{
 				Page:       page,
 				PageSize:   pageSize,
@@ -71,10 +71,19 @@ func GetProviders() gin.HandlerFunc {
 			},
 		}
 		for _, provider := range providers {
-			prov := utility.ProviderGetResponseSchema{
+			fields, err := utility.GetFieldsMapFromString(provider.Fields)
+			if err != nil {
+				ctx.Set("Status", http.StatusInternalServerError)
+				ctx.Set("Body", &utility.ErrorResponseSchema{
+					Error: err.Error(),
+				})
+				ctx.Next()
+				return
+			}
+			prov := &utility.ProviderGetResponseSchema{
 				UUID:   provider.UUID,
 				Name:   provider.Name,
-				Fields: utility.GetFieldsMapFromString(provider.Fields),
+				Fields: fields,
 				Type:   provider.Type,
 			}
 			resp.Data = append(resp.Data, prov)
@@ -92,6 +101,7 @@ func GetProviders() gin.HandlerFunc {
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
+//	@Param			provider_type	query	string	true	"The type of provider"	Enums(log, alert)
 //	@Success		201
 //	@Failure		401	{object}	utility.ErrorResponseSchema
 //	@Failure		403	{object}	utility.ErrorResponseSchema
@@ -131,11 +141,20 @@ func CreateProvider() gin.HandlerFunc {
 			ctx.Next()
 			return
 		}
+		fields, err := utility.GetFieldsMapFromString(provider.Fields)
+		if err != nil {
+			ctx.Set("Status", http.StatusInternalServerError)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
 		ctx.Set("Status", http.StatusCreated)
 		ctx.Set("Body", &utility.ProviderGetResponseSchema{
 			UUID:   provider.UUID,
 			Name:   provider.Name,
-			Fields: utility.GetFieldsMapFromString(provider.Fields),
+			Fields: fields,
 			Type:   provider.Type,
 		})
 	}
@@ -179,7 +198,7 @@ func UpdateProvider() gin.HandlerFunc {
 			return
 		}
 
-		if err := database.UpdateProvider(ctx, providerID, utility.GetStringFromFieldsMap(body.Fields)); err != nil {
+		if err := database.UpdateProvider(ctx, database.GetProvidersFilters{UUID: &providerID}, body); err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
 			ctx.Set("Body", &utility.ErrorResponseSchema{
 				Error: err.Error(),
@@ -209,11 +228,11 @@ func UpdateProvider() gin.HandlerFunc {
 func DeleteProvider() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		providerID := ctx.Param("provider_id")
-		provider, _ := database.GetProvider(ctx, database.GetProvidersFilters{UUID: &providerID})
-		if provider == nil {
+		_, err := database.GetProvider(ctx, database.GetProvidersFilters{UUID: &providerID})
+		if err != nil {
 			ctx.Set("Status", http.StatusNotFound)
 			ctx.Set("Body", &utility.ErrorResponseSchema{
-				Error: "provider not found",
+				Error: err.Error(),
 			})
 			ctx.Next()
 			return

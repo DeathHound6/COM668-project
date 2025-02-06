@@ -231,7 +231,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/hosts/{uuid}": {
+        "/hosts/{host_id}": {
             "get": {
                 "security": [
                     {
@@ -253,7 +253,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Host UUID",
-                        "name": "uuid",
+                        "name": "host_id",
                         "in": "path",
                         "required": true
                     }
@@ -318,7 +318,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Host UUID",
-                        "name": "uuid",
+                        "name": "host_id",
                         "in": "path",
                         "required": true
                     },
@@ -389,7 +389,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Host UUID",
-                        "name": "uuid",
+                        "name": "host_id",
                         "in": "path",
                         "required": true
                     }
@@ -632,6 +632,19 @@ const docTemplate = `{
                     "Settings"
                 ],
                 "summary": "Create a provider",
+                "parameters": [
+                    {
+                        "enum": [
+                            "log",
+                            "alert"
+                        ],
+                        "type": "string",
+                        "description": "The type of provider",
+                        "name": "provider_type",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "201": {
                         "description": "Created"
@@ -1035,6 +1048,9 @@ const docTemplate = `{
     "definitions": {
         "utility.ErrorResponseSchema": {
             "type": "object",
+            "required": [
+                "error"
+            ],
             "properties": {
                 "error": {
                     "type": "string"
@@ -1043,6 +1059,10 @@ const docTemplate = `{
         },
         "utility.GetManyResponseSchema": {
             "type": "object",
+            "required": [
+                "data",
+                "meta"
+            ],
             "properties": {
                 "data": {
                     "type": "array",
@@ -1055,6 +1075,14 @@ const docTemplate = `{
         },
         "utility.HostMachineGetResponseBodySchema": {
             "type": "object",
+            "required": [
+                "hostname",
+                "ip4",
+                "ip6",
+                "os",
+                "team",
+                "uuid"
+            ],
             "properties": {
                 "hostname": {
                     "type": "string"
@@ -1078,6 +1106,13 @@ const docTemplate = `{
         },
         "utility.HostMachinePostPutRequestBodySchema": {
             "type": "object",
+            "required": [
+                "hostname",
+                "ip4",
+                "ip6",
+                "os",
+                "teamID"
+            ],
             "properties": {
                 "hostname": {
                     "type": "string"
@@ -1098,6 +1133,12 @@ const docTemplate = `{
         },
         "utility.MetaSchema": {
             "type": "object",
+            "required": [
+                "page",
+                "pageSize",
+                "pages",
+                "total"
+            ],
             "properties": {
                 "page": {
                     "type": "integer"
@@ -1115,6 +1156,10 @@ const docTemplate = `{
         },
         "utility.TeamGetResponseBodySchema": {
             "type": "object",
+            "required": [
+                "name",
+                "uuid"
+            ],
             "properties": {
                 "name": {
                     "type": "string"
@@ -1126,6 +1171,14 @@ const docTemplate = `{
         },
         "utility.UserGetResponseBodySchema": {
             "type": "object",
+            "required": [
+                "admin",
+                "email",
+                "name",
+                "slackID",
+                "teams",
+                "uuid"
+            ],
             "properties": {
                 "admin": {
                     "type": "boolean"
@@ -1152,6 +1205,10 @@ const docTemplate = `{
         },
         "utility.UserLoginRequestBodySchema": {
             "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
             "properties": {
                 "email": {
                     "type": "string"
@@ -1163,6 +1220,12 @@ const docTemplate = `{
         },
         "utility.UserPostRequestBodySchema": {
             "type": "object",
+            "required": [
+                "email",
+                "name",
+                "password",
+                "teams"
+            ],
             "properties": {
                 "email": {
                     "type": "string"

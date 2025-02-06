@@ -5,7 +5,9 @@ import (
 	"com668-backend/controller"
 	"com668-backend/database"
 	"com668-backend/middleware"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 
@@ -21,17 +23,23 @@ func setup() *gin.Engine {
 	if err := database.Connect(); err != nil {
 		panic(err)
 	}
-	gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.TestMode)
 	engine := gin.New()
 	controller.RegisterControllers(engine)
-	engine.Use(gin.Recovery())
+	engine.Use(gin.CustomRecoveryWithWriter(gin.DefaultErrorWriter, middleware.RecoveryHandler()))
 	engine.HandleMethodNotAllowed = true
 	return engine
 }
 
 func getJWT(engine *gin.Engine, userEmail string, userPassword string) (string, error) {
-	body := []byte(fmt.Sprintf("{\"email\":\"%s\",\"password\":\"%s\"}", userEmail, userPassword))
-	req, err := http.NewRequest(http.MethodPost, "/users/login", bytes.NewBuffer(body))
+	body, err := getJSONBodyAsReader(map[string]any{
+		"email":    userEmail,
+		"password": userPassword,
+	})
+	if err != nil {
+		return "", err
+	}
+	req, err := http.NewRequest(http.MethodPost, "/users/login", body)
 	if err != nil {
 		return "", err
 	}
@@ -48,4 +56,12 @@ func makeRequest(engine *gin.Engine, req *http.Request) *httptest.ResponseRecord
 	writer := httptest.NewRecorder()
 	engine.ServeHTTP(writer, req)
 	return writer
+}
+
+func getJSONBodyAsReader(body map[string]any) (io.Reader, error) {
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	return bytes.NewReader(jsonBody), nil
 }

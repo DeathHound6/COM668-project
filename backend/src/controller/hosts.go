@@ -52,8 +52,8 @@ func GetHosts() gin.HandlerFunc {
 			return
 		}
 
-		resp := &utility.GetManyResponseSchema{
-			Data: make([]any, 0),
+		resp := &utility.GetManyResponseSchema[*utility.HostMachineGetResponseBodySchema]{
+			Data: make([]*utility.HostMachineGetResponseBodySchema, 0),
 			Meta: utility.MetaSchema{
 				TotalItems: count,
 				Pages:      int(math.Ceil(float64(count) / float64(pageSize))),
@@ -88,14 +88,14 @@ func GetHosts() gin.HandlerFunc {
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			uuid	path		string	true	"Host UUID"
+//	@Param			host_id	path		string	true	"Host UUID"
 //	@Success		200		{object}	utility.HostMachineGetResponseBodySchema
 //	@Failure		400		{object}	utility.ErrorResponseSchema
 //	@Failure		401		{object}	utility.ErrorResponseSchema
 //	@Failure		403		{object}	utility.ErrorResponseSchema
 //	@Failure		404		{object}	utility.ErrorResponseSchema
 //	@Failure		500		{object}	utility.ErrorResponseSchema
-//	@Router			/hosts/{uuid} [get]
+//	@Router			/hosts/{host_id} [get]
 func GetHost() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		uuid := ctx.Param("host_id")
@@ -169,8 +169,8 @@ func CreateHost() gin.HandlerFunc {
 		host := &database.HostMachine{
 			OS:       body.OS,
 			Hostname: body.Hostname,
-			IP4:      &body.IP4,
-			IP6:      &body.IP6,
+			IP4:      body.IP4,
+			IP6:      body.IP6,
 			TeamID:   team.ID,
 		}
 		if err := database.CreateHost(ctx, host); err != nil {
@@ -194,7 +194,7 @@ func CreateHost() gin.HandlerFunc {
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			uuid	path	string										true	"Host UUID"
+//	@Param			host_id	path	string										true	"Host UUID"
 //	@Param			body	body	utility.HostMachinePostPutRequestBodySchema	true	"Host update request"
 //	@Success		204
 //	@Failure		400	{object}	utility.ErrorResponseSchema
@@ -202,7 +202,7 @@ func CreateHost() gin.HandlerFunc {
 //	@Failure		403	{object}	utility.ErrorResponseSchema
 //	@Failure		404	{object}	utility.ErrorResponseSchema
 //	@Failure		500	{object}	utility.ErrorResponseSchema
-//	@Router			/hosts/{uuid} [put]
+//	@Router			/hosts/{host_id} [put]
 func UpdateHost() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var body *utility.HostMachinePostPutRequestBodySchema
@@ -242,8 +242,8 @@ func UpdateHost() gin.HandlerFunc {
 		host.TeamID = team.ID
 		host.OS = body.OS
 		host.Hostname = body.Hostname
-		host.IP4 = &body.IP4
-		host.IP6 = &body.IP6
+		host.IP4 = body.IP4
+		host.IP6 = body.IP6
 
 		if err := database.UpdateHost(ctx, host); err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
@@ -266,14 +266,14 @@ func UpdateHost() gin.HandlerFunc {
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			uuid	path	string	true	"Host UUID"
+//	@Param			host_id	path	string	true	"Host UUID"
 //	@Success		204
 //	@Failure		400	{object}	utility.ErrorResponseSchema
 //	@Failure		401	{object}	utility.ErrorResponseSchema
 //	@Failure		403	{object}	utility.ErrorResponseSchema
 //	@Failure		404	{object}	utility.ErrorResponseSchema
 //	@Failure		500	{object}	utility.ErrorResponseSchema
-//	@Router			/hosts/{uuid} [delete]
+//	@Router			/hosts/{host_id} [delete]
 func DeleteHost() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		uuid := ctx.Param("host_id")

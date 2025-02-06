@@ -52,8 +52,8 @@ func GetTeams() gin.HandlerFunc {
 			return
 		}
 
-		resp := &utility.GetManyResponseSchema{
-			Data: make([]any, 0),
+		resp := &utility.GetManyResponseSchema[*utility.TeamGetResponseBodySchema]{
+			Data: make([]*utility.TeamGetResponseBodySchema, 0),
 			Meta: utility.MetaSchema{
 				TotalItems: count,
 				Pages:      int(math.Ceil(float64(count) / float64(pageSize))),
