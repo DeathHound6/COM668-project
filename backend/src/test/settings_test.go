@@ -11,7 +11,7 @@ import (
 
 func TestGetProviders(t *testing.T) {
 	engine := setup()
-	jwtString, err := getJWT(engine, TestUserEmail, TestUserPassword)
+	jwtString, err := getJWT(engine, TestAdminEmail, TestAdminPassword)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -123,11 +123,32 @@ func TestGetProviders(t *testing.T) {
 			t.Fatal("error response message was not expected message")
 		}
 	})
+
+	t.Run("GetProviders Forbidden", func(t *testing.T) {
+		jwtString, err := getJWT(engine, TestUserEmail, TestUserPassword)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		req, _ := http.NewRequest(http.MethodGet, "/providers?provider_type=log", nil)
+		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
+		writer := makeRequest(engine, req)
+
+		expected := http.StatusForbidden
+		if code := writer.Code; code != expected {
+			errorResp, err := utility.ReadJSONStruct[utility.ErrorResponseSchema](writer.Body.Bytes())
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Log(errorResp.Error)
+			t.Fatalf("Status code %d != %d", code, expected)
+		}
+	})
 }
 
 func TestCreateProvider(t *testing.T) {
 	engine := setup()
-	jwtString, err := getJWT(engine, TestUserEmail, TestUserPassword)
+	jwtString, err := getJWT(engine, TestAdminEmail, TestAdminPassword)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -224,7 +245,7 @@ func TestCreateProvider(t *testing.T) {
 
 func TestUpdateProvider(t *testing.T) {
 	engine := setup()
-	jwtString, err := getJWT(engine, TestUserEmail, TestUserPassword)
+	jwtString, err := getJWT(engine, TestAdminEmail, TestAdminPassword)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -309,7 +330,7 @@ func TestUpdateProvider(t *testing.T) {
 
 func TestDeleteProvider(t *testing.T) {
 	engine := setup()
-	jwtString, err := getJWT(engine, TestUserEmail, TestUserPassword)
+	jwtString, err := getJWT(engine, TestAdminEmail, TestAdminPassword)
 	if err != nil {
 		t.Fatal(err)
 	}

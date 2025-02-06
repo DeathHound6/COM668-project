@@ -65,10 +65,22 @@ var (
 			Password: "system_user",
 			Teams: []Team{
 				{
-					Name: "Engineering",
+					Name: "DevOps",
 				},
 			},
 			Admin: true,
+		},
+		{
+			ID:       2,
+			Name:     "Test User",
+			Email:    "user1@example.com",
+			Password: "test_user",
+			Teams: []Team{
+				{
+					Name: "Engineering",
+				},
+			},
+			Admin: false,
 		},
 	}
 	defaultHosts []*HostMachine = []*HostMachine{

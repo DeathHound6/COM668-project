@@ -15,8 +15,10 @@ import (
 )
 
 const (
-	TestUserEmail    string = "test@example.com"
-	TestUserPassword string = "system_user"
+	TestAdminEmail    string = "test@example.com"
+	TestAdminPassword string = "system_user"
+	TestUserEmail     string = "user1@example.com"
+	TestUserPassword  string = "test_user"
 )
 
 func setup() *gin.Engine {

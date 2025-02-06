@@ -146,7 +146,7 @@ func CreateUser(ctx *gin.Context, body *utility.UserPostRequestBodySchema) (*Use
 		Password: body.Password,
 		Teams:    teams,
 	}
-	tx = tx.Clauses(clause.OnConflict{DoNothing: true}).Create(user)
+	tx = tx.Clauses(clause.OnConflict{DoNothing: true}).Save(user)
 	if tx.Error != nil {
 		return nil, handleError(ctx, tx.Error)
 	}

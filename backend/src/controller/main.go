@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"com668-backend/database"
 	"com668-backend/middleware"
 	"com668-backend/utility"
 	"errors"
@@ -164,6 +165,13 @@ func register(engine *gin.Engine, method string, endpoint string, handler gin.Ha
 			_, ok = body.(*utility.ErrorResponseSchema)
 		}
 		if body == nil || !ok {
+			if options.useDB && options.useAuth && options.useAdminAuth {
+				user := ctx.MustGet("user").(*database.User)
+				if !user.Admin {
+					ctx.AbortWithStatusJSON(http.StatusForbidden, errors.New("user is not an admin"))
+					return
+				}
+			}
 			log.Default().Printf("[%s] Running endpoint handler for %s %s\n", reqID, ctx.Request.Method, ctx.Request.URL.Path)
 			handler(ctx)
 		}
