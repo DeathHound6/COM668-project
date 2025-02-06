@@ -101,6 +101,7 @@ export default function HostsPage() {
             setPending(false);
         }
         fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
