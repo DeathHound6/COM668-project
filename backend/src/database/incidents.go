@@ -8,19 +8,19 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type Incident struct {
-	ID            uint              `gorm:"column:id;primaryKey;autoIncrement"`
-	UUID          string            `gorm:"column:uuid;size:36;unique;not null"`
-	HostsAffected []HostMachine     `gorm:"many2many:incident_host"`
-	Summary       string            `gorm:"column:summary;size:500;not null"`
-	Comments      []IncidentComment `gorm:"foreignKey:incident_id"`
-	CreatedAt     time.Time         `gorm:"column:created_at;autoCreateTime;not null"`
-	ResolvedAt    *time.Time        `gorm:"column:resolved_at"`
-	ResolvedByID  *uint             `gorm:"column:resolved_by_id"`
-	ResolvedBy    *User             `gorm:"foreignKey:resolved_by_id;references:id"`
+	ID              uint              `gorm:"column:id;primaryKey;autoIncrement"`
+	UUID            string            `gorm:"column:uuid;size:36;unique;not null"`
+	HostsAffected   []HostMachine     `gorm:"many2many:incident_host"`
+	Summary         string            `gorm:"column:summary;size:500;not null"`
+	Comments        []IncidentComment `gorm:"foreignKey:incident_id"`
+	CreatedAt       time.Time         `gorm:"column:created_at;autoCreateTime;not null"`
+	ResolvedAt      *time.Time        `gorm:"column:resolved_at"`
+	ResolvedByID    *uint             `gorm:"column:resolved_by_id"`
+	ResolvedBy      *User             `gorm:"foreignKey:resolved_by_id;references:id"`
+	ResolutionTeams []Team            `gorm:"many2many:incident_resolution_team"`
 }
 
 func (incident *Incident) BeforeCreate(tx *gorm.DB) error {
@@ -112,7 +112,14 @@ type GetIncidentsFilters struct {
 
 func GetIncidents(ctx *gin.Context, filters GetIncidentsFilters) ([]*Incident, int64, error) {
 	tx := GetDBTransaction(ctx).Model(&Incident{})
-	tx = tx.Preload(clause.Associations)
+	tx = tx.Preload("HostsAffected").
+		Preload("HostsAffected.Team").
+		Preload("ResolutionTeams").
+		Preload("ResolvedBy").
+		Preload("ResolvedBy.Teams").
+		Preload("Comments").
+		Preload("Comments.CommentedBy").
+		Preload("Comments.CommentedBy.Teams")
 	incidents := make([]*Incident, 0)
 
 	// apply filters

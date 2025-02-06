@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type GetManyTeamsResponseSchema utility.GetManyResponseSchema[*utility.TeamGetResponseBodySchema]
+
 // GetTeams godoc
 //
 //	@Summary		Get a list of Teams
@@ -19,7 +21,7 @@ import (
 //	@Produce		json
 //	@Param			page		query		int	false	"Page number"
 //	@Param			pageSize	query		int	false	"Number of items per page"
-//	@Success		200			{object}	utility.GetManyResponseSchema
+//	@Success		200			{object}	GetManyTeamsResponseSchema
 //	@Failure		400			{object}	utility.ErrorResponseSchema
 //	@Failure		401			{object}	utility.ErrorResponseSchema
 //	@Failure		403			{object}	utility.ErrorResponseSchema

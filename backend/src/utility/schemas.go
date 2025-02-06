@@ -69,13 +69,22 @@ type TeamGetResponseBodySchema struct {
 	Name string `json:"name" binding:"required"`
 }
 
+type IncidentCommentGetResponseBodySchema struct {
+	UUID        string                    `json:"uuid" binding:"required"`
+	Comment     string                    `json:"comment" binding:"required"`
+	CommentedBy UserGetResponseBodySchema `json:"commentedBy" binding:"required"`
+	CommentedAt time.Time                 `json:"commentedAt" binding:"required"`
+}
+
 type IncidentGetResponseBodySchema struct {
-	UUID          string                             `json:"uuid" binding:"required"`
-	HostsAffected []HostMachineGetResponseBodySchema `json:"hostsAffected" binding:"required"`
-	Summary       string                             `json:"summary" binding:"required"`
-	CreatedAt     time.Time                          `json:"createdAt" binding:"required"`
-	ResolvedAt    *time.Time                         `json:"resolvedAt" binding:"required"`
-	ResolvedBy    *UserGetResponseBodySchema         `json:"resolvedBy" binding:"required"`
+	UUID            string                                 `json:"uuid" binding:"required"`
+	Comments        []IncidentCommentGetResponseBodySchema `json:"comments" binding:"required"`
+	HostsAffected   []HostMachineGetResponseBodySchema     `json:"hostsAffected" binding:"required"`
+	Summary         string                                 `json:"summary" binding:"required"`
+	CreatedAt       time.Time                              `json:"createdAt" binding:"required"`
+	ResolvedAt      *time.Time                             `json:"resolvedAt" binding:"required"`
+	ResolvedBy      *UserGetResponseBodySchema             `json:"resolvedBy" binding:"required"`
+	ResolutionTeams []TeamGetResponseBodySchema            `json:"resolutionTeams" binding:"required"`
 }
 
 type HostMachineGetResponseBodySchema struct {

@@ -2,23 +2,60 @@ basePath: /
 consumes:
 - application/json
 definitions:
-  utility.ErrorResponseSchema:
-    properties:
-      error:
-        type: string
-    required:
-    - error
-    type: object
-  utility.GetManyResponseSchema:
+  controller.GetManyHostsResponseSchema:
     properties:
       data:
-        items: {}
+        items:
+          $ref: '#/definitions/utility.HostMachineGetResponseBodySchema'
         type: array
       meta:
         $ref: '#/definitions/utility.MetaSchema'
     required:
     - data
     - meta
+    type: object
+  controller.GetManyIncidentsResponseSchema:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/utility.IncidentGetResponseBodySchema'
+        type: array
+      meta:
+        $ref: '#/definitions/utility.MetaSchema'
+    required:
+    - data
+    - meta
+    type: object
+  controller.GetManyProvidersResponseSchema:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/utility.ProviderGetResponseSchema'
+        type: array
+      meta:
+        $ref: '#/definitions/utility.MetaSchema'
+    required:
+    - data
+    - meta
+    type: object
+  controller.GetManyTeamsResponseSchema:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/utility.TeamGetResponseBodySchema'
+        type: array
+      meta:
+        $ref: '#/definitions/utility.MetaSchema'
+    required:
+    - data
+    - meta
+    type: object
+  utility.ErrorResponseSchema:
+    properties:
+      error:
+        type: string
+    required:
+    - error
     type: object
   utility.HostMachineGetResponseBodySchema:
     properties:
@@ -61,6 +98,72 @@ definitions:
     - os
     - teamID
     type: object
+  utility.IncidentCommentGetResponseBodySchema:
+    properties:
+      comment:
+        type: string
+      commentedAt:
+        type: string
+      commentedBy:
+        $ref: '#/definitions/utility.UserGetResponseBodySchema'
+      uuid:
+        type: string
+    required:
+    - comment
+    - commentedAt
+    - commentedBy
+    - uuid
+    type: object
+  utility.IncidentGetResponseBodySchema:
+    properties:
+      comments:
+        items:
+          $ref: '#/definitions/utility.IncidentCommentGetResponseBodySchema'
+        type: array
+      createdAt:
+        type: string
+      hostsAffected:
+        items:
+          $ref: '#/definitions/utility.HostMachineGetResponseBodySchema'
+        type: array
+      resolutionTeams:
+        items:
+          $ref: '#/definitions/utility.TeamGetResponseBodySchema'
+        type: array
+      resolvedAt:
+        type: string
+      resolvedBy:
+        $ref: '#/definitions/utility.UserGetResponseBodySchema'
+      summary:
+        type: string
+      uuid:
+        type: string
+    required:
+    - comments
+    - createdAt
+    - hostsAffected
+    - resolutionTeams
+    - resolvedAt
+    - resolvedBy
+    - summary
+    - uuid
+    type: object
+  utility.KeyValueSchema:
+    properties:
+      key:
+        type: string
+      required:
+        type: boolean
+      type:
+        type: string
+      value:
+        type: string
+    required:
+    - key
+    - required
+    - type
+    - value
+    type: object
   utility.MetaSchema:
     properties:
       page:
@@ -76,6 +179,24 @@ definitions:
     - pageSize
     - pages
     - total
+    type: object
+  utility.ProviderGetResponseSchema:
+    properties:
+      fields:
+        items:
+          $ref: '#/definitions/utility.KeyValueSchema'
+        type: array
+      name:
+        type: string
+      type:
+        type: string
+      uuid:
+        type: string
+    required:
+    - fields
+    - name
+    - type
+    - uuid
     type: object
   utility.TeamGetResponseBodySchema:
     properties:
@@ -223,7 +344,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/utility.GetManyResponseSchema'
+            $ref: '#/definitions/controller.GetManyHostsResponseSchema'
         "401":
           description: Unauthorized
           schema:
@@ -429,7 +550,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/utility.GetManyResponseSchema'
+            $ref: '#/definitions/controller.GetManyIncidentsResponseSchema'
         "401":
           description: Unauthorized
           schema:
@@ -506,7 +627,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/utility.GetManyResponseSchema'
+            $ref: '#/definitions/controller.GetManyProvidersResponseSchema'
         "401":
           description: Unauthorized
           schema:
@@ -654,7 +775,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/utility.GetManyResponseSchema'
+            $ref: '#/definitions/controller.GetManyTeamsResponseSchema'
         "400":
           description: Bad Request
           schema:

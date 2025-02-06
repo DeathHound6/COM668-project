@@ -10,6 +10,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type GetManyHostsResponseSchema utility.GetManyResponseSchema[*utility.HostMachineGetResponseBodySchema]
+
 // GetHosts godoc
 //
 //	@Summary		Get a list of Hosts
@@ -20,7 +22,7 @@ import (
 //	@Produce		json
 //	@Param			page		query		int	false	"Page number"
 //	@Param			pageSize	query		int	false	"Number of items per page"
-//	@Success		200			{object}	utility.GetManyResponseSchema
+//	@Success		200			{object}	GetManyHostsResponseSchema
 //	@Failure		401			{object}	utility.ErrorResponseSchema
 //	@Failure		403			{object}	utility.ErrorResponseSchema
 //	@Failure		500			{object}	utility.ErrorResponseSchema

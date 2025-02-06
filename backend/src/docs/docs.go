@@ -149,7 +149,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/utility.GetManyResponseSchema"
+                            "$ref": "#/definitions/controller.GetManyHostsResponseSchema"
                         }
                     },
                     "401": {
@@ -470,7 +470,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/utility.GetManyResponseSchema"
+                            "$ref": "#/definitions/controller.GetManyIncidentsResponseSchema"
                         }
                     },
                     "401": {
@@ -592,7 +592,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/utility.GetManyResponseSchema"
+                            "$ref": "#/definitions/controller.GetManyProvidersResponseSchema"
                         }
                     },
                     "401": {
@@ -822,7 +822,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/utility.GetManyResponseSchema"
+                            "$ref": "#/definitions/controller.GetManyTeamsResponseSchema"
                         }
                     },
                     "400": {
@@ -1046,18 +1046,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "utility.ErrorResponseSchema": {
-            "type": "object",
-            "required": [
-                "error"
-            ],
-            "properties": {
-                "error": {
-                    "type": "string"
-                }
-            }
-        },
-        "utility.GetManyResponseSchema": {
+        "controller.GetManyHostsResponseSchema": {
             "type": "object",
             "required": [
                 "data",
@@ -1066,10 +1055,77 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "type": "array",
-                    "items": {}
+                    "items": {
+                        "$ref": "#/definitions/utility.HostMachineGetResponseBodySchema"
+                    }
                 },
                 "meta": {
                     "$ref": "#/definitions/utility.MetaSchema"
+                }
+            }
+        },
+        "controller.GetManyIncidentsResponseSchema": {
+            "type": "object",
+            "required": [
+                "data",
+                "meta"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utility.IncidentGetResponseBodySchema"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/utility.MetaSchema"
+                }
+            }
+        },
+        "controller.GetManyProvidersResponseSchema": {
+            "type": "object",
+            "required": [
+                "data",
+                "meta"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utility.ProviderGetResponseSchema"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/utility.MetaSchema"
+                }
+            }
+        },
+        "controller.GetManyTeamsResponseSchema": {
+            "type": "object",
+            "required": [
+                "data",
+                "meta"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utility.TeamGetResponseBodySchema"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/utility.MetaSchema"
+                }
+            }
+        },
+        "utility.ErrorResponseSchema": {
+            "type": "object",
+            "required": [
+                "error"
+            ],
+            "properties": {
+                "error": {
+                    "type": "string"
                 }
             }
         },
@@ -1131,6 +1187,100 @@ const docTemplate = `{
                 }
             }
         },
+        "utility.IncidentCommentGetResponseBodySchema": {
+            "type": "object",
+            "required": [
+                "comment",
+                "commentedAt",
+                "commentedBy",
+                "uuid"
+            ],
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "commentedAt": {
+                    "type": "string"
+                },
+                "commentedBy": {
+                    "$ref": "#/definitions/utility.UserGetResponseBodySchema"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "utility.IncidentGetResponseBodySchema": {
+            "type": "object",
+            "required": [
+                "comments",
+                "createdAt",
+                "hostsAffected",
+                "resolutionTeams",
+                "resolvedAt",
+                "resolvedBy",
+                "summary",
+                "uuid"
+            ],
+            "properties": {
+                "comments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utility.IncidentCommentGetResponseBodySchema"
+                    }
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "hostsAffected": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utility.HostMachineGetResponseBodySchema"
+                    }
+                },
+                "resolutionTeams": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utility.TeamGetResponseBodySchema"
+                    }
+                },
+                "resolvedAt": {
+                    "type": "string"
+                },
+                "resolvedBy": {
+                    "$ref": "#/definitions/utility.UserGetResponseBodySchema"
+                },
+                "summary": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "utility.KeyValueSchema": {
+            "type": "object",
+            "required": [
+                "key",
+                "required",
+                "type",
+                "value"
+            ],
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "required": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
         "utility.MetaSchema": {
             "type": "object",
             "required": [
@@ -1151,6 +1301,32 @@ const docTemplate = `{
                 },
                 "total": {
                     "type": "integer"
+                }
+            }
+        },
+        "utility.ProviderGetResponseSchema": {
+            "type": "object",
+            "required": [
+                "fields",
+                "name",
+                "type",
+                "uuid"
+            ],
+            "properties": {
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utility.KeyValueSchema"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
                 }
             }
         },

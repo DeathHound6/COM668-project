@@ -10,6 +10,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type GetManyProvidersResponseSchema utility.GetManyResponseSchema[*utility.ProviderGetResponseSchema]
+
 // GetProviders godoc
 //
 //	@Summary		Get a list of Providers
@@ -21,7 +23,7 @@ import (
 //	@Param			provider_type	query		string	true	"The type of provider"	Enums(log, alert)
 //	@Param			page			query		int		false	"Page number"
 //	@Param			pageSize		query		int		false	"Number of items per page"
-//	@Success		200				{object}	utility.GetManyResponseSchema
+//	@Success		200				{object}	GetManyProvidersResponseSchema
 //	@Failure		401				{object}	utility.ErrorResponseSchema
 //	@Failure		403				{object}	utility.ErrorResponseSchema
 //	@Failure		500				{object}	utility.ErrorResponseSchema

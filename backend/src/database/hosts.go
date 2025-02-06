@@ -106,6 +106,7 @@ func GetHost(ctx *gin.Context, filters GetHostsFilters) (*HostMachine, error) {
 
 func GetHosts(ctx *gin.Context, filters GetHostsFilters) ([]*HostMachine, int64, error) {
 	tx := GetDBTransaction(ctx).Model(&HostMachine{})
+	tx = tx.Preload("Team")
 
 	if filters.UUID != nil {
 		tx = tx.Where("uuid = ?", *filters.UUID)
@@ -120,7 +121,6 @@ func GetHosts(ctx *gin.Context, filters GetHostsFilters) ([]*HostMachine, int64,
 		}
 	}
 
-	tx = tx.Preload("Team")
 	var hosts []*HostMachine
 	tx = tx.Find(&hosts)
 	if tx.Error != nil {

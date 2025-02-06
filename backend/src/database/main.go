@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	mysql2 "github.com/go-sql-driver/mysql"
@@ -63,24 +65,16 @@ var (
 			Name:     "System",
 			Email:    "test@example.com",
 			Password: "system_user",
-			Teams: []Team{
-				{
-					Name: "DevOps",
-				},
-			},
-			Admin: true,
+			Teams:    []Team{{ID: 2}},
+			Admin:    true,
 		},
 		{
 			ID:       2,
 			Name:     "Test User",
 			Email:    "user1@example.com",
 			Password: "test_user",
-			Teams: []Team{
-				{
-					Name: "Engineering",
-				},
-			},
-			Admin: false,
+			Teams:    []Team{{ID: 1}},
+			Admin:    false,
 		},
 	}
 	defaultHosts []*HostMachine = []*HostMachine{
@@ -91,6 +85,35 @@ var (
 			IP6:      nil,
 			OS:       "Linux",
 			TeamID:   1,
+		},
+	}
+	defaultIncidents []*Incident = []*Incident{
+		{
+			ID:              1,
+			HostsAffected:   []HostMachine{{ID: 1}},
+			Summary:         "Test Incident",
+			Comments:        []IncidentComment{},
+			CreatedAt:       time.Now(),
+			ResolvedAt:      nil,
+			ResolvedByID:    nil,
+			ResolutionTeams: []Team{{ID: 2}},
+		},
+		{
+			ID:            2,
+			HostsAffected: []HostMachine{{ID: 1}},
+			Summary:       "Test Incident 2",
+			Comments: []IncidentComment{
+				{
+					Comment:       "This is a test comment",
+					IncidentID:    2,
+					CommentedByID: 1,
+					CommentedAt:   time.Now().Add(time.Hour * -2),
+				},
+			},
+			CreatedAt:       time.Now().Add(time.Hour * -3),
+			ResolvedAt:      utility.Pointer(time.Now()),
+			ResolvedByID:    utility.Pointer(uint(2)),
+			ResolutionTeams: []Team{{ID: 2}},
 		},
 	}
 )
@@ -105,7 +128,10 @@ func Connect() error {
 	host := os.Getenv("DB_HOST")
 	dbName := os.Getenv("DB_NAME")
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s", username, password, host, dbName)
+	params := map[string]any{
+		"parseTime": "true",
+	}
+	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?%s", username, password, host, dbName, strings.Join(utility.MapToSlice(params), "&"))
 	log.Default().Println("Connecting to the database")
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		SkipDefaultTransaction: true,
@@ -172,9 +198,10 @@ func insert_default_data(tx *gorm.DB) error {
 		defaultUsers,
 		defaultProviders,
 		defaultHosts,
+		defaultIncidents,
 	}
 	for _, slice := range data {
-		tx.Create(slice)
+		tx.Save(slice)
 		if tx.Error != nil {
 			return tx.Error
 		}

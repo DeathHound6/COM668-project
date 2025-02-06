@@ -78,3 +78,11 @@ func RemoveElementFromSlice[T any](slice []T, index int) []T {
 func Pointer[T any](value T) *T {
 	return &value
 }
+
+func MapToSlice(params map[string]any) []string {
+	parts := make([]string, 0)
+	for key, value := range params {
+		parts = append(parts, fmt.Sprintf("%s=%s", key, value))
+	}
+	return parts
+}

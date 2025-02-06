@@ -11,6 +11,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type GetManyIncidentsResponseSchema utility.GetManyResponseSchema[*utility.IncidentGetResponseBodySchema]
+
 // GetIncidents godoc
 //
 //	@Summary		Get a list of incidents
@@ -21,7 +23,7 @@ import (
 //	@Param			page		query		int		false	"Page number"
 //	@Param			pageSize	query		int		false	"Number of items per page"
 //	@Param			resolved	query		bool	false	"Filter by resolved status"
-//	@Success		200			{object}	utility.GetManyResponseSchema
+//	@Success		200			{object}	GetManyIncidentsResponseSchema
 //	@Failure		401			{object}	utility.ErrorResponseSchema
 //	@Failure		500			{object}	utility.ErrorResponseSchema
 //	@Router			/incidents [get]
@@ -78,19 +80,41 @@ func GetIncidents() gin.HandlerFunc {
 		}
 		for _, incident := range incidents {
 			inc := &utility.IncidentGetResponseBodySchema{
-				UUID:          incident.UUID,
-				HostsAffected: make([]utility.HostMachineGetResponseBodySchema, 0),
-				Summary:       incident.Summary,
-				ResolvedAt:    incident.ResolvedAt,
-				CreatedAt:     incident.CreatedAt,
-				ResolvedBy: &utility.UserGetResponseBodySchema{
-					UUID:    incident.ResolvedBy.UUID,
-					Name:    incident.ResolvedBy.Name,
-					Email:   incident.ResolvedBy.Email,
-					Teams:   make([]utility.TeamGetResponseBodySchema, 0),
-					SlackID: incident.ResolvedBy.SlackID,
-					Admin:   incident.ResolvedBy.Admin,
-				},
+				UUID:            incident.UUID,
+				Comments:        make([]utility.IncidentCommentGetResponseBodySchema, 0),
+				HostsAffected:   make([]utility.HostMachineGetResponseBodySchema, 0),
+				Summary:         incident.Summary,
+				ResolvedAt:      incident.ResolvedAt,
+				CreatedAt:       incident.CreatedAt,
+				ResolutionTeams: make([]utility.TeamGetResponseBodySchema, 0),
+			}
+			for _, team := range incident.ResolutionTeams {
+				inc.ResolutionTeams = append(inc.ResolutionTeams, utility.TeamGetResponseBodySchema{
+					UUID: team.UUID,
+					Name: team.Name,
+				})
+			}
+			for _, comment := range incident.Comments {
+				c := utility.IncidentCommentGetResponseBodySchema{
+					UUID:        comment.UUID,
+					Comment:     comment.Comment,
+					CommentedAt: comment.CommentedAt,
+					CommentedBy: utility.UserGetResponseBodySchema{
+						UUID:    comment.CommentedBy.UUID,
+						Name:    comment.CommentedBy.Name,
+						Email:   comment.CommentedBy.Email,
+						Teams:   make([]utility.TeamGetResponseBodySchema, 0),
+						SlackID: comment.CommentedBy.SlackID,
+						Admin:   comment.CommentedBy.Admin,
+					},
+				}
+				for _, team := range comment.CommentedBy.Teams {
+					c.CommentedBy.Teams = append(c.CommentedBy.Teams, utility.TeamGetResponseBodySchema{
+						UUID: team.UUID,
+						Name: team.Name,
+					})
+				}
+				inc.Comments = append(inc.Comments, c)
 			}
 			for _, host := range incident.HostsAffected {
 				inc.HostsAffected = append(inc.HostsAffected, utility.HostMachineGetResponseBodySchema{
@@ -105,11 +129,22 @@ func GetIncidents() gin.HandlerFunc {
 					},
 				})
 			}
-			for _, team := range incident.ResolvedBy.Teams {
-				inc.ResolvedBy.Teams = append(inc.ResolvedBy.Teams, utility.TeamGetResponseBodySchema{
-					UUID: team.UUID,
-					Name: team.Name,
-				})
+			// check for nullptr
+			if incident.ResolvedBy != nil {
+				inc.ResolvedBy = &utility.UserGetResponseBodySchema{
+					UUID:    incident.ResolvedBy.UUID,
+					Name:    incident.ResolvedBy.Name,
+					Email:   incident.ResolvedBy.Email,
+					Teams:   make([]utility.TeamGetResponseBodySchema, 0),
+					SlackID: incident.ResolvedBy.SlackID,
+					Admin:   incident.ResolvedBy.Admin,
+				}
+				for _, team := range incident.ResolvedBy.Teams {
+					inc.ResolvedBy.Teams = append(inc.ResolvedBy.Teams, utility.TeamGetResponseBodySchema{
+						UUID: team.UUID,
+						Name: team.Name,
+					})
+				}
 			}
 			response.Data = append(response.Data, inc)
 		}
