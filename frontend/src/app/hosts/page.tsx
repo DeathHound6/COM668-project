@@ -29,24 +29,25 @@ import { Trash } from "react-bootstrap-icons";
 import { GetTeams } from "../../actions/teams";
 import { GetHosts, UpdateHost, DeleteHost, CreateHost, GetHost } from "../../actions/hosts";
 
-export default function HostsPage() {
-    const oses = [
-        "Windows",
-        "Linux",
-        "MacOS"
-    ];
-    const hostSchema = z.object({
-        hostname: z.string().trim().nonempty("Hostname is required"),
-        ip4: z.string().trim().ip({ version: "v4", message: "Invalid IPv4 address" }).optional(),
-        ip6: z.string().trim().ip({ version: "v6", message: "Invalid IPv6 address" }).optional(),
-        os: z.string().trim().nonempty("OS is required"),
-        teamID: z.string().trim().nonempty("Team is required").uuid("Invalid team ID")
-    });
+const oses = [
+    "Windows",
+    "Linux",
+    "MacOS"
+];
+const hostSchema = z.object({
+    hostname: z.string().trim().nonempty("Hostname is required"),
+    ip4: z.string().trim().ip({ version: "v4", message: "Invalid IPv4 address" }).optional(),
+    ip6: z.string().trim().ip({ version: "v6", message: "Invalid IPv6 address" }).optional(),
+    os: z.string().trim().nonempty("OS is required"),
+    teamID: z.string().trim().nonempty("Team is required").uuid("Invalid team ID")
+});
 
+export default function HostsPage() {
     const [hosts, setHosts] = useState([] as HostMachine[]);
     const [teams, setTeams] = useState([] as Team[]);
     const [errors, setErrors] = useState([] as string[]);
     const [pending, setPending] = useState(true);
+    const [loaded, setLoaded] = useState(false);
 
     const [showCreateModal, setShowCreateModal] = useState(false);
 
@@ -72,7 +73,7 @@ export default function HostsPage() {
 
     useEffect(() => {
         setOs(oses[0]);
-        setPending(true);
+        setLoaded(false);
         async function fetchData() {
             // Fetch all teams
             let page = 1;
@@ -94,7 +95,7 @@ export default function HostsPage() {
             if (!hostsResponse)
                 return;
             setHosts(hostsResponse.data);
-            setPending(false);
+            setLoaded(true);
         }
         fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -248,68 +249,79 @@ export default function HostsPage() {
                 </Col>
             </Row>
 
-            <Suspense fallback={<Spinner animation="border" role="status" />}>
-                <Row xs={2} md={4} style={{textAlign: "center"}} className="mx-5 mt-3">
-                    {
-                        hosts.length > 0 && hosts.map((host: HostMachine, index: number) => (
-                            <Col key={host.uuid}>
-                                <Card>
-                                    <CardBody>
-                                        <CardTitle>
-                                            <Row>
-                                                <Col className="ms-5">{host.hostname}</Col>
-                                                <Col xs={2}>
-                                                    <OverlayTrigger overlay={<Tooltip>Delete Host</Tooltip>}>
-                                                        <Trash style={{color: pending ? "grey" : "red", cursor: "pointer"}} onClick={() => pending ? null : deleteHost(index)} />
-                                                    </OverlayTrigger>
-                                                </Col>
-                                            </Row>
-                                        </CardTitle>
-                                        <FloatingLabel label="Hostname" controlId="hostname" key="hostname" className="mt-2">
-                                            <FormControl type="text" defaultValue={host.hostname} onChange={(e) => host.hostname = e.target.value} />
-                                        </FloatingLabel>
-                                        <FloatingLabel label="IPv4" controlId="ip4" key="ip4" className="mt-2">
-                                            <FormControl type="text" defaultValue={host.ip4} onChange={(e) => host.ip4 = e.target.value ?? undefined} />
-                                        </FloatingLabel>
-                                        <FloatingLabel label="IPv6" controlId="ip6" key="ip6" className="mt-2">
-                                            <FormControl type="text" defaultValue={host.ip6} onChange={(e) => host.ip6 = e.target.value ?? undefined} />
-                                        </FloatingLabel>
-                                        <FloatingLabel label="OS" controlId="os" key="os" className="mt-2">
-                                            <FormSelect defaultValue={host.os} onChange={(e) => host.os = e.target.value}>
-                                                {
-                                                    oses.map((os: string) => (
-                                                        <option value={os} key={os}>{os}</option>
-                                                    ))
-                                                }
-                                            </FormSelect>
-                                        </FloatingLabel>
-                                        <FloatingLabel label="Team" controlId="team" key="team" className="mt-2">
-                                            <FormSelect defaultValue={host.team.uuid} onChange={(e) => host.team.uuid = e.target.value}>
-                                                {
-                                                    teams.length > 0
-                                                        ? teams.map((team: Team) => (
-                                                            <option value={team.uuid} key={team.uuid}>{team.name}</option>
-                                                        ))
-                                                        : <option value="">No teams found</option>
-                                                }
-                                            </FormSelect>
-                                        </FloatingLabel>
-                                        <Button variant="primary" className="mt-2" onClick={() => updateHost(index)} disabled={pending}>Save</Button>
-                                    </CardBody>
-                                </Card>
-                            </Col>
-                        ))
-                    }
-                    {
-                        hosts.length == 0 && apiError == undefined && (
-                            <Col className="mx-auto my-3">
-                                <h4 style={{fontSize: 24}}>No hosts found</h4>
-                                <Button variant="primary" onClick={() => setShowCreateModal(true)} className="mt-2">Add Host</Button>
-                            </Col>
-                        )
-                    }
-                </Row>
-            </Suspense>
+            {
+                !loaded
+                    ? (<Spinner role="status" animation="border" className="my-auto mx-auto" />)
+                    : (
+                        <>
+                            {
+                                hosts.length == 0
+                                    ? (
+                                        <div className="mx-auto mt-5">
+                                            <h1 style={{fontSize: 40}}><b>No Hosts</b></h1>
+                                            <br />
+                                            <p style={{fontSize: 20}}>There are currently no hosts</p>
+                                            <Button onClick={() => setShowCreateModal(true)} className="mt-4">Add Host</Button>
+                                        </div>
+                                    )
+                                    : (
+                                        <Row xs={2} md={4} style={{textAlign: "center"}} className="mx-5 mt-3">
+                                            {
+                                                hosts.map((host: HostMachine, index: number) => (
+                                                    <Col key={host.uuid}>
+                                                        <Card>
+                                                            <CardBody>
+                                                                <CardTitle>
+                                                                    <Row>
+                                                                        <Col className="ms-5">{host.hostname}</Col>
+                                                                        <Col xs={2}>
+                                                                            <OverlayTrigger overlay={<Tooltip>Delete Host</Tooltip>}>
+                                                                                <Trash style={{color: pending ? "grey" : "red", cursor: "pointer"}} onClick={() => pending ? null : deleteHost(index)} />
+                                                                            </OverlayTrigger>
+                                                                        </Col>
+                                                                    </Row>
+                                                                </CardTitle>
+                                                                <FloatingLabel label="Hostname" controlId="hostname" key="hostname" className="mt-2">
+                                                                    <FormControl type="text" defaultValue={host.hostname} onChange={(e) => host.hostname = e.target.value} />
+                                                                </FloatingLabel>
+                                                                <FloatingLabel label="IPv4" controlId="ip4" key="ip4" className="mt-2">
+                                                                    <FormControl type="text" defaultValue={host.ip4} onChange={(e) => host.ip4 = e.target.value ?? undefined} />
+                                                                </FloatingLabel>
+                                                                <FloatingLabel label="IPv6" controlId="ip6" key="ip6" className="mt-2">
+                                                                    <FormControl type="text" defaultValue={host.ip6} onChange={(e) => host.ip6 = e.target.value ?? undefined} />
+                                                                </FloatingLabel>
+                                                                <FloatingLabel label="OS" controlId="os" key="os" className="mt-2">
+                                                                    <FormSelect defaultValue={host.os} onChange={(e) => host.os = e.target.value}>
+                                                                        {
+                                                                            oses.map((os: string) => (
+                                                                                <option value={os} key={os}>{os}</option>
+                                                                            ))
+                                                                        }
+                                                                    </FormSelect>
+                                                                </FloatingLabel>
+                                                                <FloatingLabel label="Team" controlId="team" key="team" className="mt-2">
+                                                                    <FormSelect defaultValue={host.team.uuid} onChange={(e) => host.team.uuid = e.target.value}>
+                                                                        {
+                                                                            teams.length > 0
+                                                                                ? teams.map((team: Team) => (
+                                                                                    <option value={team.uuid} key={team.uuid}>{team.name}</option>
+                                                                                ))
+                                                                                : <option value="">No teams found</option>
+                                                                        }
+                                                                    </FormSelect>
+                                                                </FloatingLabel>
+                                                                <Button variant="primary" className="mt-2" onClick={() => updateHost(index)} disabled={pending}>Save</Button>
+                                                            </CardBody>
+                                                        </Card>
+                                                    </Col>
+                                                ))
+                                            }
+                                        </Row>
+                                    )
+                            }
+                        </>
+                    )
+            }
 
             {/* Toasts for showing error messages */}
             <ToastContainer position="bottom-end" className="p-3">
