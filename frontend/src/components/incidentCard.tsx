@@ -24,6 +24,9 @@ export default function IncidentCard(
 ) {
     const hostsAffectedLimit = 5;
     const createdAt = new Date(incident.createdAt);
+    const createdAtString = `${months[createdAt.getMonth()]} ${createdAt.getDate()} ${createdAt.getFullYear()}, ${createdAt.getHours()}:${createdAt.getMinutes()}`;
+    const resolvedAt = incident.resolvedAt ? new Date(incident.resolvedAt) : undefined;
+    const resolvedAtString = resolvedAt ? `${months[resolvedAt.getMonth()]} ${resolvedAt.getDate()} ${resolvedAt.getFullYear()}, ${resolvedAt.getHours()}:${resolvedAt.getMinutes()}` : undefined;
     return (
         <Card>
             <CardHeader>{incident.summary}</CardHeader>
@@ -47,11 +50,14 @@ export default function IncidentCard(
                 <Button href={`/incidents/${incident.uuid}`} className="mt-3">View Incident</Button>
             </CardBody>
             <CardFooter>
-                {
-                    incident.resolvedAt
-                        ? `Resolved at ${incident.resolvedAt} by ${incident.resolvedBy?.name}`
-                        : `Unresolved since ${`${months[createdAt.getMonth()]} ${createdAt.getDate()} ${createdAt.getFullYear()}, ${createdAt.getHours()}:${createdAt.getMinutes()}`}`
-                }
+                <CardText>
+                    Created at {createdAtString}<br />
+                    {
+                        resolvedAt
+                            ? `Resolved at ${resolvedAtString} by ${incident.resolvedBy?.name}`
+                            : "Unresolved"
+                    }
+                </CardText>
             </CardFooter>
         </Card>
     )

@@ -63,8 +63,9 @@ export default function DashboardPage() {
     return (
         <main>
             <div className="mx-5 mt-3" style={{textAlign: "center"}}>
+                <div className="mx-auto" style={{fontSize: 20}}><b>Active Incidents</b></div>
                 <div style={{textAlign: "justify"}} className="mb-2">
-                    <FormCheck inline label="My teams only" type="switch" checked={myTeams} onChange={(e) => setMyTeams(e.target.checked)}/>
+                    <FormCheck inline label="My teams only" type="switch" checked={myTeams} onChange={(e) => setMyTeams(e.target.checked)} />
                 </div>
                 {
                     !loaded
