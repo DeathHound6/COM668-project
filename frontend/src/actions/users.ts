@@ -1,6 +1,4 @@
-import type { User } from "../interfaces/user";
-import type { ErrorResponse } from "../interfaces/api";
-import { APIError } from "../interfaces/error";
+import { type User, type ErrorResponse, APIError } from "../interfaces";
 import { handleUnauthorized } from "./api";
 
 export async function GetMe(): Promise<User> {

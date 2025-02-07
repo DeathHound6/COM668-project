@@ -1,6 +1,6 @@
 "use client";
 
-import type { SettingField, Settings } from "../../interfaces/settings";
+import type { SettingField, Settings } from "../../interfaces";
 import { startTransition, Suspense, useActionState, useEffect, useState } from "react";
 import {
     Button,

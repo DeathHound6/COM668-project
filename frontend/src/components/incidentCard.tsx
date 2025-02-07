@@ -1,37 +1,58 @@
 "use client";
 
-import type { HostMachine } from "../interfaces/hosts";
-import type { Incident } from "../interfaces/incident";
+import type { HostMachine, Incident } from "../interfaces";
 import {
     Card,
     CardBody,
-    CardText,
-    CardSubtitle,
     ListGroup,
     ListGroupItem,
     CardHeader,
     CardFooter,
-    CardLink
+    CardText,
+    Button
 } from "react-bootstrap";
 
-export default function IncidentCard({ incident }: Readonly<{ incident: Incident }>) {
+const months = [
+    "Jan", "Feb", "Mar", "Apr",
+    "May", "Jun", "Jul", "Aug",
+    "Sep", "Oct", "Nov", "Dec"
+];
+
+export default function IncidentCard(
+    { incident }:
+    { incident: Incident }
+) {
+    const hostsAffectedLimit = 5;
+    const createdAt = new Date(incident.createdAt);
     return (
         <Card>
+            <CardHeader>{incident.summary}</CardHeader>
             <CardBody>
-                <CardSubtitle>Created at {new Date(incident.createdAt).toLocaleString()}</CardSubtitle>
-                <CardText>{incident.summary}</CardText>
-                <CardHeader>Hosts Affected</CardHeader>
+                <CardText>{incident.description}</CardText>
+                <h4 className="mt-2 mb-1 underline">Affected Servers</h4>
                 <ListGroup>
-                    {incident.hostsAffected.map((host: HostMachine) => (
-                        <ListGroupItem key={`${incident.uuid}-${host.uuid}`}>
-                            <CardLink href={`/hosts/${host.uuid}`}>{host.hostname}</CardLink>
-                        </ListGroupItem>
-                    ))}
+                    {
+                        // limit to the first 5 hosts
+                        incident.hostsAffected.slice(0, hostsAffectedLimit).map((host: HostMachine) => (
+                            <ListGroupItem key={`${incident.uuid}-${host.uuid}`} href={`/hosts/${host.uuid}`} active={false} target="_blank" action>{host.hostname}</ListGroupItem>
+                        ))
+                    }
+                    {
+                        // if there are more than 5 hosts, show a "+n more" item
+                        incident.hostsAffected.length > hostsAffectedLimit && (
+                            <ListGroupItem key={`${incident.uuid}-more`}>{`+${incident.hostsAffected.length - hostsAffectedLimit} more`}</ListGroupItem>
+                        )
+                    }
                 </ListGroup>
+                <Button href={`/incidents/${incident.uuid}`} className="mt-3">View Incident</Button>
             </CardBody>
             <CardFooter>
-                { incident.resolvedAt ? `Resolved at ${incident.resolvedAt} by ${incident.resolvedBy?.name}` : "Unresolved" }
+                {
+                    incident.resolvedAt
+                        ? `Resolved at ${incident.resolvedAt} by ${incident.resolvedBy?.name}`
+                        : `Unresolved since ${`${months[createdAt.getMonth()]} ${createdAt.getDate()} ${createdAt.getFullYear()}, ${createdAt.getHours()}:${createdAt.getMinutes()}`}`
+                }
             </CardFooter>
         </Card>
-    );
+    )
 }

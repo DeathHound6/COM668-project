@@ -81,6 +81,7 @@ type IncidentGetResponseBodySchema struct {
 	Comments        []IncidentCommentGetResponseBodySchema `json:"comments" binding:"required"`
 	HostsAffected   []HostMachineGetResponseBodySchema     `json:"hostsAffected" binding:"required"`
 	Summary         string                                 `json:"summary" binding:"required"`
+	Description     string                                 `json:"description" binding:"required"`
 	CreatedAt       time.Time                              `json:"createdAt" binding:"required"`
 	ResolvedAt      *time.Time                             `json:"resolvedAt" binding:"required"`
 	ResolvedBy      *UserGetResponseBodySchema             `json:"resolvedBy" binding:"required"`

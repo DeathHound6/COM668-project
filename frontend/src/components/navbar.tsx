@@ -1,6 +1,6 @@
 "use client";
 
-import type { User } from "../interfaces/user";
+import type { User } from "../interfaces";
 import { redirect, RedirectType, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
@@ -22,7 +22,7 @@ import { Slack } from "react-bootstrap-icons";
 
 export default function NavbarComponent() {
     const pathname = usePathname();
-    const [user, setUser] = useState({} as User);
+    const [user, setUser] = useState({} as User | null);
 
     useEffect(() => {
         // Handle the case where the JWT token is expired on page load
@@ -62,12 +62,21 @@ export default function NavbarComponent() {
                 <NavItem className="p-2 m-1 border rounded" hidden={user == null}>
                     <NavLink href="/dashboard" eventKey="/dashboard">Dashboard</NavLink>
                 </NavItem>
-                <NavItem className="p-2 m-1 border rounded" hidden={user == null || user["admin"] == false}>
-                    <NavLink href="/settings" eventKey="/settings">Settings</NavLink>
+                <NavItem className="p-2 m-1 border rounded" hidden={user == null}>
+                    <NavLink href="/history" eventKey="/history">Incident History</NavLink>
                 </NavItem>
-                <NavItem className="p-2 m-1 border rounded" hidden={user == null || user["admin"] == false}>
-                    <NavLink href="/hosts" eventKey="/hosts">Host Inventory</NavLink>
-                </NavItem>
+                {
+                    user != null && user["admin"] == true && (
+                        <>
+                            <NavItem className="p-2 m-1 border rounded">
+                                <NavLink href="/settings" eventKey="/settings">Settings</NavLink>
+                            </NavItem>
+                            <NavItem className="p-2 m-1 border rounded">
+                                <NavLink href="/hosts" eventKey="/hosts">Host Inventory</NavLink>
+                            </NavItem>
+                        </>
+                    )
+                }
             </Nav>
             <NavItem className="me-auto"></NavItem>
             <NavItem>

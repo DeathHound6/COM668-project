@@ -1,5 +1,4 @@
-import type { GetManyAPIResponse, ErrorResponse } from "../interfaces/api";
-import type { HostMachine } from "../interfaces/hosts";
+import type { GetManyAPIResponse, ErrorResponse, HostMachine } from "../interfaces";
 import { APIError } from "../interfaces/error";
 import { handleUnauthorized } from "./api";
 

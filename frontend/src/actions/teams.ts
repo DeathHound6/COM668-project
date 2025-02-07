@@ -1,6 +1,4 @@
-import type { GetManyAPIResponse, ErrorResponse } from "../interfaces/api";
-import type { Team } from "../interfaces/user";
-import { APIError } from "../interfaces/error";
+import { type GetManyAPIResponse, type ErrorResponse, type Team, APIError } from "../interfaces";
 import { handleUnauthorized } from "./api";
 
 export async function GetTeams({ page, pageSize }: { page?: number, pageSize?: number }): Promise<GetManyAPIResponse<Team>> {

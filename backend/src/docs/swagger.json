@@ -460,6 +460,12 @@
                         "description": "Filter by resolved status",
                         "name": "resolved",
                         "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by my team",
+                        "name": "myTeams",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1211,6 +1217,7 @@
             "required": [
                 "comments",
                 "createdAt",
+                "description",
                 "hostsAffected",
                 "resolutionTeams",
                 "resolvedAt",
@@ -1226,6 +1233,9 @@
                     }
                 },
                 "createdAt": {
+                    "type": "string"
+                },
+                "description": {
                     "type": "string"
                 },
                 "hostsAffected": {

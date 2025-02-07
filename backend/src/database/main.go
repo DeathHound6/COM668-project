@@ -92,6 +92,7 @@ var (
 			ID:              1,
 			HostsAffected:   []HostMachine{{ID: 1}},
 			Summary:         "Test Incident",
+			Description:     "This is a test incident",
 			Comments:        []IncidentComment{},
 			CreatedAt:       time.Now(),
 			ResolvedAt:      nil,
@@ -102,6 +103,7 @@ var (
 			ID:            2,
 			HostsAffected: []HostMachine{{ID: 1}},
 			Summary:       "Test Incident 2",
+			Description:   "This is a test incident",
 			Comments: []IncidentComment{
 				{
 					Comment:       "This is a test comment",

@@ -1,7 +1,6 @@
 "use client";
 
-import type { HostMachine } from "../../interfaces/hosts";
-import type { Team } from "../../interfaces/user";
+import type { HostMachine, Team, APIError } from "../../interfaces";
 import {
     Button,
     Card,
@@ -29,8 +28,6 @@ import { z } from "zod";
 import { Trash } from "react-bootstrap-icons";
 import { GetTeams } from "../../actions/teams";
 import { GetHosts, UpdateHost, DeleteHost, CreateHost, GetHost } from "../../actions/hosts";
-import { APIError } from "../../interfaces/error";
-import { handleUnauthorized } from "../../actions/api";
 
 export default function HostsPage() {
     const oses = [
@@ -68,7 +65,6 @@ export default function HostsPage() {
     const [teamID, setTeamID] = useState("");
 
     function handleError(err: APIError) {
-        handleUnauthorized({ err });
         if ([400, 404, 500].includes(err.status))
             setAPIError(err.message);
         setPending(false);

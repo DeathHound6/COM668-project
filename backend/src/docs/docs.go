@@ -464,6 +464,12 @@ const docTemplate = `{
                         "description": "Filter by resolved status",
                         "name": "resolved",
                         "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by my team",
+                        "name": "myTeams",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1215,6 +1221,7 @@ const docTemplate = `{
             "required": [
                 "comments",
                 "createdAt",
+                "description",
                 "hostsAffected",
                 "resolutionTeams",
                 "resolvedAt",
@@ -1230,6 +1237,9 @@ const docTemplate = `{
                     }
                 },
                 "createdAt": {
+                    "type": "string"
+                },
+                "description": {
                     "type": "string"
                 },
                 "hostsAffected": {

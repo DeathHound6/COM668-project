@@ -14,6 +14,7 @@ type Incident struct {
 	ID              uint              `gorm:"column:id;primaryKey;autoIncrement"`
 	UUID            string            `gorm:"column:uuid;size:36;unique;not null"`
 	HostsAffected   []HostMachine     `gorm:"many2many:incident_host"`
+	Description     string            `gorm:"column:description;size:500"`
 	Summary         string            `gorm:"column:summary;size:500;not null"`
 	Comments        []IncidentComment `gorm:"foreignKey:incident_id"`
 	CreatedAt       time.Time         `gorm:"column:created_at;autoCreateTime;not null"`
@@ -105,6 +106,7 @@ type IncidentHost struct {
 }
 
 type GetIncidentsFilters struct {
+	MyTeams  bool
 	Resolved *bool
 	Page     *int
 	PageSize *int
@@ -129,6 +131,13 @@ func GetIncidents(ctx *gin.Context, filters GetIncidentsFilters) ([]*Incident, i
 		} else {
 			tx = tx.Where("resolved_at IS NULL")
 		}
+	}
+	if filters.MyTeams {
+		user := ctx.MustGet("user").(*User)
+		tx = tx.Joins("LEFT JOIN tbl_incident_resolution_team ON tbl_incident_resolution_team.incident_id = tbl_incident.id").
+			Joins("LEFT JOIN tbl_team_user ON tbl_team_user.team_id = tbl_incident_resolution_team.team_id").
+			Joins("LEFT JOIN tbl_user ON tbl_user.id = tbl_team_user.user_id").
+			Where("tbl_user.uuid = ?", user.UUID)
 	}
 
 	var count int64

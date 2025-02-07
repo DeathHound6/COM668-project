@@ -23,6 +23,7 @@ type GetManyIncidentsResponseSchema utility.GetManyResponseSchema[*utility.Incid
 //	@Param			page		query		int		false	"Page number"
 //	@Param			pageSize	query		int		false	"Number of items per page"
 //	@Param			resolved	query		bool	false	"Filter by resolved status"
+//	@Param			myTeams		query		bool	false	"Filter by my team"
 //	@Success		200			{object}	GetManyIncidentsResponseSchema
 //	@Failure		401			{object}	utility.ErrorResponseSchema
 //	@Failure		500			{object}	utility.ErrorResponseSchema
@@ -59,6 +60,21 @@ func GetIncidents() gin.HandlerFunc {
 			filters.Resolved = &resolvedBool
 		}
 
+		myTeams := ctx.Query("myTeams")
+		if myTeams == "" {
+			myTeams = "false"
+		}
+		myTeamsBool, err := strconv.ParseBool(myTeams)
+		if err != nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+		filters.MyTeams = myTeamsBool
+
 		incidents, count, err := database.GetIncidents(ctx, filters)
 		if err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
@@ -83,6 +99,7 @@ func GetIncidents() gin.HandlerFunc {
 				UUID:            incident.UUID,
 				Comments:        make([]utility.IncidentCommentGetResponseBodySchema, 0),
 				HostsAffected:   make([]utility.HostMachineGetResponseBodySchema, 0),
+				Description:     incident.Description,
 				Summary:         incident.Summary,
 				ResolvedAt:      incident.ResolvedAt,
 				CreatedAt:       incident.CreatedAt,

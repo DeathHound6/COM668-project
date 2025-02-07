@@ -122,6 +122,8 @@ definitions:
         type: array
       createdAt:
         type: string
+      description:
+        type: string
       hostsAffected:
         items:
           $ref: '#/definitions/utility.HostMachineGetResponseBodySchema'
@@ -141,6 +143,7 @@ definitions:
     required:
     - comments
     - createdAt
+    - description
     - hostsAffected
     - resolutionTeams
     - resolvedAt
@@ -543,6 +546,10 @@ paths:
       - description: Filter by resolved status
         in: query
         name: resolved
+        type: boolean
+      - description: Filter by my team
+        in: query
+        name: myTeams
         type: boolean
       produces:
       - application/json
