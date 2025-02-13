@@ -13,28 +13,32 @@ type Provider struct {
 	ID     uint            `gorm:"column:id;primaryKey;autoIncrement"`
 	UUID   string          `gorm:"column:uuid;size:36;unique;not null"`
 	Name   string          `gorm:"column:name;size:30;unique;not null"`
-	Fields []ProviderField `gorm:"foreignKey:provider_id"`
+	Fields []ProviderField `gorm:"foreignKey:provider_id;constraint:OnDelete:CASCADE"`
 	Type   string          `gorm:"column:type;check:type IN ('log','alert');size:5;not null"`
 }
 type ProviderField struct {
-	ID         uint      `gorm:"column:id;primaryKey;autoIncrement"`
-	Provider   *Provider `gorm:"foreignKey:provider_id;references:id"`
-	ProviderID uint      `gorm:"column:provider_id"`
-	Key        string    `gorm:"column:key;size:20;not null"`
-	Value      string    `gorm:"column:value;size:30;not null"`
-	Type       string    `gorm:"column:type;check:type IN ('string','number','boolean');size:10;not null"`
-	Required   bool      `gorm:"column:required;not null"`
+	ID         uint     `gorm:"column:id;primaryKey;autoIncrement"`
+	Provider   Provider `gorm:"foreignKey:provider_id;references:id"`
+	ProviderID uint     `gorm:"column:provider_id;not null"`
+	Key        string   `gorm:"column:key;size:20;not null"`
+	Value      string   `gorm:"column:value;size:30;not null"`
+	Type       string   `gorm:"column:type;check:type IN ('string','number','bool');size:10;not null"`
+	Required   bool     `gorm:"column:required;not null"`
 }
 
 func (p *Provider) BeforeCreate(tx *gorm.DB) error {
 	ctx := GetContext(tx)
 	uuid, err := utility.GenerateRandomUUID()
 	if err != nil {
-		ctx.Set("errorCode", http.StatusInternalServerError)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusInternalServerError)
+		}
 		return errors.New("failed to create a provider uuid")
 	}
 	if len(p.Name) > 30 {
-		ctx.Set("errorCode", http.StatusBadRequest)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusBadRequest)
+		}
 		return errors.New("provider name cannot be greater than 30 characters")
 	}
 	p.UUID = uuid
@@ -69,6 +73,7 @@ func GetProvider(ctx *gin.Context, filters GetProvidersFilters) (*Provider, erro
 // Get a list of providers
 func GetProviders(ctx *gin.Context, filters GetProvidersFilters) ([]*Provider, int64, error) {
 	tx := GetDBTransaction(ctx).Model(&Provider{})
+	tx = tx.Preload("Fields")
 
 	// apply filters
 	if filters.UUID != nil {

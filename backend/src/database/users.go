@@ -44,34 +44,42 @@ func (user *User) BeforeCreate(tx *gorm.DB) error {
 	ctx := GetContext(tx)
 	uuid, err := utility.GenerateRandomUUID()
 	if err != nil {
-		ctx.Set("errorCode", http.StatusInternalServerError)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusInternalServerError)
+		}
 		return errors.New("failed to create a user uuid")
 	}
 	if len(user.Name) > 30 {
-		ctx.Set("errorCode", http.StatusBadRequest)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusBadRequest)
+		}
 		return errors.New("user name cannot be greater than 30 characters")
 	}
 	if len(user.Email) > 30 {
-		ctx.Set("errorCode", http.StatusBadRequest)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusBadRequest)
+		}
 		return errors.New("user email cannot be greater than 30 characters")
 	}
 	if matched, err := regexp.MatchString(EmailRegexp, user.Email); !matched || err != nil {
-		ctx.Set("errorCode", http.StatusBadRequest)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusBadRequest)
+		}
 		return errors.New("user email is not a valid email")
 	}
 	// NOTE: 72 chars is the max bcrypt supports
 	if len(user.Password) > 72 {
-		ctx.Set("errorCode", http.StatusBadRequest)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusBadRequest)
+		}
 		return errors.New("user password cannot be greater than 72 characters")
 	}
 	password, err := user.hashPassword()
 	if err != nil {
-		ctx.Set("errorCode", http.StatusInternalServerError)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusInternalServerError)
+		}
 		return err
-	}
-	if len(user.Teams) == 0 {
-		ctx.Set("errorCode", http.StatusBadRequest)
-		return errors.New("user must be part of at least 1 team")
 	}
 	user.Password = password
 	user.UUID = uuid
@@ -81,30 +89,36 @@ func (user *User) BeforeCreate(tx *gorm.DB) error {
 func (user *User) BeforeUpdate(tx *gorm.DB) error {
 	ctx := GetContext(tx)
 	if len(user.Name) > 30 {
-		ctx.Set("errorCode", http.StatusBadRequest)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusBadRequest)
+		}
 		return errors.New("user name cannot be greater than 30 characters")
 	}
 	if len(user.Email) > 30 {
-		ctx.Set("errorCode", http.StatusBadRequest)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusBadRequest)
+		}
 		return errors.New("user email cannot be greater than 30 characters")
 	}
 	if matched, err := regexp.MatchString(EmailRegexp, user.Email); !matched || err != nil {
-		ctx.Set("errorCode", http.StatusBadRequest)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusBadRequest)
+		}
 		return errors.New("user email is not a valid email")
 	}
 	// NOTE: 72 chars is the max bcrypt supports
 	if len(user.Password) > 72 {
-		ctx.Set("errorCode", http.StatusBadRequest)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusBadRequest)
+		}
 		return errors.New("user password cannot be greater than 72 characters")
 	}
 	password, err := user.hashPassword()
 	if err != nil {
-		ctx.Set("errorCode", http.StatusInternalServerError)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusInternalServerError)
+		}
 		return err
-	}
-	if len(user.Teams) == 0 {
-		ctx.Set("errorCode", http.StatusBadRequest)
-		return errors.New("user must be part of at least 1 team")
 	}
 	user.Password = password
 	return nil

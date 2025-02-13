@@ -187,13 +187,13 @@ export default function SettingsPage() {
     }
 
     function onCloseToast(index: number) {
-        const e = [...showErrors];
+        const e = [...errors];
         if (e.length <= index) {
             setAPIError("invalid error index");
             return;
         }
-        e[index] = false;
-        setShowErrors(e);
+        e.splice(index, 1);
+        setErrors(e);
     }
 
     function deleteSetting(index: number) {

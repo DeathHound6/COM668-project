@@ -16,7 +16,7 @@ type Incident struct {
 	HostsAffected   []HostMachine     `gorm:"many2many:incident_host"`
 	Description     string            `gorm:"column:description;size:500"`
 	Summary         string            `gorm:"column:summary;size:100;not null"`
-	Comments        []IncidentComment `gorm:"foreignKey:incident_id"`
+	Comments        []IncidentComment `gorm:"foreignKey:incident_id;constraint:OnDelete:CASCADE"`
 	CreatedAt       time.Time         `gorm:"column:created_at;autoCreateTime;not null"`
 	ResolvedAt      *time.Time        `gorm:"column:resolved_at"`
 	ResolvedByID    *uint             `gorm:"column:resolved_by_id"`
@@ -28,11 +28,15 @@ func (incident *Incident) BeforeCreate(tx *gorm.DB) error {
 	ctx := GetContext(tx)
 	uuid, err := utility.GenerateRandomUUID()
 	if err != nil {
-		ctx.Set("errorCode", http.StatusInternalServerError)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusInternalServerError)
+		}
 		return errors.New("failed to create an incident uuid")
 	}
 	if len(incident.Summary) > 500 {
-		ctx.Set("errorCode", http.StatusBadRequest)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusBadRequest)
+		}
 		return errors.New("summary cannot be greater than 500 characters")
 	}
 	incident.UUID = uuid
@@ -47,7 +51,9 @@ func (incident *Incident) BeforeUpdate(tx *gorm.DB) error {
 		incident.ResolvedAt = &time
 	}
 	if len(incident.Summary) > 500 {
-		ctx.Set("errorCode", http.StatusBadRequest)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusBadRequest)
+		}
 		return errors.New("summary cannot be greater than 500 characters")
 	}
 	return nil
@@ -55,7 +61,9 @@ func (incident *Incident) BeforeUpdate(tx *gorm.DB) error {
 
 func (incident *Incident) BeforeDelete(tx *gorm.DB) error {
 	ctx := GetContext(tx)
-	ctx.Set("errorCode", http.StatusBadRequest)
+	if ctx != nil {
+		ctx.Set("errorCode", http.StatusBadRequest)
+	}
 	return errors.New("incidents cannot be deleted")
 }
 
@@ -74,11 +82,15 @@ func (comment *IncidentComment) BeforeCreate(tx *gorm.DB) error {
 	ctx := GetContext(tx)
 	uuid, err := utility.GenerateRandomUUID()
 	if err != nil {
-		ctx.Set("errorCode", http.StatusInternalServerError)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusInternalServerError)
+		}
 		return errors.New("failed to create a comment uuid")
 	}
 	if len(comment.Comment) > 200 {
-		ctx.Set("errorCode", http.StatusBadRequest)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusBadRequest)
+		}
 		return errors.New("comment cannot be greater than 200 characters")
 	}
 	comment.UUID = uuid
@@ -88,7 +100,9 @@ func (comment *IncidentComment) BeforeCreate(tx *gorm.DB) error {
 func (comment *IncidentComment) BeforeUpdate(tx *gorm.DB) error {
 	ctx := GetContext(tx)
 	if len(comment.Comment) > 200 {
-		ctx.Set("errorCode", http.StatusBadRequest)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusBadRequest)
+		}
 		return errors.New("comment cannot be greater than 200 characters")
 	}
 	return nil

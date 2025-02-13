@@ -21,117 +21,103 @@ var (
 	conn             *gorm.DB    = nil
 	defaultProviders []*Provider = []*Provider{
 		{
-			ID:   1,
 			Name: "Sentry",
-			Fields: []ProviderField{
-				{
-					ID:         1,
-					ProviderID: 1,
-					Key:        "enabled",
-					Value:      "true",
-					Type:       "bool",
-					Required:   true,
-				},
-				{
-					ID:         2,
-					ProviderID: 1,
-					Key:        "orgSlug",
-					Value:      "testing-77",
-					Type:       "string",
-					Required:   true,
-				},
-				{
-					ID:         3,
-					ProviderID: 1,
-					Key:        "projSlug",
-					Value:      "test_app",
-					Type:       "string",
-					Required:   true,
-				},
-			},
 			Type: "log",
 		},
 		{
-			ID:   2,
 			Name: "DynaTrace",
-			Fields: []ProviderField{
-				{
-					ID:         4,
-					ProviderID: 2,
-					Key:        "enabled",
-					Value:      "true",
-					Type:       "bool",
-					Required:   true,
-				},
-			},
 			Type: "log",
 		},
 		{
-			ID:   3,
 			Name: "Slack",
-			Fields: []ProviderField{
-				{
-					ID:         5,
-					ProviderID: 3,
-					Key:        "enabled",
-					Value:      "true",
-					Type:       "bool",
-					Required:   true,
-				},
-			},
 			Type: "alert",
 		},
 		{
-			ID:   4,
 			Name: "Microsoft Teams",
-			Fields: []ProviderField{
-				{
-					ID:         6,
-					ProviderID: 4,
-					Key:        "enabled",
-					Value:      "true",
-					Type:       "bool",
-					Required:   true,
-				},
-			},
 			Type: "alert",
+		},
+	}
+	defaultProvidersFields []*ProviderField = []*ProviderField{
+		{
+			ProviderID: 1,
+			Key:        "enabled",
+			Value:      "true",
+			Type:       "bool",
+			Required:   true,
+		},
+		{
+			ProviderID: 1,
+			Key:        "orgSlug",
+			Value:      "testing-77",
+			Type:       "string",
+			Required:   true,
+		},
+		{
+			ProviderID: 1,
+			Key:        "projSlug",
+			Value:      "test_app",
+			Type:       "string",
+			Required:   true,
+		},
+		{
+			ProviderID: 2,
+			Key:        "enabled",
+			Value:      "true",
+			Type:       "bool",
+			Required:   true,
+		},
+		{
+			ProviderID: 3,
+			Key:        "enabled",
+			Value:      "true",
+			Type:       "bool",
+			Required:   true,
+		},
+		{
+			ProviderID: 4,
+			Key:        "enabled",
+			Value:      "true",
+			Type:       "bool",
+			Required:   true,
 		},
 	}
 	defaultTeams []*Team = []*Team{
 		{
-			ID:   1,
 			Name: "Engineering",
 		},
 		{
-			ID:   2,
 			Name: "DevOps",
 		},
 		{
-			ID:   3,
 			Name: "Monitoring",
 		},
 	}
 	defaultUsers []*User = []*User{
 		{
-			ID:       1,
 			Name:     "System",
 			Email:    "test@example.com",
 			Password: "system_user",
-			Teams:    []Team{{ID: 2}},
 			Admin:    true,
 		},
 		{
-			ID:       2,
 			Name:     "Test User",
 			Email:    "user1@example.com",
 			Password: "test_user",
-			Teams:    []Team{{ID: 1}},
 			Admin:    false,
+		},
+	}
+	defaultTeamUsers []*TeamUser = []*TeamUser{
+		{
+			UserID: 1,
+			TeamID: 2,
+		},
+		{
+			UserID: 2,
+			TeamID: 1,
 		},
 	}
 	defaultHosts []*HostMachine = []*HostMachine{
 		{
-			ID:       1,
 			Hostname: "test_app",
 			IP4:      utility.Pointer("172.18.0.3"),
 			IP6:      nil,
@@ -141,33 +127,47 @@ var (
 	}
 	defaultIncidents []*Incident = []*Incident{
 		{
-			ID:              1,
-			HostsAffected:   []HostMachine{{ID: 1}},
-			Summary:         "Test Incident",
-			Description:     "This is a test incident",
-			Comments:        []IncidentComment{},
-			CreatedAt:       time.Now(),
-			ResolvedAt:      nil,
-			ResolvedByID:    nil,
-			ResolutionTeams: []Team{{ID: 2}},
+			Summary:      "Test Incident",
+			Description:  "This is a test incident",
+			Comments:     []IncidentComment{},
+			CreatedAt:    time.Now(),
+			ResolvedAt:   nil,
+			ResolvedByID: nil,
 		},
 		{
-			ID:            2,
-			HostsAffected: []HostMachine{{ID: 1}},
-			Summary:       "Test Incident 2",
-			Description:   "This is a test incident",
-			Comments: []IncidentComment{
-				{
-					Comment:       "This is a test comment",
-					IncidentID:    2,
-					CommentedByID: 1,
-					CommentedAt:   time.Now().Add(time.Hour * -2),
-				},
-			},
-			CreatedAt:       time.Now().Add(time.Hour * -3),
-			ResolvedAt:      utility.Pointer(time.Now()),
-			ResolvedByID:    utility.Pointer(uint(2)),
-			ResolutionTeams: []Team{{ID: 2}},
+			Summary:      "Test Incident 2",
+			Description:  "This is a test incident",
+			CreatedAt:    time.Now().Add(time.Hour * -3),
+			ResolvedAt:   utility.Pointer(time.Now()),
+			ResolvedByID: utility.Pointer(uint(2)),
+		},
+	}
+	defaultIncidentComments []*IncidentComment = []*IncidentComment{
+		{
+			Comment:       "This is a test comment",
+			IncidentID:    2,
+			CommentedByID: 1,
+			CommentedAt:   time.Now().Add(time.Hour * -2),
+		},
+	}
+	defaultIncidentResolutionTeams []*IncidentResolutionTeam = []*IncidentResolutionTeam{
+		{
+			IncidentID: 1,
+			TeamID:     2,
+		},
+		{
+			IncidentID: 2,
+			TeamID:     2,
+		},
+	}
+	defaultIncidentHosts []*IncidentHost = []*IncidentHost{
+		{
+			IncidentID:    1,
+			HostMachineID: 1,
+		},
+		{
+			IncidentID:    2,
+			HostMachineID: 1,
 		},
 	}
 )
@@ -213,12 +213,12 @@ func GetDBConn() *gorm.DB {
 
 func migrate(conn *gorm.DB) {
 	tx := conn.Begin()
-	log.Default().Println("Migrating database")
 	structs := []interface{}{
 		Team{},
 		User{},
 		TeamUser{},
 		Provider{},
+		ProviderField{},
 		HostMachine{},
 		Incident{},
 		IncidentComment{},
@@ -226,18 +226,20 @@ func migrate(conn *gorm.DB) {
 		IncidentResolutionTeam{},
 	}
 	if gin.IsDebugging() {
+		log.Default().Println("Dropping tables")
 		if err := tx.Migrator().DropTable(structs...); err != nil {
 			tx.Rollback()
 			panic(err)
 		}
 	}
+	log.Default().Println("Migrating database")
 	if err := tx.AutoMigrate(structs...); err != nil {
 		tx.Rollback()
 		panic(err)
 	}
 	if gin.IsDebugging() {
 		log.Default().Println("Inserting default data")
-		if err := insert_default_data(tx); err != nil {
+		if err := insertDefaultData(tx); err != nil {
 			tx.Rollback()
 			panic(err)
 		}
@@ -249,15 +251,21 @@ func migrate(conn *gorm.DB) {
 	}
 }
 
-func insert_default_data(tx *gorm.DB) error {
+func insertDefaultData(tx *gorm.DB) error {
 	data := []interface{}{
 		defaultTeams,
 		defaultUsers,
+		defaultTeamUsers,
 		defaultProviders,
+		defaultProvidersFields,
 		defaultHosts,
 		defaultIncidents,
+		defaultIncidentComments,
+		defaultIncidentResolutionTeams,
+		defaultIncidentHosts,
 	}
 	for _, slice := range data {
+		log.Default().Printf("Inserting records %T\n", slice)
 		tx.Save(slice)
 		if tx.Error != nil {
 			return tx.Error

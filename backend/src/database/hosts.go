@@ -12,7 +12,7 @@ import (
 type HostMachine struct {
 	ID       uint    `gorm:"column:id;primaryKey;autoIncrement"`
 	UUID     string  `gorm:"column:uuid;size:36;unique;not null"`
-	OS       string  `gorm:"column:os;size:20;not null"`
+	OS       string  `gorm:"column:os;size:20;not null;check:os IN ('Windows','Linux','MacOS')"`
 	Hostname string  `gorm:"column:hostname;size:40;not null;unique"`
 	IP4      *string `gorm:"column:ip4;size:15;unique"`
 	IP6      *string `gorm:"column:ip6;size:39;unique"`
@@ -24,22 +24,30 @@ func (host *HostMachine) BeforeCreate(tx *gorm.DB) error {
 	ctx := GetContext(tx)
 	uuid, err := utility.GenerateRandomUUID()
 	if err != nil {
-		ctx.Set("errorCode", http.StatusInternalServerError)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusInternalServerError)
+		}
 		return errors.New("failed to create a host uuid")
 	}
-	if len(host.OS) > 20 {
-		ctx.Set("errorCode", http.StatusBadRequest)
-		return errors.New("os cannot be greater than 20 characters")
+	if !utility.SliceHasElement([]string{"Windows", "Linux", "MacOS"}, host.OS) {
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusBadRequest)
+		}
+		return errors.New("os must be one of 'Windows', 'Linux', or 'MacOS'")
 	}
 	if len(host.Hostname) > 255 {
-		ctx.Set("errorCode", http.StatusBadRequest)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusBadRequest)
+		}
 		return errors.New("hostname cannot be greater than 255 characters")
 	}
 	if ip4 := host.IP4; ip4 != nil {
 		if *ip4 == "" {
 			host.IP4 = nil
 		} else if len(*ip4) > 15 {
-			ctx.Set("errorCode", http.StatusBadRequest)
+			if ctx != nil {
+				ctx.Set("errorCode", http.StatusBadRequest)
+			}
 			return errors.New("ipv4 address cannot be greater than 15 characters")
 		}
 	}
@@ -47,9 +55,17 @@ func (host *HostMachine) BeforeCreate(tx *gorm.DB) error {
 		if *ip6 == "" {
 			host.IP6 = nil
 		} else if len(*ip6) > 39 {
-			ctx.Set("errorCode", http.StatusBadRequest)
+			if ctx != nil {
+				ctx.Set("errorCode", http.StatusBadRequest)
+			}
 			return errors.New("ipv6 address cannot be greater than 39 characters")
 		}
+	}
+	if host.IP4 == nil && host.IP6 == nil {
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusBadRequest)
+		}
+		return errors.New("host must contain either IPv4 or IPv6 address")
 	}
 	host.UUID = uuid
 	return nil
@@ -57,19 +73,25 @@ func (host *HostMachine) BeforeCreate(tx *gorm.DB) error {
 
 func (host *HostMachine) BeforeUpdate(tx *gorm.DB) error {
 	ctx := GetContext(tx)
-	if len(host.OS) > 20 {
-		ctx.Set("errorCode", http.StatusBadRequest)
-		return errors.New("os cannot be greater than 20 characters")
+	if !utility.SliceHasElement([]string{"Windows", "Linux", "MacOS"}, host.OS) {
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusBadRequest)
+		}
+		return errors.New("os must be one of 'Windows', 'Linux', or 'MacOS'")
 	}
 	if len(host.Hostname) > 255 {
-		ctx.Set("errorCode", http.StatusBadRequest)
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusBadRequest)
+		}
 		return errors.New("hostname cannot be greater than 255 characters")
 	}
 	if ip4 := host.IP4; ip4 != nil {
 		if *ip4 == "" {
 			host.IP4 = nil
 		} else if len(*ip4) > 15 {
-			ctx.Set("errorCode", http.StatusBadRequest)
+			if ctx != nil {
+				ctx.Set("errorCode", http.StatusBadRequest)
+			}
 			return errors.New("ipv4 address cannot be greater than 15 characters")
 		}
 	}
@@ -77,9 +99,17 @@ func (host *HostMachine) BeforeUpdate(tx *gorm.DB) error {
 		if *ip6 == "" {
 			host.IP6 = nil
 		} else if len(*ip6) > 39 {
-			ctx.Set("errorCode", http.StatusBadRequest)
+			if ctx != nil {
+				ctx.Set("errorCode", http.StatusBadRequest)
+			}
 			return errors.New("ipv6 address cannot be greater than 39 characters")
 		}
+	}
+	if host.IP4 == nil && host.IP6 == nil {
+		if ctx != nil {
+			ctx.Set("errorCode", http.StatusBadRequest)
+		}
+		return errors.New("host must contain either IPv4 or IPv6 address")
 	}
 	return nil
 }

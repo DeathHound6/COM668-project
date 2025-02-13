@@ -3,6 +3,7 @@ package controller
 import (
 	"com668-backend/database"
 	"com668-backend/utility"
+	"fmt"
 	"math"
 	"net/http"
 	"strings"
@@ -63,6 +64,7 @@ func GetProviders() gin.HandlerFunc {
 			ctx.Next()
 			return
 		}
+
 		resp := &utility.GetManyResponseSchema[*utility.ProviderGetResponseSchema]{
 			Data: make([]*utility.ProviderGetResponseSchema, 0),
 			Meta: utility.MetaSchema{
@@ -73,6 +75,7 @@ func GetProviders() gin.HandlerFunc {
 			},
 		}
 		for _, provider := range providers {
+			fmt.Printf("fields %v\n", provider.Fields)
 			fields := make([]utility.KeyValueSchema, 0)
 			for _, field := range provider.Fields {
 				fields = append(fields, utility.KeyValueSchema{
