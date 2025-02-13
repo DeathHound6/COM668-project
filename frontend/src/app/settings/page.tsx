@@ -31,7 +31,7 @@ import {
 } from "react-bootstrap";
 import InputGroupText from "react-bootstrap/esm/InputGroupText";
 import { XLg, Trash } from "react-bootstrap-icons";
-import { set, z } from "zod";
+import { z } from "zod";
 import { CreateSetting, DeleteSetting, GetSetting, GetSettings, UpdateSetting } from "../../actions/settings";
 
 const newFieldSchema = z.object({
@@ -237,7 +237,7 @@ export default function SettingsPage() {
     }
 
     return (
-        <div className="m-2">
+        <div className="m-2" style={{textAlign: "center"}}>
             {/* Modal for creating a new setting field */}
             <Modal
                show={showNewFieldModal}
@@ -316,7 +316,7 @@ export default function SettingsPage() {
                 !loaded
                     ? (<Spinner role="status" animation="border" className="my-auto mx-auto" />)
                     : (
-                        <>
+                        <div>
                         {
                             settings.length == 0
                                 ? (
@@ -374,7 +374,7 @@ export default function SettingsPage() {
                                         </Row>
                                 )
                         }
-                        </>
+                        </div>
                     )
             }
 

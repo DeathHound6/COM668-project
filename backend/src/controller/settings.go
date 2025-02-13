@@ -73,14 +73,14 @@ func GetProviders() gin.HandlerFunc {
 			},
 		}
 		for _, provider := range providers {
-			fields, err := utility.GetFieldsMapFromString(provider.Fields)
-			if err != nil {
-				ctx.Set("Status", http.StatusInternalServerError)
-				ctx.Set("Body", &utility.ErrorResponseSchema{
-					Error: err.Error(),
+			fields := make([]utility.KeyValueSchema, 0)
+			for _, field := range provider.Fields {
+				fields = append(fields, utility.KeyValueSchema{
+					Key:      field.Key,
+					Value:    field.Value,
+					Type:     field.Type,
+					Required: &field.Required,
 				})
-				ctx.Next()
-				return
 			}
 			prov := &utility.ProviderGetResponseSchema{
 				UUID:   provider.UUID,
@@ -92,6 +92,54 @@ func GetProviders() gin.HandlerFunc {
 		}
 		ctx.Set("Status", http.StatusOK)
 		ctx.Set("Body", resp)
+	}
+}
+
+// GetProvider godoc
+//
+//	@Summary		Get a provider
+//	@Description	Get a provider
+//	@Tags			Settings
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			provider_id	path		string	true	"Provider ID"	format(uuid)
+//	@Success		200			{object}	utility.ProviderGetResponseSchema
+//	@Failure		401			{object}	utility.ErrorResponseSchema
+//	@Failure		404			{object}	utility.ErrorResponseSchema
+//	@Failure		500			{object}	utility.ErrorResponseSchema
+//	@Router			/providers/{provider_id} [get]
+func GetProvider() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		providerID := ctx.Param("provider_id")
+
+		provider, err := database.GetProvider(ctx, database.GetProvidersFilters{UUID: &providerID})
+		if err != nil {
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		fields := make([]utility.KeyValueSchema, 0)
+		for _, field := range provider.Fields {
+			fields = append(fields, utility.KeyValueSchema{
+				Key:      field.Key,
+				Value:    field.Value,
+				Type:     field.Type,
+				Required: &field.Required,
+			})
+		}
+
+		ctx.Set("Status", http.StatusOK)
+		ctx.Set("Body", &utility.ProviderGetResponseSchema{
+			UUID:   provider.UUID,
+			Name:   provider.Name,
+			Fields: fields,
+			Type:   provider.Type,
+		})
 	}
 }
 
@@ -132,7 +180,7 @@ func CreateProvider() gin.HandlerFunc {
 
 		provider := &database.Provider{
 			Name:   body.Name,
-			Fields: "",
+			Fields: []database.ProviderField{},
 			Type:   providerType,
 		}
 		if err := database.CreateProvider(ctx, provider); err != nil {
@@ -143,14 +191,14 @@ func CreateProvider() gin.HandlerFunc {
 			ctx.Next()
 			return
 		}
-		fields, err := utility.GetFieldsMapFromString(provider.Fields)
-		if err != nil {
-			ctx.Set("Status", http.StatusInternalServerError)
-			ctx.Set("Body", &utility.ErrorResponseSchema{
-				Error: err.Error(),
+		fields := make([]utility.KeyValueSchema, 0)
+		for _, field := range provider.Fields {
+			fields = append(fields, utility.KeyValueSchema{
+				Key:      field.Key,
+				Value:    field.Value,
+				Type:     field.Type,
+				Required: &field.Required,
 			})
-			ctx.Next()
-			return
 		}
 		ctx.Set("Status", http.StatusCreated)
 		ctx.Set("Body", &utility.ProviderGetResponseSchema{

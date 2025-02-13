@@ -10,11 +10,20 @@ import (
 )
 
 type Provider struct {
-	ID     uint   `gorm:"column:id;primaryKey;autoIncrement"`
-	UUID   string `gorm:"column:uuid;size:36;unique;not null"`
-	Name   string `gorm:"column:name;size:30;unique;not null"`
-	Fields string `gorm:"column:fields;size:200;not null"`
-	Type   string `gorm:"column:type;check:type IN ('log','alert');size:5;not null"`
+	ID     uint            `gorm:"column:id;primaryKey;autoIncrement"`
+	UUID   string          `gorm:"column:uuid;size:36;unique;not null"`
+	Name   string          `gorm:"column:name;size:30;unique;not null"`
+	Fields []ProviderField `gorm:"foreignKey:provider_id"`
+	Type   string          `gorm:"column:type;check:type IN ('log','alert');size:5;not null"`
+}
+type ProviderField struct {
+	ID         uint      `gorm:"column:id;primaryKey;autoIncrement"`
+	Provider   *Provider `gorm:"foreignKey:provider_id;references:id"`
+	ProviderID uint      `gorm:"column:provider_id"`
+	Key        string    `gorm:"column:key;size:20;not null"`
+	Value      string    `gorm:"column:value;size:30;not null"`
+	Type       string    `gorm:"column:type;check:type IN ('string','number','boolean');size:10;not null"`
+	Required   bool      `gorm:"column:required;not null"`
 }
 
 func (p *Provider) BeforeCreate(tx *gorm.DB) error {
@@ -45,6 +54,7 @@ func GetProvider(ctx *gin.Context, filters GetProvidersFilters) (*Provider, erro
 	providers, count, err := GetProviders(ctx, GetProvidersFilters{
 		UUID:         filters.UUID,
 		ProviderType: filters.ProviderType,
+		PageSize:     utility.Pointer(1),
 	})
 	if err != nil {
 		return nil, err
@@ -104,7 +114,7 @@ func UpdateProvider(ctx *gin.Context, filters GetProvidersFilters, body *utility
 	if filters.UUID != nil {
 		tx = tx.Where("uuid = ?", *filters.UUID)
 	}
-	tx = tx.Update("fields", utility.GetStringFromFieldsMap(body.Fields)).Update("name", body.Name)
+	tx = tx.Update("fields", body.Fields).Update("name", body.Name)
 	if tx.Error != nil {
 		return handleError(ctx, tx.Error)
 	}

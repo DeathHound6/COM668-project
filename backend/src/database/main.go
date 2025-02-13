@@ -21,28 +21,80 @@ var (
 	conn             *gorm.DB    = nil
 	defaultProviders []*Provider = []*Provider{
 		{
-			ID:     1,
-			Name:   "Sentry",
-			Fields: "enabled;true;bool;true|orgSlug;testing-77;string;true|projSlug;test_app;string;true",
-			Type:   "log",
+			ID:   1,
+			Name: "Sentry",
+			Fields: []ProviderField{
+				{
+					ID:         1,
+					ProviderID: 1,
+					Key:        "enabled",
+					Value:      "true",
+					Type:       "bool",
+					Required:   true,
+				},
+				{
+					ID:         2,
+					ProviderID: 1,
+					Key:        "orgSlug",
+					Value:      "testing-77",
+					Type:       "string",
+					Required:   true,
+				},
+				{
+					ID:         3,
+					ProviderID: 1,
+					Key:        "projSlug",
+					Value:      "test_app",
+					Type:       "string",
+					Required:   true,
+				},
+			},
+			Type: "log",
 		},
 		{
-			ID:     2,
-			Name:   "DynaTrace",
-			Fields: "enabled;false;bool;true",
-			Type:   "log",
+			ID:   2,
+			Name: "DynaTrace",
+			Fields: []ProviderField{
+				{
+					ID:         4,
+					ProviderID: 2,
+					Key:        "enabled",
+					Value:      "true",
+					Type:       "bool",
+					Required:   true,
+				},
+			},
+			Type: "log",
 		},
 		{
-			ID:     3,
-			Name:   "Slack",
-			Fields: "enabled;true;bool;true",
-			Type:   "alert",
+			ID:   3,
+			Name: "Slack",
+			Fields: []ProviderField{
+				{
+					ID:         5,
+					ProviderID: 3,
+					Key:        "enabled",
+					Value:      "true",
+					Type:       "bool",
+					Required:   true,
+				},
+			},
+			Type: "alert",
 		},
 		{
-			ID:     4,
-			Name:   "Microsoft Teams",
-			Fields: "enabled;false;bool;true",
-			Type:   "alert",
+			ID:   4,
+			Name: "Microsoft Teams",
+			Fields: []ProviderField{
+				{
+					ID:         6,
+					ProviderID: 4,
+					Key:        "enabled",
+					Value:      "true",
+					Type:       "bool",
+					Required:   true,
+				},
+			},
+			Type: "alert",
 		},
 	}
 	defaultTeams []*Team = []*Team{
@@ -147,9 +199,7 @@ func Connect() error {
 		return err
 	}
 	db = db.Session(&gorm.Session{Context: db.Statement.Context, NewDB: true})
-	if gin.IsDebugging() {
-		migrate(db)
-	}
+	migrate(db)
 	conn = db
 	return nil
 }
@@ -173,19 +223,24 @@ func migrate(conn *gorm.DB) {
 		Incident{},
 		IncidentComment{},
 		IncidentHost{},
+		IncidentResolutionTeam{},
 	}
-	if err := tx.Migrator().DropTable(structs...); err != nil {
-		tx.Rollback()
-		panic(err)
+	if gin.IsDebugging() {
+		if err := tx.Migrator().DropTable(structs...); err != nil {
+			tx.Rollback()
+			panic(err)
+		}
 	}
 	if err := tx.AutoMigrate(structs...); err != nil {
 		tx.Rollback()
 		panic(err)
 	}
-	log.Default().Println("Inserting default data")
-	if err := insert_default_data(tx); err != nil {
-		tx.Rollback()
-		panic(err)
+	if gin.IsDebugging() {
+		log.Default().Println("Inserting default data")
+		if err := insert_default_data(tx); err != nil {
+			tx.Rollback()
+			panic(err)
+		}
 	}
 	tx = tx.Commit()
 	if tx.Error != nil {

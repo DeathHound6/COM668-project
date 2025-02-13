@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDate } from "../actions/api";
 import type { HostMachine, Incident } from "../interfaces";
 import {
     Card,
@@ -12,21 +13,11 @@ import {
     Button
 } from "react-bootstrap";
 
-const months = [
-    "Jan", "Feb", "Mar", "Apr",
-    "May", "Jun", "Jul", "Aug",
-    "Sep", "Oct", "Nov", "Dec"
-];
-
 export default function IncidentCard(
     { incident }:
     { incident: Incident }
 ) {
     const hostsAffectedLimit = 5;
-    const createdAt = new Date(incident.createdAt);
-    const createdAtString = `${months[createdAt.getMonth()]} ${createdAt.getDate()} ${createdAt.getFullYear()}, ${createdAt.getHours()}:${createdAt.getMinutes()}`;
-    const resolvedAt = incident.resolvedAt ? new Date(incident.resolvedAt) : undefined;
-    const resolvedAtString = resolvedAt ? `${months[resolvedAt.getMonth()]} ${resolvedAt.getDate()} ${resolvedAt.getFullYear()}, ${resolvedAt.getHours()}:${resolvedAt.getMinutes()}` : undefined;
     return (
         <Card>
             <CardHeader>{incident.summary}</CardHeader>
@@ -51,10 +42,10 @@ export default function IncidentCard(
             </CardBody>
             <CardFooter>
                 <CardText>
-                    Created at {createdAtString}<br />
+                    Opened at {formatDate(new Date(incident.createdAt))}<br />
                     {
-                        resolvedAt
-                            ? `Resolved at ${resolvedAtString} by ${incident.resolvedBy?.name}`
+                        incident.resolvedAt
+                            ? `Resolved at ${formatDate(new Date(incident.resolvedAt))} by ${incident.resolvedBy?.name}`
                             : "Unresolved"
                     }
                 </CardText>

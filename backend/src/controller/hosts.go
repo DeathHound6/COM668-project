@@ -102,7 +102,7 @@ func GetHost() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		uuid := ctx.Param("host_id")
 		host, err := database.GetHost(ctx, database.GetHostsFilters{
-			UUID: &uuid,
+			UUIDs: []string{uuid},
 		})
 		if err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
@@ -157,7 +157,7 @@ func CreateHost() gin.HandlerFunc {
 			return
 		}
 		team, err := database.GetTeam(ctx, database.GetTeamsFilters{
-			UUID: &body.TeamID,
+			UUIDs: []string{body.TeamID},
 		})
 		if err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
@@ -219,7 +219,7 @@ func UpdateHost() gin.HandlerFunc {
 
 		uuid := ctx.Param("host_id")
 		host, err := database.GetHost(ctx, database.GetHostsFilters{
-			UUID: &uuid,
+			UUIDs: []string{uuid},
 		})
 		if err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
@@ -231,7 +231,7 @@ func UpdateHost() gin.HandlerFunc {
 		}
 
 		team, err := database.GetTeam(ctx, database.GetTeamsFilters{
-			UUID: &body.TeamID,
+			UUIDs: []string{body.TeamID},
 		})
 		if err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
@@ -280,7 +280,7 @@ func DeleteHost() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		uuid := ctx.Param("host_id")
 		_, err := database.GetHost(ctx, database.GetHostsFilters{
-			UUID: &uuid,
+			UUIDs: []string{uuid},
 		})
 		if err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))

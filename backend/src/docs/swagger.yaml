@@ -66,6 +66,10 @@ definitions:
       ip6:
         type: string
       os:
+        enum:
+        - Windows
+        - Linux
+        - MacOS
         type: string
       team:
         $ref: '#/definitions/utility.TeamGetResponseBodySchema'
@@ -73,8 +77,6 @@ definitions:
         type: string
     required:
     - hostname
-    - ip4
-    - ip6
     - os
     - team
     - uuid
@@ -82,25 +84,29 @@ definitions:
   utility.HostMachinePostPutRequestBodySchema:
     properties:
       hostname:
+        maxLength: 40
         type: string
       ip4:
         type: string
       ip6:
         type: string
       os:
+        enum:
+        - Windows
+        - Linux
+        - MacOS
         type: string
       teamID:
         type: string
     required:
     - hostname
-    - ip4
-    - ip6
     - os
     - teamID
     type: object
   utility.IncidentCommentGetResponseBodySchema:
     properties:
       comment:
+        maxLength: 200
         type: string
       commentedAt:
         type: string
@@ -114,6 +120,14 @@ definitions:
     - commentedBy
     - uuid
     type: object
+  utility.IncidentCommentPostRequestBodySchema:
+    properties:
+      comment:
+        maxLength: 200
+        type: string
+    required:
+    - comment
+    type: object
   utility.IncidentGetResponseBodySchema:
     properties:
       comments:
@@ -123,6 +137,7 @@ definitions:
       createdAt:
         type: string
       description:
+        maxLength: 500
         type: string
       hostsAffected:
         items:
@@ -137,6 +152,7 @@ definitions:
       resolvedBy:
         $ref: '#/definitions/utility.UserGetResponseBodySchema'
       summary:
+        maxLength: 100
         type: string
       uuid:
         type: string
@@ -151,15 +167,44 @@ definitions:
     - summary
     - uuid
     type: object
+  utility.IncidentPutRequestBodySchema:
+    properties:
+      description:
+        maxLength: 500
+        minLength: 1
+        type: string
+      hostsAffected:
+        items:
+          type: string
+        type: array
+      resolutionTeams:
+        items:
+          type: string
+        type: array
+      resolved:
+        type: boolean
+      summary:
+        maxLength: 100
+        minLength: 1
+        type: string
+    required:
+    - description
+    - hostsAffected
+    - resolutionTeams
+    - resolved
+    - summary
+    type: object
   utility.KeyValueSchema:
     properties:
       key:
+        maxLength: 20
         type: string
       required:
         type: boolean
       type:
         type: string
       value:
+        maxLength: 30
         type: string
     required:
     - key
@@ -190,6 +235,7 @@ definitions:
           $ref: '#/definitions/utility.KeyValueSchema'
         type: array
       name:
+        maxLength: 30
         type: string
       type:
         type: string
@@ -204,6 +250,7 @@ definitions:
   utility.TeamGetResponseBodySchema:
     properties:
       name:
+        maxLength: 30
         type: string
       uuid:
         type: string
@@ -216,10 +263,13 @@ definitions:
       admin:
         type: boolean
       email:
+        maxLength: 30
         type: string
       name:
+        maxLength: 30
         type: string
       slackID:
+        maxLength: 30
         type: string
       teams:
         items:
@@ -238,6 +288,7 @@ definitions:
   utility.UserLoginRequestBodySchema:
     properties:
       email:
+        maxLength: 30
         type: string
       password:
         type: string
@@ -248,8 +299,10 @@ definitions:
   utility.UserPostRequestBodySchema:
     properties:
       email:
+        maxLength: 30
         type: string
       name:
+        maxLength: 30
         type: string
       password:
         type: string
@@ -585,6 +638,160 @@ paths:
       summary: Create an incident
       tags:
       - Incidents
+  /incidents/{incident_id}:
+    get:
+      description: Get an incident
+      parameters:
+      - description: Incident UUID
+        in: path
+        name: incident_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utility.IncidentGetResponseBodySchema'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+      security:
+      - JWT: []
+      summary: Get an incident
+      tags:
+      - Incidents
+    put:
+      consumes:
+      - application/json
+      description: Update an incident
+      parameters:
+      - description: The request body
+        in: body
+        name: incident
+        required: true
+        schema:
+          $ref: '#/definitions/utility.IncidentPutRequestBodySchema'
+      - description: Incident UUID
+        in: path
+        name: incident_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+      security:
+      - JWT: []
+      summary: Update an incident
+      tags:
+      - Incidents
+  /incidents/{incident_id}/comments:
+    post:
+      consumes:
+      - application/json
+      description: Create an incident comment
+      parameters:
+      - description: The request body
+        in: body
+        name: comment
+        required: true
+        schema:
+          $ref: '#/definitions/utility.IncidentCommentPostRequestBodySchema'
+      - description: Incident UUID
+        in: path
+        name: incident_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+      security:
+      - JWT: []
+      summary: Create an incident comment
+      tags:
+      - Incidents
+  /incidents/{incident_id}/comments/{comment_id}:
+    delete:
+      description: Delete an incident comment
+      parameters:
+      - description: Comment UUID
+        in: path
+        name: comment_id
+        required: true
+        type: string
+      - description: Incident UUID
+        in: path
+        name: incident_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+      security:
+      - JWT: []
+      summary: Delete an incident comment
+      tags:
+      - Incidents
   /me:
     get:
       consumes:
@@ -723,6 +930,41 @@ paths:
       security:
       - JWT: []
       summary: Delete a provider
+      tags:
+      - Settings
+    get:
+      consumes:
+      - application/json
+      description: Get a provider
+      parameters:
+      - description: Provider ID
+        format: uuid
+        in: path
+        name: provider_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utility.ProviderGetResponseSchema'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+      security:
+      - JWT: []
+      summary: Get a provider
       tags:
       - Settings
     put:

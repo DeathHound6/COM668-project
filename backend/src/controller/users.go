@@ -44,7 +44,7 @@ func GetUser() gin.HandlerFunc {
 			Email:   user.Email,
 			Teams:   teams,
 			SlackID: user.SlackID,
-			Admin:   user.Admin,
+			Admin:   &user.Admin,
 		})
 	}
 }

@@ -15,7 +15,7 @@ type Incident struct {
 	UUID            string            `gorm:"column:uuid;size:36;unique;not null"`
 	HostsAffected   []HostMachine     `gorm:"many2many:incident_host"`
 	Description     string            `gorm:"column:description;size:500"`
-	Summary         string            `gorm:"column:summary;size:500;not null"`
+	Summary         string            `gorm:"column:summary;size:100;not null"`
 	Comments        []IncidentComment `gorm:"foreignKey:incident_id"`
 	CreatedAt       time.Time         `gorm:"column:created_at;autoCreateTime;not null"`
 	ResolvedAt      *time.Time        `gorm:"column:resolved_at"`
@@ -99,17 +99,42 @@ func (comment *IncidentComment) BeforeDelete(tx *gorm.DB) error {
 }
 
 type IncidentHost struct {
-	IncidentID    uint        `gorm:"column:incident_id;primaryKey"`
+	ID            uint        `gorm:"column:id;primaryKey;autoIncrement"`
+	IncidentID    uint        `gorm:"column:incident_id"`
 	Incident      Incident    `gorm:"foreignKey:incident_id;references:id"`
-	HostMachineID uint        `gorm:"column:host_machine_id;primaryKey"`
+	HostMachineID uint        `gorm:"column:host_machine_id"`
 	HostMachine   HostMachine `gorm:"foreignKey:host_machine_id;references:id"`
+}
+type IncidentResolutionTeam struct {
+	ID         uint     `gorm:"column:id;primaryKey;autoIncrement"`
+	IncidentID uint     `gorm:"column:incident_id"`
+	Incident   Incident `gorm:"foreignKey:incident_id;references:id"`
+	TeamID     uint     `gorm:"column:team_id"`
+	Team       Team     `gorm:"foreignKey:team_id;references:id"`
 }
 
 type GetIncidentsFilters struct {
 	MyTeams  bool
+	UUID     *string
 	Resolved *bool
 	Page     *int
 	PageSize *int
+}
+
+func GetIncident(ctx *gin.Context, uuid string) (*Incident, error) {
+	incidents, count, err := GetIncidents(ctx, GetIncidentsFilters{
+		PageSize: utility.Pointer(1),
+		MyTeams:  false,
+		UUID:     &uuid,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if count == 0 {
+		ctx.Set("errorCode", http.StatusNotFound)
+		return nil, errors.New("incident not found")
+	}
+	return incidents[0], nil
 }
 
 func GetIncidents(ctx *gin.Context, filters GetIncidentsFilters) ([]*Incident, int64, error) {
@@ -119,7 +144,10 @@ func GetIncidents(ctx *gin.Context, filters GetIncidentsFilters) ([]*Incident, i
 		Preload("ResolutionTeams").
 		Preload("ResolvedBy").
 		Preload("ResolvedBy.Teams").
-		Preload("Comments").
+		Preload("Comments", func(t *gorm.DB) *gorm.DB {
+			// get comments in descending order by created_at timestamp
+			return t.Order("commented_at DESC")
+		}).
 		Preload("Comments.CommentedBy").
 		Preload("Comments.CommentedBy.Teams")
 	incidents := make([]*Incident, 0)
@@ -138,6 +166,9 @@ func GetIncidents(ctx *gin.Context, filters GetIncidentsFilters) ([]*Incident, i
 			Joins("LEFT JOIN tbl_team_user ON tbl_team_user.team_id = tbl_incident_resolution_team.team_id").
 			Joins("LEFT JOIN tbl_user ON tbl_user.id = tbl_team_user.user_id").
 			Where("tbl_user.uuid = ?", user.UUID)
+	}
+	if filters.UUID != nil {
+		tx = tx.Where("tbl_incident.uuid = ?", *filters.UUID)
 	}
 
 	var count int64
@@ -174,4 +205,98 @@ func CreateIncident(ctx *gin.Context, body *utility.IncidentPostRequestBodySchem
 		return nil, handleError(ctx, tx.Error)
 	}
 	return incident, nil
+}
+
+func UpdateIncident(ctx *gin.Context, filters GetIncidentsFilters, incident *Incident) error {
+	tx := GetDBTransaction(ctx).Model(&Incident{})
+
+	if filters.UUID != nil {
+		tx = tx.Where("uuid = ?", *filters.UUID)
+	}
+	tx = tx.Update("summary", incident.Summary).
+		Update("description", incident.Description).
+		Update("resolved_at", incident.ResolvedAt).
+		Update("resolved_by_id", incident.ResolvedByID)
+	if tx.Error != nil {
+		return handleError(ctx, tx.Error)
+	}
+
+	// replace hosts - m2m
+	tx = GetDBTransaction(ctx).Model(&IncidentHost{})
+	hosts := make([]IncidentHost, 0)
+	for _, host := range incident.HostsAffected {
+		hosts = append(hosts, IncidentHost{
+			IncidentID:    incident.ID,
+			HostMachineID: host.ID,
+		})
+	}
+	tx = tx.Where("incident_id = ?", incident.ID).Delete(&IncidentHost{})
+	if tx.Error != nil {
+		return handleError(ctx, tx.Error)
+	}
+	if len(hosts) > 0 {
+		tx = tx.CreateInBatches(hosts, 1)
+		if tx.Error != nil {
+			return handleError(ctx, tx.Error)
+		}
+	}
+
+	// replace resolution teams - m2m
+	tx = GetDBTransaction(ctx).Model(&IncidentResolutionTeam{})
+	teams := make([]IncidentResolutionTeam, 0)
+	for _, team := range incident.ResolutionTeams {
+		teams = append(teams, IncidentResolutionTeam{
+			IncidentID: incident.ID,
+			TeamID:     team.ID,
+		})
+	}
+	tx = tx.Where("incident_id = ?", incident.ID).Delete(&IncidentResolutionTeam{})
+	if tx.Error != nil {
+		return handleError(ctx, tx.Error)
+	}
+	if len(teams) > 0 {
+		tx = tx.CreateInBatches(teams, 1)
+		if tx.Error != nil {
+			return handleError(ctx, tx.Error)
+		}
+	}
+	return nil
+}
+
+func GetIncidentComment(ctx *gin.Context, incidentUUID, commentUUID string) (*IncidentComment, error) {
+	incident, err := GetIncident(ctx, incidentUUID)
+	if err != nil {
+		return nil, err
+	}
+	var comment *IncidentComment = nil
+	for _, c := range incident.Comments {
+		if c.UUID == commentUUID {
+			comment = &c
+			break
+		}
+	}
+	if comment == nil {
+		ctx.Set("errorCode", http.StatusNotFound)
+		return nil, errors.New("comment not found")
+	}
+	return comment, nil
+}
+
+func CreateIncidentComment(ctx *gin.Context, comment *IncidentComment) (*IncidentComment, error) {
+	tx := GetDBTransaction(ctx).Model(&IncidentComment{})
+	tx = tx.Create(comment)
+	if tx.Error != nil {
+		return nil, handleError(ctx, tx.Error)
+	}
+	return nil, nil
+}
+
+func DeleteIncidentComment(ctx *gin.Context, uuid string) error {
+	tx := GetDBTransaction(ctx).Model(&IncidentComment{})
+	tx = tx.Where("uuid = ?", uuid)
+	tx = tx.Delete(&IncidentComment{})
+	if tx.Error != nil {
+		return handleError(ctx, tx.Error)
+	}
+	return nil
 }

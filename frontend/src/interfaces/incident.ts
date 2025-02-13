@@ -1,4 +1,4 @@
-import type { User } from "./user";
+import type { User, Team } from "./user";
 import type { HostMachine } from "./hosts";
 
 export interface Incident {
@@ -10,6 +10,7 @@ export interface Incident {
     createdAt: string;
     resolvedAt: string | undefined;
     resolvedBy: User | undefined;
+    resolutionTeams: Team[];
 }
 
 export interface IncidentComment {

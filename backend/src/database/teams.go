@@ -50,14 +50,15 @@ func (team *Team) BeforeDelete(tx *gorm.DB) error {
 }
 
 type GetTeamsFilters struct {
-	UUID     *string
+	UUIDs    []string
 	Page     *int
 	PageSize *int
 }
 
 func GetTeam(ctx *gin.Context, filters GetTeamsFilters) (*Team, error) {
 	teams, count, err := GetTeams(ctx, GetTeamsFilters{
-		UUID: filters.UUID,
+		UUIDs:    filters.UUIDs,
+		PageSize: utility.Pointer(1),
 	})
 	if err != nil {
 		return nil, err
@@ -72,8 +73,8 @@ func GetTeam(ctx *gin.Context, filters GetTeamsFilters) (*Team, error) {
 func GetTeams(ctx *gin.Context, filters GetTeamsFilters) ([]*Team, int64, error) {
 	tx := GetDBTransaction(ctx).Model(&Team{})
 
-	if filters.UUID != nil {
-		tx = tx.Where("uuid = ?", *filters.UUID)
+	if len(filters.UUIDs) > 0 {
+		tx = tx.Where("uuid IN (?)", filters.UUIDs)
 	}
 
 	var count int64

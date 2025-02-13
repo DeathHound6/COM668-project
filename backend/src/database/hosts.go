@@ -13,7 +13,7 @@ type HostMachine struct {
 	ID       uint    `gorm:"column:id;primaryKey;autoIncrement"`
 	UUID     string  `gorm:"column:uuid;size:36;unique;not null"`
 	OS       string  `gorm:"column:os;size:20;not null"`
-	Hostname string  `gorm:"column:hostname;not null;unique"`
+	Hostname string  `gorm:"column:hostname;size:40;not null;unique"`
 	IP4      *string `gorm:"column:ip4;size:15;unique"`
 	IP6      *string `gorm:"column:ip6;size:39;unique"`
 	TeamID   uint    `gorm:"column:team_id;not null"`
@@ -85,14 +85,15 @@ func (host *HostMachine) BeforeUpdate(tx *gorm.DB) error {
 }
 
 type GetHostsFilters struct {
-	UUID     *string
+	UUIDs    []string
 	Page     *int
 	PageSize *int
 }
 
 func GetHost(ctx *gin.Context, filters GetHostsFilters) (*HostMachine, error) {
 	hosts, count, err := GetHosts(ctx, GetHostsFilters{
-		UUID: filters.UUID,
+		UUIDs:    filters.UUIDs,
+		PageSize: utility.Pointer(1),
 	})
 	if err != nil {
 		return nil, err
@@ -108,8 +109,8 @@ func GetHosts(ctx *gin.Context, filters GetHostsFilters) ([]*HostMachine, int64,
 	tx := GetDBTransaction(ctx).Model(&HostMachine{})
 	tx = tx.Preload("Team")
 
-	if filters.UUID != nil {
-		tx = tx.Where("uuid = ?", *filters.UUID)
+	if len(filters.UUIDs) > 0 {
+		tx = tx.Where("uuid IN (?)", filters.UUIDs)
 	}
 
 	var count int64

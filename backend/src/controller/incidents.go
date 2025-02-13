@@ -7,6 +7,7 @@ import (
 	"math"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -122,7 +123,7 @@ func GetIncidents() gin.HandlerFunc {
 						Email:   comment.CommentedBy.Email,
 						Teams:   make([]utility.TeamGetResponseBodySchema, 0),
 						SlackID: comment.CommentedBy.SlackID,
-						Admin:   comment.CommentedBy.Admin,
+						Admin:   &comment.CommentedBy.Admin,
 					},
 				}
 				for _, team := range comment.CommentedBy.Teams {
@@ -154,7 +155,7 @@ func GetIncidents() gin.HandlerFunc {
 					Email:   incident.ResolvedBy.Email,
 					Teams:   make([]utility.TeamGetResponseBodySchema, 0),
 					SlackID: incident.ResolvedBy.SlackID,
-					Admin:   incident.ResolvedBy.Admin,
+					Admin:   &incident.ResolvedBy.Admin,
 				}
 				for _, team := range incident.ResolvedBy.Teams {
 					inc.ResolvedBy.Teams = append(inc.ResolvedBy.Teams, utility.TeamGetResponseBodySchema{
@@ -168,6 +169,108 @@ func GetIncidents() gin.HandlerFunc {
 
 		ctx.Set("Status", http.StatusOK)
 		ctx.Set("Body", response)
+	}
+}
+
+// GetIncident godoc
+//
+//	@Summary		Get an incident
+//	@Description	Get an incident
+//	@Tags			Incidents
+//	@Security		JWT
+//	@Produce		json
+//	@Param			incident_id	path		string	true	"Incident UUID"
+//	@Success		200			{object}	utility.IncidentGetResponseBodySchema
+//	@Failure		401			{object}	utility.ErrorResponseSchema
+//	@Failure		404			{object}	utility.ErrorResponseSchema
+//	@Failure		500			{object}	utility.ErrorResponseSchema
+//	@Router			/incidents/{incident_id} [get]
+func GetIncident() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		uuid := ctx.Param("incident_id")
+
+		incident, err := database.GetIncident(ctx, uuid)
+		if err != nil {
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		var resolvedBy *utility.UserGetResponseBodySchema = nil
+		if incident.ResolvedBy != nil {
+			resolvedBy = &utility.UserGetResponseBodySchema{
+				UUID:    incident.ResolvedBy.UUID,
+				Name:    incident.ResolvedBy.Name,
+				Email:   incident.ResolvedBy.Email,
+				Teams:   make([]utility.TeamGetResponseBodySchema, 0),
+				SlackID: incident.ResolvedBy.SlackID,
+				Admin:   &incident.ResolvedBy.Admin,
+			}
+			for _, team := range incident.ResolvedBy.Teams {
+				resolvedBy.Teams = append(resolvedBy.Teams, utility.TeamGetResponseBodySchema{
+					UUID: team.UUID,
+					Name: team.Name,
+				})
+			}
+		}
+		inc := &utility.IncidentGetResponseBodySchema{
+			UUID:            incident.UUID,
+			Comments:        make([]utility.IncidentCommentGetResponseBodySchema, 0),
+			HostsAffected:   make([]utility.HostMachineGetResponseBodySchema, 0),
+			Description:     incident.Description,
+			Summary:         incident.Summary,
+			ResolvedAt:      incident.ResolvedAt,
+			ResolvedBy:      resolvedBy,
+			CreatedAt:       incident.CreatedAt,
+			ResolutionTeams: make([]utility.TeamGetResponseBodySchema, 0),
+		}
+		for _, team := range incident.ResolutionTeams {
+			inc.ResolutionTeams = append(inc.ResolutionTeams, utility.TeamGetResponseBodySchema{
+				UUID: team.UUID,
+				Name: team.Name,
+			})
+		}
+		for _, comment := range incident.Comments {
+			c := utility.IncidentCommentGetResponseBodySchema{
+				UUID:        comment.UUID,
+				Comment:     comment.Comment,
+				CommentedAt: comment.CommentedAt,
+				CommentedBy: utility.UserGetResponseBodySchema{
+					UUID:    comment.CommentedBy.UUID,
+					Name:    comment.CommentedBy.Name,
+					Email:   comment.CommentedBy.Email,
+					Teams:   make([]utility.TeamGetResponseBodySchema, 0),
+					SlackID: comment.CommentedBy.SlackID,
+					Admin:   &comment.CommentedBy.Admin,
+				},
+			}
+			for _, team := range comment.CommentedBy.Teams {
+				c.CommentedBy.Teams = append(c.CommentedBy.Teams, utility.TeamGetResponseBodySchema{
+					UUID: team.UUID,
+					Name: team.Name,
+				})
+			}
+			inc.Comments = append(inc.Comments, c)
+		}
+		for _, host := range incident.HostsAffected {
+			inc.HostsAffected = append(inc.HostsAffected, utility.HostMachineGetResponseBodySchema{
+				UUID:     host.UUID,
+				Hostname: host.Hostname,
+				OS:       host.OS,
+				IP4:      host.IP4,
+				IP6:      host.IP6,
+				Team: utility.TeamGetResponseBodySchema{
+					UUID: host.Team.UUID,
+					Name: host.Team.Name,
+				},
+			})
+		}
+
+		ctx.Set("Status", http.StatusOK)
+		ctx.Set("Body", inc)
 	}
 }
 
@@ -204,7 +307,235 @@ func CreateIncident() gin.HandlerFunc {
 			return
 		}
 
-		ctx.Header("location", fmt.Sprintf("%s://%s/incidents/%s", ctx.Request.URL.Scheme, ctx.Request.URL.Host, incident.UUID))
+		ctx.Header("Location", fmt.Sprintf("%s://%s/incidents/%s", ctx.Request.URL.Scheme, ctx.Request.URL.Host, incident.UUID))
 		ctx.Set("Status", http.StatusCreated)
+	}
+}
+
+// UpdateIncident godoc
+//
+//	@Summary		Update an incident
+//	@Description	Update an incident
+//	@Tags			Incidents
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			incident	body	utility.IncidentPutRequestBodySchema	true	"The request body"
+//	@Param			incident_id	path	string									true	"Incident UUID"
+//	@Success		204
+//	@Failure		400	{object}	utility.ErrorResponseSchema
+//	@Failure		401	{object}	utility.ErrorResponseSchema
+//	@Failure		404	{object}	utility.ErrorResponseSchema
+//	@Failure		500	{object}	utility.ErrorResponseSchema
+//	@Router			/incidents/{incident_id} [put]
+func UpdateIncident() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		incidentUUID := ctx.Param("incident_id")
+
+		var body *utility.IncidentPutRequestBodySchema
+		if err := ctx.ShouldBindJSON(&body); err != nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		// carry out the update
+		incident, err := database.GetIncident(ctx, incidentUUID)
+		if err != nil {
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		var hosts []database.HostMachine = make([]database.HostMachine, 0)
+		if len(body.HostsAffected) > 0 {
+			hs, _, err := database.GetHosts(ctx, database.GetHostsFilters{
+				UUIDs:    body.HostsAffected,
+				PageSize: utility.Pointer(1000),
+			})
+			if err != nil {
+				ctx.Set("Status", ctx.GetInt("errorCode"))
+				ctx.Set("Body", &utility.ErrorResponseSchema{
+					Error: err.Error(),
+				})
+				ctx.Next()
+				return
+			}
+			for _, host := range hs {
+				hosts = append(hosts, *host)
+			}
+		}
+
+		var teams []database.Team = make([]database.Team, 0)
+		if len(body.ResolutionTeams) > 0 {
+			ts, _, err := database.GetTeams(ctx, database.GetTeamsFilters{
+				UUIDs:    body.ResolutionTeams,
+				PageSize: utility.Pointer(1000),
+			})
+			if err != nil {
+				ctx.Set("Status", ctx.GetInt("errorCode"))
+				ctx.Set("Body", &utility.ErrorResponseSchema{
+					Error: err.Error(),
+				})
+				ctx.Next()
+				return
+			}
+			for _, team := range ts {
+				teams = append(teams, *team)
+			}
+		}
+
+		var resolvedByID *uint = nil
+		var resolvedAt *time.Time = nil
+		if body.Resolved != nil && *body.Resolved {
+			user := ctx.MustGet("user").(*database.User)
+			resolvedByID = &user.ID
+			resolvedAt = utility.Pointer(time.Now())
+		}
+		newIncident := &database.Incident{
+			ID:              incident.ID,
+			UUID:            incident.UUID,
+			Summary:         body.Summary,
+			Description:     body.Description,
+			HostsAffected:   hosts,
+			Comments:        incident.Comments,
+			ResolvedByID:    resolvedByID,
+			ResolvedAt:      resolvedAt,
+			CreatedAt:       incident.CreatedAt,
+			ResolutionTeams: teams,
+		}
+		err = database.UpdateIncident(ctx, database.GetIncidentsFilters{
+			UUID: &incidentUUID,
+		}, newIncident)
+		if err != nil {
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		ctx.Set("Status", http.StatusNoContent)
+	}
+}
+
+// CreateIncidentComment godoc
+//
+//	@Summary		Create an incident comment
+//	@Description	Create an incident comment
+//	@Tags			Incidents
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			comment		body	utility.IncidentCommentPostRequestBodySchema	true	"The request body"
+//	@Param			incident_id	path	string											true	"Incident UUID"
+//	@Success		201
+//	@Failure		400	{object}	utility.ErrorResponseSchema
+//	@Failure		401	{object}	utility.ErrorResponseSchema
+//	@Failure		500	{object}	utility.ErrorResponseSchema
+//	@Router			/incidents/{incident_id}/comments [post]
+func CreateIncidentComment() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		incidentUUID := ctx.Param("incident_id")
+		var body *utility.IncidentCommentPostRequestBodySchema
+		if err := ctx.ShouldBindJSON(&body); err != nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		// body validations
+		if len(body.Comment) > 200 || len(body.Comment) == 0 {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "comment must be between 1 and 200 characters",
+			})
+			ctx.Next()
+			return
+		}
+
+		// carry out the create
+		incident, err := database.GetIncident(ctx, incidentUUID)
+		if err != nil {
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		user := ctx.MustGet("user").(*database.User)
+		comment := &database.IncidentComment{
+			Comment:       body.Comment,
+			IncidentID:    incident.ID,
+			CommentedByID: user.ID,
+		}
+		comment, err = database.CreateIncidentComment(ctx, comment)
+		if err != nil {
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		ctx.Set("Status", http.StatusNoContent)
+		ctx.Header("Location", fmt.Sprintf("%s://%s/incidents/%s/comments/%s", ctx.Request.URL.Scheme, ctx.Request.URL.Host, incident.UUID, comment.UUID))
+	}
+}
+
+// DeleteIncidentComment godoc
+//
+//	@Summary		Delete an incident comment
+//	@Description	Delete an incident comment
+//	@Tags			Incidents
+//	@Security		JWT
+//	@Produce		json
+//	@Param			comment_id	path	string	true	"Comment UUID"
+//	@Param			incident_id	path	string	true	"Incident UUID"
+//	@Success		204
+//	@Failure		400	{object}	utility.ErrorResponseSchema
+//	@Failure		401	{object}	utility.ErrorResponseSchema
+//	@Failure		404	{object}	utility.ErrorResponseSchema
+//	@Failure		500	{object}	utility.ErrorResponseSchema
+//	@Router			/incidents/{incident_id}/comments/{comment_id} [delete]
+func DeleteIncidentComment() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		incidentUUID := ctx.Param("incident_id")
+		commentUUID := ctx.Param("comment_id")
+
+		comment, err := database.GetIncidentComment(ctx, incidentUUID, commentUUID)
+		if err != nil {
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		err = database.DeleteIncidentComment(ctx, comment.UUID)
+		if err != nil {
+			ctx.Set("Status", ctx.GetInt("errorCode"))
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		ctx.Set("Status", http.StatusNoContent)
 	}
 }

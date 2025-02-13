@@ -517,6 +517,246 @@ const docTemplate = `{
                 }
             }
         },
+        "/incidents/{incident_id}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get an incident",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Incidents"
+                ],
+                "summary": "Get an incident",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Incident UUID",
+                        "name": "incident_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utility.IncidentGetResponseBodySchema"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update an incident",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Incidents"
+                ],
+                "summary": "Update an incident",
+                "parameters": [
+                    {
+                        "description": "The request body",
+                        "name": "incident",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/utility.IncidentPutRequestBodySchema"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Incident UUID",
+                        "name": "incident_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    }
+                }
+            }
+        },
+        "/incidents/{incident_id}/comments": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Create an incident comment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Incidents"
+                ],
+                "summary": "Create an incident comment",
+                "parameters": [
+                    {
+                        "description": "The request body",
+                        "name": "comment",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/utility.IncidentCommentPostRequestBodySchema"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Incident UUID",
+                        "name": "incident_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    }
+                }
+            }
+        },
+        "/incidents/{incident_id}/comments/{comment_id}": {
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Delete an incident comment",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Incidents"
+                ],
+                "summary": "Delete an incident comment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Comment UUID",
+                        "name": "comment_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Incident UUID",
+                        "name": "incident_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    }
+                }
+            }
+        },
         "/me": {
             "get": {
                 "security": [
@@ -677,6 +917,60 @@ const docTemplate = `{
             }
         },
         "/providers/{provider_id}": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Get a provider",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Get a provider",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Provider ID",
+                        "name": "provider_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ProviderGetResponseSchema"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    }
+                }
+            },
             "put": {
                 "security": [
                     {
@@ -1139,8 +1433,6 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "hostname",
-                "ip4",
-                "ip6",
                 "os",
                 "team",
                 "uuid"
@@ -1156,7 +1448,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "os": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "Windows",
+                        "Linux",
+                        "MacOS"
+                    ]
                 },
                 "team": {
                     "$ref": "#/definitions/utility.TeamGetResponseBodySchema"
@@ -1170,14 +1467,13 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "hostname",
-                "ip4",
-                "ip6",
                 "os",
                 "teamID"
             ],
             "properties": {
                 "hostname": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 40
                 },
                 "ip4": {
                     "type": "string"
@@ -1186,7 +1482,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "os": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "Windows",
+                        "Linux",
+                        "MacOS"
+                    ]
                 },
                 "teamID": {
                     "type": "string"
@@ -1203,7 +1504,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "comment": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 200
                 },
                 "commentedAt": {
                     "type": "string"
@@ -1213,6 +1515,18 @@ const docTemplate = `{
                 },
                 "uuid": {
                     "type": "string"
+                }
+            }
+        },
+        "utility.IncidentCommentPostRequestBodySchema": {
+            "type": "object",
+            "required": [
+                "comment"
+            ],
+            "properties": {
+                "comment": {
+                    "type": "string",
+                    "maxLength": 200
                 }
             }
         },
@@ -1240,7 +1554,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 500
                 },
                 "hostsAffected": {
                     "type": "array",
@@ -1261,10 +1576,48 @@ const docTemplate = `{
                     "$ref": "#/definitions/utility.UserGetResponseBodySchema"
                 },
                 "summary": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 100
                 },
                 "uuid": {
                     "type": "string"
+                }
+            }
+        },
+        "utility.IncidentPutRequestBodySchema": {
+            "type": "object",
+            "required": [
+                "description",
+                "hostsAffected",
+                "resolutionTeams",
+                "resolved",
+                "summary"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "minLength": 1
+                },
+                "hostsAffected": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "resolutionTeams": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "resolved": {
+                    "type": "boolean"
+                },
+                "summary": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1
                 }
             }
         },
@@ -1278,7 +1631,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "key": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 20
                 },
                 "required": {
                     "type": "boolean"
@@ -1287,7 +1641,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "value": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 30
                 }
             }
         },
@@ -1330,7 +1685,8 @@ const docTemplate = `{
                     }
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 30
                 },
                 "type": {
                     "type": "string"
@@ -1348,7 +1704,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 30
                 },
                 "uuid": {
                     "type": "string"
@@ -1370,13 +1727,16 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 30
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 30
                 },
                 "slackID": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 30
                 },
                 "teams": {
                     "type": "array",
@@ -1397,7 +1757,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 30
                 },
                 "password": {
                     "type": "string"
@@ -1414,10 +1775,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 30
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 30
                 },
                 "password": {
                     "type": "string"
