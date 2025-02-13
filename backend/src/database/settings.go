@@ -119,7 +119,32 @@ func UpdateProvider(ctx *gin.Context, filters GetProvidersFilters, body *utility
 	if filters.UUID != nil {
 		tx = tx.Where("uuid = ?", *filters.UUID)
 	}
-	tx = tx.Update("fields", body.Fields).Update("name", body.Name)
+	var provider *Provider = nil
+	tx = tx.Find(&provider)
+	if tx.Error != nil {
+		return handleError(ctx, tx.Error)
+	}
+
+	tx = tx.Update("name", body.Name)
+	if tx.Error != nil {
+		return handleError(ctx, tx.Error)
+	}
+	tx = tx.Model(&ProviderField{}).Where("provider_id = ?", provider.ID).Delete(&ProviderField{})
+	if tx.Error != nil {
+		return handleError(ctx, tx.Error)
+	}
+	fields := make([]ProviderField, 0)
+	for _, field := range body.Fields {
+		providerField := ProviderField{
+			ProviderID: provider.ID,
+			Key:        field.Key,
+			Value:      field.Value,
+			Type:       field.Type,
+			Required:   *field.Required,
+		}
+		fields = append(fields, providerField)
+	}
+	tx = tx.Model(&ProviderField{}).Create(&fields)
 	if tx.Error != nil {
 		return handleError(ctx, tx.Error)
 	}
