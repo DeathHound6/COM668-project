@@ -223,7 +223,7 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
                         <Col className="ms-4">{comment.commentedBy.name}<span style={{color: "gray"}}>{comment.commentedBy.uuid == user.uuid ? " (You)": ""}</span></Col>
                         <Col xs={1}>
                             {
-                                comment.commentedBy.uuid == user.uuid && (
+                                (user.admin || comment.commentedBy.uuid == user.uuid) && (
                                     <OverlayTrigger overlay={<Tooltip>Delete Comment</Tooltip>}>
                                         <Trash style={{color: "red", cursor: "pointer"}} onClick={() => deleteComment(index)} />
                                     </OverlayTrigger>

@@ -302,7 +302,7 @@ func CreateIncidentComment(ctx *gin.Context, comment *IncidentComment) (*Inciden
 	if tx.Error != nil {
 		return nil, handleError(ctx, tx.Error)
 	}
-	return nil, nil
+	return comment, nil
 }
 
 func DeleteIncidentComment(ctx *gin.Context, uuid string) error {

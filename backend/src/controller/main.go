@@ -84,7 +84,7 @@ func RegisterControllers(engine *gin.Engine) {
 	register(engine, http.MethodPut, "/incidents/:incident_id", UpdateIncident(), registerControllerOptions{
 		useAuth:      true,
 		useDB:        true,
-		useAdminAuth: true,
+		useAdminAuth: false,
 	})
 	register(engine, http.MethodPost, "/incidents/:incident_id/comments", CreateIncidentComment(), registerControllerOptions{
 		useAuth:      true,
@@ -128,12 +128,12 @@ func RegisterControllers(engine *gin.Engine) {
 	register(engine, http.MethodGet, "/hosts", GetHosts(), registerControllerOptions{
 		useAuth:      true,
 		useDB:        true,
-		useAdminAuth: true,
+		useAdminAuth: false,
 	})
 	register(engine, http.MethodGet, "/hosts/:host_id", GetHost(), registerControllerOptions{
 		useAuth:      true,
 		useDB:        true,
-		useAdminAuth: true,
+		useAdminAuth: false,
 	})
 	register(engine, http.MethodPost, "/hosts", CreateHost(), registerControllerOptions{
 		useAuth:      true,
