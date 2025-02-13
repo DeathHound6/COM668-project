@@ -9,15 +9,15 @@ type ErrorResponseSchema struct {
 }
 
 type UserPostRequestBodySchema struct {
-	Name     string   `json:"name" binding:"required,max=30"`
-	Email    string   `json:"email" binding:"required,email,max=30"`
-	Password string   `json:"password" binding:"required"`
+	Name     string   `json:"name" binding:"required,max=30,min=1"`
+	Email    string   `json:"email" binding:"required,email,max=30,min=1"`
+	Password string   `json:"password" binding:"required,max=72,min=1"`
 	Teams    []string `json:"teams" binding:"required"`
 }
 
 type UserLoginRequestBodySchema struct {
-	Email    string `json:"email" binding:"required,email,max=30"`
-	Password string `json:"password" binding:"required"`
+	Email    string `json:"email" binding:"required,email,max=30,min=1"`
+	Password string `json:"password" binding:"required,max=72,min=1"`
 }
 
 type TeamPostRequestBodySchema struct {
@@ -51,8 +51,10 @@ type GetManyResponseSchema[T any] struct {
 }
 
 type IncidentPostRequestBodySchema struct {
-	Summary       string   `json:"summary" binding:"required,max=100"`
-	HostsAffected []string `json:"hostsAffected" binding:"required"`
+	Summary         string   `json:"summary" binding:"required,max=100,min=1"`
+	Description     string   `json:"description" binding:"required,max=500,min=1"`
+	ResolutionTeams []string `json:"resolutionTeams" binding:"required"`
+	HostsAffected   []string `json:"hostsAffected" binding:"required"`
 }
 
 type UserGetResponseBodySchema struct {
@@ -91,14 +93,14 @@ type IncidentGetResponseBodySchema struct {
 type HostMachineGetResponseBodySchema struct {
 	UUID     string                    `json:"uuid" binding:"required,uuid4"`
 	OS       string                    `json:"os" binding:"required,oneof=Windows Linux MacOS"`
-	Hostname string                    `json:"hostname" binding:"required,hostname"`
+	Hostname string                    `json:"hostname" binding:"required,hostname,max=255,min=1"`
 	IP4      *string                   `json:"ip4" binding:"required_if=IP6 nil,ipv4"`
 	IP6      *string                   `json:"ip6" binding:"required_if=IP4 nil,ipv6"`
 	Team     TeamGetResponseBodySchema `json:"team" binding:"required"`
 }
 
 type ProviderPostRequestBodySchema struct {
-	Name string `json:"name" binding:"required,max=30"`
+	Name string `json:"name" binding:"required,max=30,min=1"`
 }
 
 type ProviderPutRequestBodySchema struct {
@@ -108,14 +110,14 @@ type ProviderPutRequestBodySchema struct {
 
 type HostMachinePostPutRequestBodySchema struct {
 	OS       string  `json:"os" binding:"required,oneof=Windows Linux MacOS"`
-	Hostname string  `json:"hostname" binding:"required,hostname,max=40"`
+	Hostname string  `json:"hostname" binding:"required,hostname,max=255,min=1"`
 	IP4      *string `json:"ip4" binding:"required_if=IP6 nil,ipv4"`
 	IP6      *string `json:"ip6" binding:"required_if=IP4 nil,ipv6"`
 	TeamID   string  `json:"teamID" binding:"required,uuid4"`
 }
 
 type IncidentCommentPostRequestBodySchema struct {
-	Comment string `json:"comment" binding:"required,max=200"`
+	Comment string `json:"comment" binding:"required,max=200,min=1"`
 }
 
 type IncidentPutRequestBodySchema struct {

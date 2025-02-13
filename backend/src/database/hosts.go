@@ -123,7 +123,7 @@ type GetHostsFilters struct {
 func GetHost(ctx *gin.Context, filters GetHostsFilters) (*HostMachine, error) {
 	hosts, count, err := GetHosts(ctx, GetHostsFilters{
 		UUIDs:    filters.UUIDs,
-		PageSize: utility.Pointer(1),
+		PageSize: utility.Pointer(len(filters.UUIDs)),
 	})
 	if err != nil {
 		return nil, err

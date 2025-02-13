@@ -5,6 +5,7 @@ import (
 	"com668-backend/utility"
 	"fmt"
 	"math"
+	"net"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -156,6 +157,26 @@ func CreateHost() gin.HandlerFunc {
 			ctx.Next()
 			return
 		}
+
+		ip4 := net.ParseIP(*body.IP4)
+		if ip4 == nil || ip4.To4() == nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "Invalid IPv4 address",
+			})
+			ctx.Next()
+			return
+		}
+		ip6 := net.ParseIP(*body.IP6)
+		if ip6 == nil || ip6.To16() == nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "Invalid IPv6 address",
+			})
+			ctx.Next()
+			return
+		}
+
 		team, err := database.GetTeam(ctx, database.GetTeamsFilters{
 			UUIDs: []string{body.TeamID},
 		})
@@ -212,6 +233,25 @@ func UpdateHost() gin.HandlerFunc {
 			ctx.Set("Status", http.StatusBadRequest)
 			ctx.Set("Body", &utility.ErrorResponseSchema{
 				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		ip4 := net.ParseIP(*body.IP4)
+		if ip4 == nil || ip4.To4() == nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "Invalid IPv4 address",
+			})
+			ctx.Next()
+			return
+		}
+		ip6 := net.ParseIP(*body.IP6)
+		if ip6 == nil || ip6.To16() == nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "Invalid IPv6 address",
 			})
 			ctx.Next()
 			return

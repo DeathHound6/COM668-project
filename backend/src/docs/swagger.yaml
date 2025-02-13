@@ -60,6 +60,8 @@ definitions:
   utility.HostMachineGetResponseBodySchema:
     properties:
       hostname:
+        maxLength: 255
+        minLength: 1
         type: string
       ip4:
         type: string
@@ -84,7 +86,8 @@ definitions:
   utility.HostMachinePostPutRequestBodySchema:
     properties:
       hostname:
-        maxLength: 40
+        maxLength: 255
+        minLength: 1
         type: string
       ip4:
         type: string
@@ -124,6 +127,7 @@ definitions:
     properties:
       comment:
         maxLength: 200
+        minLength: 1
         type: string
     required:
     - comment
@@ -289,8 +293,11 @@ definitions:
     properties:
       email:
         maxLength: 30
+        minLength: 1
         type: string
       password:
+        maxLength: 72
+        minLength: 1
         type: string
     required:
     - email
@@ -300,11 +307,15 @@ definitions:
     properties:
       email:
         maxLength: 30
+        minLength: 1
         type: string
       name:
         maxLength: 30
+        minLength: 1
         type: string
       password:
+        maxLength: 72
+        minLength: 1
         type: string
       teams:
         items:

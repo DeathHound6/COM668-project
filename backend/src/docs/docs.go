@@ -1439,7 +1439,9 @@ const docTemplate = `{
             ],
             "properties": {
                 "hostname": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1
                 },
                 "ip4": {
                     "type": "string"
@@ -1473,7 +1475,8 @@ const docTemplate = `{
             "properties": {
                 "hostname": {
                     "type": "string",
-                    "maxLength": 40
+                    "maxLength": 255,
+                    "minLength": 1
                 },
                 "ip4": {
                     "type": "string"
@@ -1526,7 +1529,8 @@ const docTemplate = `{
             "properties": {
                 "comment": {
                     "type": "string",
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "minLength": 1
                 }
             }
         },
@@ -1758,10 +1762,13 @@ const docTemplate = `{
             "properties": {
                 "email": {
                     "type": "string",
-                    "maxLength": 30
+                    "maxLength": 30,
+                    "minLength": 1
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 1
                 }
             }
         },
@@ -1776,14 +1783,18 @@ const docTemplate = `{
             "properties": {
                 "email": {
                     "type": "string",
-                    "maxLength": 30
+                    "maxLength": 30,
+                    "minLength": 1
                 },
                 "name": {
                     "type": "string",
-                    "maxLength": 30
+                    "maxLength": 30,
+                    "minLength": 1
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 1
                 },
                 "teams": {
                     "type": "array",

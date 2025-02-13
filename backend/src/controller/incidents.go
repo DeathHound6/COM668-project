@@ -353,11 +353,11 @@ func UpdateIncident() gin.HandlerFunc {
 			return
 		}
 
-		var hosts []database.HostMachine = make([]database.HostMachine, 0)
+		hosts := make([]database.HostMachine, 0)
 		if len(body.HostsAffected) > 0 {
-			hs, _, err := database.GetHosts(ctx, database.GetHostsFilters{
+			hs, count, err := database.GetHosts(ctx, database.GetHostsFilters{
 				UUIDs:    body.HostsAffected,
-				PageSize: utility.Pointer(1000),
+				PageSize: utility.Pointer(len(body.HostsAffected)),
 			})
 			if err != nil {
 				ctx.Set("Status", ctx.GetInt("errorCode"))
@@ -367,21 +367,37 @@ func UpdateIncident() gin.HandlerFunc {
 				ctx.Next()
 				return
 			}
+			if int(count) != len(body.HostsAffected) {
+				ctx.Set("Status", http.StatusBadRequest)
+				ctx.Set("Body", &utility.ErrorResponseSchema{
+					Error: "one or more hosts not found",
+				})
+				ctx.Next()
+				return
+			}
 			for _, host := range hs {
 				hosts = append(hosts, *host)
 			}
 		}
 
-		var teams []database.Team = make([]database.Team, 0)
+		teams := make([]database.Team, 0)
 		if len(body.ResolutionTeams) > 0 {
-			ts, _, err := database.GetTeams(ctx, database.GetTeamsFilters{
+			ts, count, err := database.GetTeams(ctx, database.GetTeamsFilters{
 				UUIDs:    body.ResolutionTeams,
-				PageSize: utility.Pointer(1000),
+				PageSize: utility.Pointer(len(body.ResolutionTeams)),
 			})
 			if err != nil {
 				ctx.Set("Status", ctx.GetInt("errorCode"))
 				ctx.Set("Body", &utility.ErrorResponseSchema{
 					Error: err.Error(),
+				})
+				ctx.Next()
+				return
+			}
+			if int(count) != len(body.ResolutionTeams) {
+				ctx.Set("Status", http.StatusBadRequest)
+				ctx.Set("Body", &utility.ErrorResponseSchema{
+					Error: "one or more teams not found",
 				})
 				ctx.Next()
 				return
@@ -398,6 +414,7 @@ func UpdateIncident() gin.HandlerFunc {
 			resolvedByID = &user.ID
 			resolvedAt = utility.Pointer(time.Now())
 		}
+
 		newIncident := &database.Incident{
 			ID:              incident.ID,
 			UUID:            incident.UUID,
@@ -454,17 +471,6 @@ func CreateIncidentComment() gin.HandlerFunc {
 			return
 		}
 
-		// body validations
-		if len(body.Comment) > 200 || len(body.Comment) == 0 {
-			ctx.Set("Status", http.StatusBadRequest)
-			ctx.Set("Body", &utility.ErrorResponseSchema{
-				Error: "comment must be between 1 and 200 characters",
-			})
-			ctx.Next()
-			return
-		}
-
-		// carry out the create
 		incident, err := database.GetIncident(ctx, incidentUUID)
 		if err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))

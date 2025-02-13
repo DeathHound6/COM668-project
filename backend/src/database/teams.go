@@ -66,7 +66,7 @@ type GetTeamsFilters struct {
 func GetTeam(ctx *gin.Context, filters GetTeamsFilters) (*Team, error) {
 	teams, count, err := GetTeams(ctx, GetTeamsFilters{
 		UUIDs:    filters.UUIDs,
-		PageSize: utility.Pointer(1),
+		PageSize: utility.Pointer(len(filters.UUIDs)),
 	})
 	if err != nil {
 		return nil, err

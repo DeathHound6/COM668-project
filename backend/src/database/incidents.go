@@ -203,18 +203,60 @@ func GetIncidents(ctx *gin.Context, filters GetIncidentsFilters) ([]*Incident, i
 
 func CreateIncident(ctx *gin.Context, body *utility.IncidentPostRequestBodySchema) (*Incident, error) {
 	tx := GetDBTransaction(ctx).Model(&Incident{})
-	hosts := make([]HostMachine, 0)
-	// todo: validate hosts
-	for _, host := range body.HostsAffected {
-		hosts = append(hosts, HostMachine{
-			UUID: host,
-		})
-	}
 	incident := &Incident{
-		HostsAffected: hosts,
-		Summary:       body.Summary,
+		Summary:     body.Summary,
+		Description: body.Description,
+		CreatedAt:   time.Now(),
 	}
 	tx = tx.Create(incident)
+	if tx.Error != nil {
+		return nil, handleError(ctx, tx.Error)
+	}
+
+	// insert hosts - m2m
+	hosts := make([]IncidentHost, 0)
+	hs, count, err := GetHosts(ctx, GetHostsFilters{
+		UUIDs:    body.HostsAffected,
+		PageSize: utility.Pointer(len(body.HostsAffected)),
+	})
+	if err != nil {
+		return nil, err
+	}
+	if int(count) != len(body.HostsAffected) {
+		ctx.Set("errorCode", http.StatusBadRequest)
+		return nil, errors.New("one or more hosts not found")
+	}
+	for _, host := range hs {
+		hosts = append(hosts, IncidentHost{
+			IncidentID:    incident.ID,
+			HostMachineID: host.ID,
+		})
+	}
+	tx = tx.Model(&IncidentHost{}).CreateInBatches(hosts, 1)
+	if tx.Error != nil {
+		return nil, handleError(ctx, tx.Error)
+	}
+
+	// insert resolution teams - m2m
+	teams := make([]IncidentResolutionTeam, 0)
+	ts, count, err := GetTeams(ctx, GetTeamsFilters{
+		UUIDs:    body.ResolutionTeams,
+		PageSize: utility.Pointer(len(body.ResolutionTeams)),
+	})
+	if err != nil {
+		return nil, err
+	}
+	if int(count) != len(body.ResolutionTeams) {
+		ctx.Set("errorCode", http.StatusBadRequest)
+		return nil, errors.New("one or more teams not found")
+	}
+	for _, team := range ts {
+		teams = append(teams, IncidentResolutionTeam{
+			IncidentID: incident.ID,
+			TeamID:     team.ID,
+		})
+	}
+	tx = tx.Model(&IncidentResolutionTeam{}).CreateInBatches(teams, 1)
 	if tx.Error != nil {
 		return nil, handleError(ctx, tx.Error)
 	}
