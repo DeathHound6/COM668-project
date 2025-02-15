@@ -192,8 +192,20 @@ func register(engine *gin.Engine, method string, endpoint string, handler gin.Ha
 		if body == nil || !ok {
 			if options.useDB && options.useAuth && options.useAdminAuth {
 				user := ctx.MustGet("user").(*database.User)
+				if user == nil {
+					ctx.Set("Status", http.StatusUnauthorized)
+					ctx.Set("Body", utility.ErrorResponseSchema{
+						Error: "user is not authenticated",
+					})
+					ctx.Next()
+					return
+				}
 				if !user.Admin {
-					ctx.AbortWithStatusJSON(http.StatusForbidden, errors.New("user is not an admin"))
+					ctx.Set("Status", http.StatusForbidden)
+					ctx.Set("Body", utility.ErrorResponseSchema{
+						Error: "user is not an admin",
+					})
+					ctx.Next()
 					return
 				}
 			}

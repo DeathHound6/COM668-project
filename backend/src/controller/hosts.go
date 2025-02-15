@@ -5,10 +5,10 @@ import (
 	"com668-backend/utility"
 	"fmt"
 	"math"
-	"net"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type GetManyHostsResponseSchema utility.GetManyResponseSchema[*utility.HostMachineGetResponseBodySchema]
@@ -101,9 +101,18 @@ func GetHosts() gin.HandlerFunc {
 //	@Router			/hosts/{host_id} [get]
 func GetHost() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		uuid := ctx.Param("host_id")
+		hostUUID := ctx.Param("host_id")
+		if _, err := uuid.Parse(hostUUID); err != nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "Invalid Host UUID",
+			})
+			ctx.Next()
+			return
+		}
+
 		host, err := database.GetHost(ctx, database.GetHostsFilters{
-			UUIDs: []string{uuid},
+			UUIDs: []string{hostUUID},
 		})
 		if err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
@@ -158,20 +167,10 @@ func CreateHost() gin.HandlerFunc {
 			return
 		}
 
-		ip4 := net.ParseIP(*body.IP4)
-		if ip4 == nil || ip4.To4() == nil {
-			ctx.Set("Status", http.StatusBadRequest)
+		if status, err := body.Validate(); err != nil {
+			ctx.Set("Status", status)
 			ctx.Set("Body", &utility.ErrorResponseSchema{
-				Error: "Invalid IPv4 address",
-			})
-			ctx.Next()
-			return
-		}
-		ip6 := net.ParseIP(*body.IP6)
-		if ip6 == nil || ip6.To16() == nil {
-			ctx.Set("Status", http.StatusBadRequest)
-			ctx.Set("Body", &utility.ErrorResponseSchema{
-				Error: "Invalid IPv6 address",
+				Error: err.Error(),
 			})
 			ctx.Next()
 			return
@@ -228,6 +227,16 @@ func CreateHost() gin.HandlerFunc {
 //	@Router			/hosts/{host_id} [put]
 func UpdateHost() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		hostUUID := ctx.Param("host_id")
+		if _, err := uuid.Parse(hostUUID); err != nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "Invalid Host UUID",
+			})
+			ctx.Next()
+			return
+		}
+
 		var body *utility.HostMachinePostPutRequestBodySchema
 		if err := ctx.ShouldBindJSON(&body); err != nil {
 			ctx.Set("Status", http.StatusBadRequest)
@@ -238,28 +247,17 @@ func UpdateHost() gin.HandlerFunc {
 			return
 		}
 
-		ip4 := net.ParseIP(*body.IP4)
-		if ip4 == nil || ip4.To4() == nil {
-			ctx.Set("Status", http.StatusBadRequest)
+		if status, err := body.Validate(); err != nil {
+			ctx.Set("Status", status)
 			ctx.Set("Body", &utility.ErrorResponseSchema{
-				Error: "Invalid IPv4 address",
-			})
-			ctx.Next()
-			return
-		}
-		ip6 := net.ParseIP(*body.IP6)
-		if ip6 == nil || ip6.To16() == nil {
-			ctx.Set("Status", http.StatusBadRequest)
-			ctx.Set("Body", &utility.ErrorResponseSchema{
-				Error: "Invalid IPv6 address",
+				Error: err.Error(),
 			})
 			ctx.Next()
 			return
 		}
 
-		uuid := ctx.Param("host_id")
 		host, err := database.GetHost(ctx, database.GetHostsFilters{
-			UUIDs: []string{uuid},
+			UUIDs: []string{hostUUID},
 		})
 		if err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
@@ -318,9 +316,18 @@ func UpdateHost() gin.HandlerFunc {
 //	@Router			/hosts/{host_id} [delete]
 func DeleteHost() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		uuid := ctx.Param("host_id")
+		hostUUID := ctx.Param("host_id")
+		if _, err := uuid.Parse(hostUUID); err != nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "Invalid Host UUID",
+			})
+			ctx.Next()
+			return
+		}
+
 		_, err := database.GetHost(ctx, database.GetHostsFilters{
-			UUIDs: []string{uuid},
+			UUIDs: []string{hostUUID},
 		})
 		if err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
@@ -331,7 +338,7 @@ func DeleteHost() gin.HandlerFunc {
 			return
 		}
 
-		if err := database.DeleteHost(ctx, uuid); err != nil {
+		if err := database.DeleteHost(ctx, hostUUID); err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
 			ctx.Set("Body", &utility.ErrorResponseSchema{
 				Error: err.Error(),

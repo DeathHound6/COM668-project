@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type GetManyIncidentsResponseSchema utility.GetManyResponseSchema[*utility.IncidentGetResponseBodySchema]
@@ -187,9 +188,17 @@ func GetIncidents() gin.HandlerFunc {
 //	@Router			/incidents/{incident_id} [get]
 func GetIncident() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		uuid := ctx.Param("incident_id")
+		incidentUUID := ctx.Param("incident_id")
+		if _, err := uuid.Parse(incidentUUID); err != nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "invalid incident UUID",
+			})
+			ctx.Next()
+			return
+		}
 
-		incident, err := database.GetIncident(ctx, uuid)
+		incident, err := database.GetIncident(ctx, incidentUUID)
 		if err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
 			ctx.Set("Body", &utility.ErrorResponseSchema{
@@ -297,6 +306,15 @@ func CreateIncident() gin.HandlerFunc {
 			return
 		}
 
+		if status, err := body.Validate(); err != nil {
+			ctx.Set("Status", status)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
 		incident, err := database.CreateIncident(ctx, body)
 		if err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
@@ -331,6 +349,14 @@ func CreateIncident() gin.HandlerFunc {
 func UpdateIncident() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		incidentUUID := ctx.Param("incident_id")
+		if _, err := uuid.Parse(incidentUUID); err != nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "invalid incident UUID",
+			})
+			ctx.Next()
+			return
+		}
 
 		var body *utility.IncidentPutRequestBodySchema
 		if err := ctx.ShouldBindJSON(&body); err != nil {
@@ -342,7 +368,15 @@ func UpdateIncident() gin.HandlerFunc {
 			return
 		}
 
-		// carry out the update
+		if status, err := body.Validate(); err != nil {
+			ctx.Set("Status", status)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
 		incident, err := database.GetIncident(ctx, incidentUUID)
 		if err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
@@ -461,9 +495,27 @@ func UpdateIncident() gin.HandlerFunc {
 func CreateIncidentComment() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		incidentUUID := ctx.Param("incident_id")
+		if _, err := uuid.Parse(incidentUUID); err != nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "invalid incident UUID",
+			})
+			ctx.Next()
+			return
+		}
+
 		var body *utility.IncidentCommentPostRequestBodySchema
 		if err := ctx.ShouldBindJSON(&body); err != nil {
 			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		if status, err := body.Validate(); err != nil {
+			ctx.Set("Status", status)
 			ctx.Set("Body", &utility.ErrorResponseSchema{
 				Error: err.Error(),
 			})
@@ -520,7 +572,23 @@ func CreateIncidentComment() gin.HandlerFunc {
 func DeleteIncidentComment() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		incidentUUID := ctx.Param("incident_id")
+		if _, err := uuid.Parse(incidentUUID); err != nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "invalid incident UUID",
+			})
+			ctx.Next()
+			return
+		}
 		commentUUID := ctx.Param("comment_id")
+		if _, err := uuid.Parse(commentUUID); err != nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "invalid comment UUID",
+			})
+			ctx.Next()
+			return
+		}
 
 		comment, err := database.GetIncidentComment(ctx, incidentUUID, commentUUID)
 		if err != nil {

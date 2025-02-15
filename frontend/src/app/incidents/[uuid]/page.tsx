@@ -23,15 +23,12 @@ import {
     OverlayTrigger,
     Row,
     Spinner,
-    Toast,
-    ToastBody,
-    ToastContainer,
-    ToastHeader,
     Tooltip
 } from "react-bootstrap";
 import { Trash } from "react-bootstrap-icons";
 import { GetTeams } from "../../../actions/teams";
 import { GetHosts } from "../../../actions/hosts";
+import ToastContainerComponent from "../../../components/toastContainer";
 
 export default function IncidentPage({ params }: { params: Promise<{ uuid: string }> }) {
     const [loaded, setLoaded] = useState(false);
@@ -57,6 +54,7 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
     function handleError(err: APIError) {
         if ([400, 500].includes(err.status))
             setErrors((prev) => [...prev, err.message]);
+        setLoaded(true);
     }
 
     useEffect(() => {
@@ -134,9 +132,7 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
                     const newComments = incident.comments.filter((c: IncidentComment) => c.uuid != comment.uuid);
                     setComments(newComments);
                 },
-                (err: APIError) => {
-                    // TODO: toast
-                }
+                handleError
             );
     }
 
@@ -433,22 +429,14 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
             </div>
 
             {/* Toasts for showing error messages */}
-            <ToastContainer position="bottom-end" className="p-3">
-                { errors.map((error: string, index: number) => (
-                    showErrors[index] && (
-                        <Toast bg="danger" onClose={() => onCloseToast(index)} key={`error-${index}`} autohide delay={5000}>
-                            <ToastHeader>Error</ToastHeader>
-                            <ToastBody>{error}</ToastBody>
-                        </Toast>
-                    ))
-                )}
-                { showSuccessMessage && (
-                    <Toast bg="success" onClose={() => { setSuccessMessage(undefined); }} key={"success"} autohide delay={5000}>
-                        <ToastHeader>Success</ToastHeader>
-                        <ToastBody>{successMessage}</ToastBody>
-                    </Toast>
-                )}
-            </ToastContainer>
+            <ToastContainerComponent
+                errors={errors}
+                showErrors={showErrors}
+                successMessage={successMessage}
+                showSuccessMessage={showSuccessMessage}
+                setErrors={setErrors}
+                setSuccessToastMessage={setSuccessMessage}
+                />
         </main>
     );
 }

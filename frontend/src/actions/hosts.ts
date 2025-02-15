@@ -26,7 +26,7 @@ export async function GetHosts({ page, pageSize }: { page?: number, pageSize?: n
     return JSON.parse(await response.text());
 }
 
-export async function CreateHost({ hostname, os, ip4, ip6, teamID }: { hostname: string, os: string, ip4: string, ip6: string, teamID: string }): Promise<string> {
+export async function CreateHost({ hostname, os, ip4, ip6, teamID }: { hostname: string, os: string, ip4: string|null, ip6: string|null, teamID: string }): Promise<string> {
     const response = await fetch(`/api/hosts`, {
         method: "POST",
         headers: {

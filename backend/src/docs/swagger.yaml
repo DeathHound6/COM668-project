@@ -4,112 +4,84 @@ consumes:
 definitions:
   controller.GetManyHostsResponseSchema:
     properties:
+      ResponseSchema: {}
       data:
         items:
           $ref: '#/definitions/utility.HostMachineGetResponseBodySchema'
         type: array
       meta:
         $ref: '#/definitions/utility.MetaSchema'
-    required:
-    - data
-    - meta
     type: object
   controller.GetManyIncidentsResponseSchema:
     properties:
+      ResponseSchema: {}
       data:
         items:
           $ref: '#/definitions/utility.IncidentGetResponseBodySchema'
         type: array
       meta:
         $ref: '#/definitions/utility.MetaSchema'
-    required:
-    - data
-    - meta
     type: object
   controller.GetManyProvidersResponseSchema:
     properties:
+      ResponseSchema: {}
       data:
         items:
           $ref: '#/definitions/utility.ProviderGetResponseSchema'
         type: array
       meta:
         $ref: '#/definitions/utility.MetaSchema'
-    required:
-    - data
-    - meta
     type: object
   controller.GetManyTeamsResponseSchema:
     properties:
+      ResponseSchema: {}
       data:
         items:
           $ref: '#/definitions/utility.TeamGetResponseBodySchema'
         type: array
       meta:
         $ref: '#/definitions/utility.MetaSchema'
-    required:
-    - data
-    - meta
     type: object
   utility.ErrorResponseSchema:
     properties:
+      ResponseSchema: {}
       error:
         type: string
-    required:
-    - error
     type: object
   utility.HostMachineGetResponseBodySchema:
     properties:
+      ResponseSchema: {}
       hostname:
-        maxLength: 255
-        minLength: 1
         type: string
       ip4:
         type: string
       ip6:
         type: string
       os:
-        enum:
-        - Windows
-        - Linux
-        - MacOS
         type: string
       team:
         $ref: '#/definitions/utility.TeamGetResponseBodySchema'
       uuid:
         type: string
-    required:
-    - hostname
-    - os
-    - team
-    - uuid
     type: object
   utility.HostMachinePostPutRequestBodySchema:
     properties:
+      BodySchema: {}
       hostname:
-        maxLength: 255
-        minLength: 1
         type: string
       ip4:
         type: string
       ip6:
         type: string
       os:
-        enum:
-        - Windows
-        - Linux
-        - MacOS
         type: string
       teamID:
         type: string
-    required:
-    - hostname
-    - os
-    - teamID
     type: object
   utility.IncidentCommentGetResponseBodySchema:
     properties:
+      ResponseSchema: {}
       comment:
-        maxLength: 200
         type: string
       commentedAt:
         type: string
@@ -117,23 +89,16 @@ definitions:
         $ref: '#/definitions/utility.UserGetResponseBodySchema'
       uuid:
         type: string
-    required:
-    - comment
-    - commentedAt
-    - commentedBy
-    - uuid
     type: object
   utility.IncidentCommentPostRequestBodySchema:
     properties:
+      BodySchema: {}
       comment:
-        maxLength: 200
-        minLength: 1
         type: string
-    required:
-    - comment
     type: object
   utility.IncidentGetResponseBodySchema:
     properties:
+      ResponseSchema: {}
       comments:
         items:
           $ref: '#/definitions/utility.IncidentCommentGetResponseBodySchema'
@@ -141,7 +106,6 @@ definitions:
       createdAt:
         type: string
       description:
-        maxLength: 500
         type: string
       hostsAffected:
         items:
@@ -156,26 +120,14 @@ definitions:
       resolvedBy:
         $ref: '#/definitions/utility.UserGetResponseBodySchema'
       summary:
-        maxLength: 100
         type: string
       uuid:
         type: string
-    required:
-    - comments
-    - createdAt
-    - description
-    - hostsAffected
-    - resolutionTeams
-    - resolvedAt
-    - resolvedBy
-    - summary
-    - uuid
     type: object
   utility.IncidentPutRequestBodySchema:
     properties:
+      BodySchema: {}
       description:
-        maxLength: 500
-        minLength: 1
         type: string
       hostsAffected:
         items:
@@ -188,36 +140,24 @@ definitions:
       resolved:
         type: boolean
       summary:
-        maxLength: 100
-        minLength: 1
         type: string
-    required:
-    - description
-    - hostsAffected
-    - resolutionTeams
-    - resolved
-    - summary
     type: object
   utility.KeyValueSchema:
     properties:
+      BodySchema: {}
+      ResponseSchema: {}
       key:
-        maxLength: 20
         type: string
       required:
         type: boolean
       type:
         type: string
       value:
-        maxLength: 30
         type: string
-    required:
-    - key
-    - required
-    - type
-    - value
     type: object
   utility.MetaSchema:
     properties:
+      ResponseSchema: {}
       page:
         type: integer
       pageSize:
@@ -226,54 +166,55 @@ definitions:
         type: integer
       total:
         type: integer
-    required:
-    - page
-    - pageSize
-    - pages
-    - total
     type: object
   utility.ProviderGetResponseSchema:
     properties:
+      ResponseSchema: {}
       fields:
         items:
           $ref: '#/definitions/utility.KeyValueSchema'
         type: array
       name:
-        maxLength: 30
         type: string
       type:
         type: string
       uuid:
         type: string
-    required:
-    - fields
-    - name
-    - type
-    - uuid
+    type: object
+  utility.ProviderPostRequestBodySchema:
+    properties:
+      BodySchema: {}
+      name:
+        type: string
+    type: object
+  utility.ProviderPutRequestBodySchema:
+    properties:
+      BodySchema: {}
+      fields:
+        items:
+          $ref: '#/definitions/utility.KeyValueSchema'
+        type: array
+      name:
+        type: string
     type: object
   utility.TeamGetResponseBodySchema:
     properties:
+      ResponseSchema: {}
       name:
-        maxLength: 30
         type: string
       uuid:
         type: string
-    required:
-    - name
-    - uuid
     type: object
   utility.UserGetResponseBodySchema:
     properties:
+      ResponseSchema: {}
       admin:
         type: boolean
       email:
-        maxLength: 30
         type: string
       name:
-        maxLength: 30
         type: string
       slackID:
-        maxLength: 30
         type: string
       teams:
         items:
@@ -281,51 +222,28 @@ definitions:
         type: array
       uuid:
         type: string
-    required:
-    - admin
-    - email
-    - name
-    - slackID
-    - teams
-    - uuid
     type: object
   utility.UserLoginRequestBodySchema:
     properties:
+      BodySchema: {}
       email:
-        maxLength: 30
-        minLength: 1
         type: string
       password:
-        maxLength: 72
-        minLength: 1
         type: string
-    required:
-    - email
-    - password
     type: object
   utility.UserPostRequestBodySchema:
     properties:
+      BodySchema: {}
       email:
-        maxLength: 30
-        minLength: 1
         type: string
       name:
-        maxLength: 30
-        minLength: 1
         type: string
       password:
-        maxLength: 72
-        minLength: 1
         type: string
       teams:
         items:
           type: string
         type: array
-    required:
-    - email
-    - name
-    - password
-    - teams
     type: object
 host: localhost:5000
 info:
@@ -883,6 +801,12 @@ paths:
         name: provider_type
         required: true
         type: string
+      - description: Provider data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/utility.ProviderPostRequestBodySchema'
       produces:
       - application/json
       responses:
@@ -989,6 +913,12 @@ paths:
         name: provider_id
         required: true
         type: string
+      - description: Provider data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/utility.ProviderPutRequestBodySchema'
       produces:
       - application/json
       responses:

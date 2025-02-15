@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"com668-backend/utility"
 	"log"
 	"net/http"
 	"strconv"
@@ -35,8 +36,8 @@ func FormatResponseMW() gin.HandlerFunc {
 		}
 		// for privacy/security reasons, we don't want to log the body unless we are in dev mode
 		if gin.IsDebugging() {
-			log.Default().Printf("[%s] Returning body with status %d %v\n", reqID, status.(int), body)
+			log.Default().Printf("[%s] Returning body with status %d %v\n", reqID, status.(int), body.(utility.ResponseSchema).String())
 		}
-		ctx.AbortWithStatusJSON(status.(int), body)
+		ctx.AbortWithStatusJSON(status.(int), body.(utility.ResponseSchema).JSON())
 	}
 }

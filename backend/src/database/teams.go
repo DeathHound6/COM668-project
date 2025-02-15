@@ -18,41 +18,15 @@ type Team struct {
 
 func (team *Team) BeforeCreate(tx *gorm.DB) error {
 	ctx := GetContext(tx)
-	uuid, err := utility.GenerateRandomUUID()
-	if err != nil {
-		if ctx != nil {
-			ctx.Set("errorCode", http.StatusInternalServerError)
+	if team.UUID == "" {
+		uuid, err := utility.GenerateRandomUUID()
+		if err != nil {
+			if ctx != nil {
+				ctx.Set("errorCode", http.StatusInternalServerError)
+			}
+			return errors.New("failed to create an incident uuid")
 		}
-		return errors.New("failed to create an incident uuid")
-	}
-	if len(team.Name) > 30 {
-		if ctx != nil {
-			ctx.Set("errorCode", http.StatusBadRequest)
-		}
-		return errors.New("team name cannot be greater than 30 characters")
-	}
-	team.UUID = uuid
-	return nil
-}
-
-func (team *Team) BeforeUpdate(tx *gorm.DB) error {
-	ctx := GetContext(tx)
-	if len(team.Name) > 30 {
-		if ctx != nil {
-			ctx.Set("errorCode", http.StatusBadRequest)
-		}
-		return errors.New("team name cannot be greater than 30 characters")
-	}
-	return nil
-}
-
-func (team *Team) BeforeDelete(tx *gorm.DB) error {
-	ctx := GetContext(tx)
-	if len(team.Users) > 0 {
-		if ctx != nil {
-			ctx.Set("errorCode", http.StatusBadRequest)
-		}
-		return errors.New("teams cannot be deleted if there are still users in them")
+		team.UUID = uuid
 	}
 	return nil
 }

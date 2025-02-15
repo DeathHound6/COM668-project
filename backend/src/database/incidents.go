@@ -26,45 +26,17 @@ type Incident struct {
 
 func (incident *Incident) BeforeCreate(tx *gorm.DB) error {
 	ctx := GetContext(tx)
-	uuid, err := utility.GenerateRandomUUID()
-	if err != nil {
-		if ctx != nil {
-			ctx.Set("errorCode", http.StatusInternalServerError)
+	if incident.UUID == "" {
+		uuid, err := utility.GenerateRandomUUID()
+		if err != nil {
+			if ctx != nil {
+				ctx.Set("errorCode", http.StatusInternalServerError)
+			}
+			return errors.New("failed to create an incident uuid")
 		}
-		return errors.New("failed to create an incident uuid")
-	}
-	if len(incident.Summary) > 500 {
-		if ctx != nil {
-			ctx.Set("errorCode", http.StatusBadRequest)
-		}
-		return errors.New("summary cannot be greater than 500 characters")
-	}
-	incident.UUID = uuid
-	return nil
-}
-
-func (incident *Incident) BeforeUpdate(tx *gorm.DB) error {
-	ctx := GetContext(tx)
-	// If incident is being marked as resolved, set resolved time to now
-	if incident.ResolvedBy != nil && incident.ResolvedAt == nil {
-		time := time.Now()
-		incident.ResolvedAt = &time
-	}
-	if len(incident.Summary) > 500 {
-		if ctx != nil {
-			ctx.Set("errorCode", http.StatusBadRequest)
-		}
-		return errors.New("summary cannot be greater than 500 characters")
+		incident.UUID = uuid
 	}
 	return nil
-}
-
-func (incident *Incident) BeforeDelete(tx *gorm.DB) error {
-	ctx := GetContext(tx)
-	if ctx != nil {
-		ctx.Set("errorCode", http.StatusBadRequest)
-	}
-	return errors.New("incidents cannot be deleted")
 }
 
 type IncidentComment struct {
@@ -80,35 +52,16 @@ type IncidentComment struct {
 
 func (comment *IncidentComment) BeforeCreate(tx *gorm.DB) error {
 	ctx := GetContext(tx)
-	uuid, err := utility.GenerateRandomUUID()
-	if err != nil {
-		if ctx != nil {
-			ctx.Set("errorCode", http.StatusInternalServerError)
+	if comment.UUID == "" {
+		uuid, err := utility.GenerateRandomUUID()
+		if err != nil {
+			if ctx != nil {
+				ctx.Set("errorCode", http.StatusInternalServerError)
+			}
+			return errors.New("failed to create a comment uuid")
 		}
-		return errors.New("failed to create a comment uuid")
+		comment.UUID = uuid
 	}
-	if len(comment.Comment) > 200 {
-		if ctx != nil {
-			ctx.Set("errorCode", http.StatusBadRequest)
-		}
-		return errors.New("comment cannot be greater than 200 characters")
-	}
-	comment.UUID = uuid
-	return nil
-}
-
-func (comment *IncidentComment) BeforeUpdate(tx *gorm.DB) error {
-	ctx := GetContext(tx)
-	if len(comment.Comment) > 200 {
-		if ctx != nil {
-			ctx.Set("errorCode", http.StatusBadRequest)
-		}
-		return errors.New("comment cannot be greater than 200 characters")
-	}
-	return nil
-}
-
-func (comment *IncidentComment) BeforeDelete(tx *gorm.DB) error {
 	return nil
 }
 
@@ -264,21 +217,23 @@ func CreateIncident(ctx *gin.Context, body *utility.IncidentPostRequestBodySchem
 }
 
 func UpdateIncident(ctx *gin.Context, filters GetIncidentsFilters, incident *Incident) error {
-	tx := GetDBTransaction(ctx).Model(&Incident{})
+	tx := GetDBTransaction(ctx)
 
+	temp1 := tx.Model(&Incident{})
 	if filters.UUID != nil {
-		tx = tx.Where("uuid = ?", *filters.UUID)
+		temp1 = temp1.Where("uuid = ?", *filters.UUID)
 	}
-	tx = tx.Update("summary", incident.Summary).
-		Update("description", incident.Description).
-		Update("resolved_at", incident.ResolvedAt).
-		Update("resolved_by_id", incident.ResolvedByID)
-	if tx.Error != nil {
-		return handleError(ctx, tx.Error)
+	fields := map[string]any{
+		"summary":        incident.Summary,
+		"description":    incident.Description,
+		"resolved_at":    incident.ResolvedAt,
+		"resolved_by_id": incident.ResolvedByID,
+	}
+	if err := temp1.Updates(fields).Error; err != nil {
+		return handleError(ctx, err)
 	}
 
 	// replace hosts - m2m
-	tx = GetDBTransaction(ctx).Model(&IncidentHost{})
 	hosts := make([]IncidentHost, 0)
 	for _, host := range incident.HostsAffected {
 		hosts = append(hosts, IncidentHost{
@@ -286,19 +241,16 @@ func UpdateIncident(ctx *gin.Context, filters GetIncidentsFilters, incident *Inc
 			HostMachineID: host.ID,
 		})
 	}
-	tx = tx.Where("incident_id = ?", incident.ID).Delete(&IncidentHost{})
-	if tx.Error != nil {
-		return handleError(ctx, tx.Error)
+	if err := tx.Model(&IncidentHost{}).Where("incident_id = ?", incident.ID).Delete(&IncidentHost{}).Error; err != nil {
+		return handleError(ctx, err)
 	}
 	if len(hosts) > 0 {
-		tx = tx.CreateInBatches(hosts, 1)
-		if tx.Error != nil {
-			return handleError(ctx, tx.Error)
+		if err := tx.Model(&IncidentHost{}).CreateInBatches(hosts, 1).Error; err != nil {
+			return handleError(ctx, err)
 		}
 	}
 
 	// replace resolution teams - m2m
-	tx = GetDBTransaction(ctx).Model(&IncidentResolutionTeam{})
 	teams := make([]IncidentResolutionTeam, 0)
 	for _, team := range incident.ResolutionTeams {
 		teams = append(teams, IncidentResolutionTeam{
@@ -306,9 +258,8 @@ func UpdateIncident(ctx *gin.Context, filters GetIncidentsFilters, incident *Inc
 			TeamID:     team.ID,
 		})
 	}
-	tx = tx.Where("incident_id = ?", incident.ID).Delete(&IncidentResolutionTeam{})
-	if tx.Error != nil {
-		return handleError(ctx, tx.Error)
+	if err := tx.Model(&IncidentResolutionTeam{}).Where("incident_id = ?", incident.ID).Delete(&IncidentResolutionTeam{}).Error; err != nil {
+		return handleError(ctx, err)
 	}
 	if len(teams) > 0 {
 		tx = tx.CreateInBatches(teams, 1)

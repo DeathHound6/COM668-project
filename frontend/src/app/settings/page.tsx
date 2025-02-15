@@ -1,7 +1,7 @@
 "use client";
 
 import type { APIError, SettingField, Settings } from "../../interfaces";
-import { startTransition, Suspense, useActionState, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Button,
     ButtonGroup,
@@ -21,11 +21,6 @@ import {
     ModalBody,
     ModalFooter,
     FormSelect,
-    Form,
-    ToastContainer,
-    Toast,
-    ToastBody,
-    ToastHeader,
     Spinner,
     FormCheck
 } from "react-bootstrap";
@@ -33,6 +28,7 @@ import InputGroupText from "react-bootstrap/esm/InputGroupText";
 import { XLg, Trash } from "react-bootstrap-icons";
 import { z } from "zod";
 import { CreateSetting, DeleteSetting, GetSetting, GetSettings, UpdateSetting } from "../../actions/settings";
+import ToastContainerComponent from "../../components/toastContainer";
 
 const newFieldSchema = z.object({
     key: z.string().trim().min(1, "field key is required"),
@@ -45,7 +41,7 @@ const newSettingSchema = z.object({
 });
 
 export default function SettingsPage() {
-    const [pending, setPending] = useState(false);
+    const [pending, setPending] = useState(true);
     const [loaded, setLoaded] = useState(false);
 
     const [settings, setSettings] = useState([] as Settings[]);
@@ -59,8 +55,6 @@ export default function SettingsPage() {
     const [fieldType, setFieldType] = useState("string");
     const [fieldRequired, setFieldRequired] = useState(false);
 
-    const [showAPIError, setShowAPIError] = useState(false);
-    const [apiError, setAPIError] = useState(undefined as string | undefined);
     const [errors, setErrors] = useState([] as string[]);
     const [showErrors, setShowErrors] = useState([] as boolean[]);
 
@@ -72,12 +66,13 @@ export default function SettingsPage() {
 
     function handleError(error: APIError) {
         if ([400, 404, 500].includes(error.status))
-            setAPIError(error.message);
+            setErrors((prev) => [...prev, error.message]);
         setLoaded(true);
         setPending(false);
     }
 
     useEffect(() => {
+        setPending(true);
         async function fetchData() {
             setLoaded(false);
             GetSettings({ providerType })
@@ -85,6 +80,7 @@ export default function SettingsPage() {
                     (data) => {
                         setSettings(data.data);
                         setLoaded(true);
+                        setPending(false);
                     },
                     (err) => {
                         handleError(err);
@@ -96,15 +92,15 @@ export default function SettingsPage() {
     }, [providerType]);
 
     useEffect(() => {
-        setShowAPIError(apiError != undefined);
-        setShowErrors
+        setShowErrors(new Array(errors.length).fill(true));
         setShowSuccessToast(successToastMessage != undefined);
-    }, [apiError, errors, successToastMessage]);
+    }, [errors, successToastMessage]);
 
     function updateSetting(index: number) {
         setPending(true);
         if (settings.length <= index) {
-            setAPIError("invalid provider index");
+            setErrors((prev) => [...prev, "invalid provider index"]);
+            setPending(false);
             return;
         }
 
@@ -123,11 +119,13 @@ export default function SettingsPage() {
         setPending(true);
 
         if (newfieldProviderIndex == -1) {
-            setAPIError("no provider selected");
+            setPending(false);
+            setErrors((prev) => [...prev, "no provider selected"]);
             return;
         }
         if (settings.length <= newfieldProviderIndex) {
-            setAPIError("invalid provider index");
+            setPending(false);
+            setErrors((prev) => [...prev, "invalid provider index"]);
             return;
         }
 
@@ -136,15 +134,16 @@ export default function SettingsPage() {
         const type = fieldType;
         const required = fieldRequired;
 
-        const validatedFields = newFieldSchema.safeParse({ key, value, type });
+        const validatedFields = newFieldSchema.safeParse({ key, value, type, required });
         if (!validatedFields.success) {
-            const newErrors = validatedFields.error.flatten().fieldErrors ?? { key: [], value: [], type: [] };
+            const newErrors = validatedFields.error.flatten().fieldErrors ?? { key: [], value: [], type: [], required: [] };
             const existingErrors = [
                 ...newErrors.key ?? [],
                 ...newErrors.value ?? [],
-                ...newErrors.type ?? []
+                ...newErrors.type ?? [],
+                ...newErrors.required ?? []
             ];
-            setErrors(existingErrors);
+            setErrors((prev) => [...prev, ...existingErrors]);
             setPending(false);
             return;
         }
@@ -152,12 +151,17 @@ export default function SettingsPage() {
         if (type == "number") {
             const parsedValue = parseFloat(value);
             if (isNaN(parsedValue)) {
-                return { errors: { key: undefined, value: ["invalid number"], type: undefined } };
+                setErrors((prev) => [...prev, "invalid number value"]);
+                setPending(false);
+                return;
             }
         } else if (type === "bool") {
             const valid = ["true", "false", "1", "0"];
-            if (!valid.includes(value.toLowerCase()))
-                return { errors: { key: undefined, value: ["invalid boolean"], type: undefined } };
+            if (!valid.includes(value.toLowerCase())) {
+                setErrors((prev) => [...prev, "invalid boolean value"]);
+                setPending(false);
+                return;
+            }
         } else if (type == "string") {}
 
         const setting = settings[newfieldProviderIndex];
@@ -167,6 +171,7 @@ export default function SettingsPage() {
             type,
             required
         });
+        setSettings((prev) => { const temp = [...prev]; temp[newfieldProviderIndex] = setting; return temp; });
         setShowNewFieldModal(false);
         setPending(false);
     }
@@ -174,7 +179,8 @@ export default function SettingsPage() {
     function deleteField(providerIndex: number, fieldKey: string) {
         setPending(true);
         if (settings.length <= providerIndex) {
-            setAPIError("invalid provider index");
+            setPending(false);
+            setErrors((prev) => [...prev, "invalid provider index"]);
             return;
         }
 
@@ -186,23 +192,15 @@ export default function SettingsPage() {
         setPending(false);
     }
 
-    function onCloseToast(index: number) {
-        const e = [...errors];
-        if (e.length <= index) {
-            setAPIError("invalid error index");
-            return;
-        }
-        e.splice(index, 1);
-        setErrors(e);
-    }
-
     function deleteSetting(index: number) {
+        setPending(true);
         const setting = settings[index];
         DeleteSetting({ uuid: setting.uuid })
             .then(
                 () => {
                     const newSettings = [...settings];
                     newSettings.splice(index, 1);
+                    setPending(false);
                     setSettings(newSettings);
                     setSuccessToastMessage("Setting deleted successfully");
                 },
@@ -216,13 +214,14 @@ export default function SettingsPage() {
         const validatedSetting = newSettingSchema.safeParse({ name });
         if (!validatedSetting.success) {
             const newErrors = validatedSetting.error.flatten().fieldErrors ?? { name: [] };
-            setErrors(newErrors.name ?? []);
+            setErrors((prev) => [...prev, ...(newErrors.name ?? [])]);
+            setPending(false);
             return;
         }
         CreateSetting({ name, providerType })
             .then(
-                async(data) => {
-                    const setting = await GetSetting({ uuid: data }).catch(handleError);
+                async(uuid) => {
+                    const setting = await GetSetting({ uuid }).catch(handleError);
                     if (!setting)
                         return;
                     const newSettings = [...settings];
@@ -245,30 +244,28 @@ export default function SettingsPage() {
                backdrop="static"
                centered={true}
                restoreFocus={false}>
-                <Form onSubmit={() => createField()}>
-                    <ModalHeader>
-                        <ModalTitle>Create New Field</ModalTitle>
-                    </ModalHeader>
-                    <ModalBody>
-                        <FloatingLabel controlId="newFieldKey" label="Field Key" className="mb-3">
-                            <FormControl type="text" autoFocus value={fieldKey} onChange={(e) => setFieldKey(e.target.value)} />
-                        </FloatingLabel>
-                        <FloatingLabel controlId="newFieldValue" label="Field Value" className="mb-3">
-                            <FormControl type="text" value={fieldValue} onChange={(e) => setFieldValue(e.target.value)} />
-                        </FloatingLabel>
-                        <FloatingLabel controlId="newFieldDescription" label="Field Data Type" className="mb-3">
-                            <FormSelect value={fieldType} onChange={(e) => setFieldType(e.target.value)}>
-                                <option value="string">String</option>
-                                <option value="number">Number</option>
-                                <option value="bool">Boolean</option>
-                            </FormSelect>
-                        </FloatingLabel>
-                        <FormCheck className="mx-auto" label="Required Field" checked={fieldRequired} onChange={(e) => setFieldRequired(e.target.checked)} />
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button variant="primary" disabled={pending} type="submit">Create Field</Button>
-                    </ModalFooter>
-                </Form>
+                <ModalHeader closeButton>
+                    <ModalTitle>Create New Field</ModalTitle>
+                </ModalHeader>
+                <ModalBody>
+                    <FloatingLabel controlId="newFieldKey" label="Field Key" className="mb-3">
+                        <FormControl type="text" autoFocus value={fieldKey} onChange={(e) => setFieldKey(e.target.value)} />
+                    </FloatingLabel>
+                    <FloatingLabel controlId="newFieldValue" label="Field Value" className="mb-3">
+                        <FormControl type="text" value={fieldValue} onChange={(e) => setFieldValue(e.target.value)} />
+                    </FloatingLabel>
+                    <FloatingLabel controlId="newFieldDescription" label="Field Data Type" className="mb-3">
+                        <FormSelect value={fieldType} onChange={(e) => setFieldType(e.target.value)}>
+                            <option value="string">String</option>
+                            <option value="number">Number</option>
+                            <option value="bool">Boolean</option>
+                        </FormSelect>
+                    </FloatingLabel>
+                    <FormCheck className="mx-auto" label="Required Field" checked={fieldRequired} onChange={(e) => setFieldRequired(e.target.checked)} />
+                </ModalBody>
+                <ModalFooter>
+                    <Button variant="primary" disabled={pending} onClick={() => createField()}>Create Field</Button>
+                </ModalFooter>
             </Modal>
 
             {/* Modal for creating a new setting */}
@@ -278,19 +275,17 @@ export default function SettingsPage() {
                backdrop="static"
                centered={true}
                restoreFocus={false}>
-                <Form onSubmit={() => createSetting()}>
-                    <ModalHeader>
-                        <ModalTitle>Create New Setting</ModalTitle>
-                    </ModalHeader>
-                    <ModalBody>
-                        <FloatingLabel controlId="newSettingName" label="Setting Name" className="mb-3">
-                            <FormControl type="text" autoFocus value={settingName} onChange={(e) => setSettingName(e.target.value)} />
-                        </FloatingLabel>
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button variant="primary" disabled={pending} type="submit">Create Setting</Button>
-                    </ModalFooter>
-                </Form>
+                <ModalHeader closeButton>
+                    <ModalTitle>Create New Setting</ModalTitle>
+                </ModalHeader>
+                <ModalBody>
+                    <FloatingLabel controlId="newSettingName" label="Setting Name" className="mb-3">
+                        <FormControl type="text" autoFocus value={settingName} onChange={(e) => setSettingName(e.target.value)} />
+                    </FloatingLabel>
+                </ModalBody>
+                <ModalFooter>
+                    <Button variant="primary" disabled={pending} onClick={() => createSetting()}>Create Setting</Button>
+                </ModalFooter>
             </Modal>
 
             <Row className="mt-3">
@@ -379,28 +374,14 @@ export default function SettingsPage() {
             }
 
             {/* Toasts for showing error messages */}
-            <ToastContainer position="bottom-end" className="p-3">
-                { errors.map((error: string, index: number) => (
-                    showErrors[index] && (
-                        <Toast bg="danger" onClose={() => onCloseToast(index)} key={`error-${index}`} autohide delay={5000}>
-                            <ToastHeader>Error</ToastHeader>
-                            <ToastBody>{error}</ToastBody>
-                        </Toast>
-                    ))
-                )}
-                { showAPIError && (
-                    <Toast bg="danger" onClose={() => { setAPIError(undefined); }} key={"error"} autohide delay={5000}>
-                        <ToastHeader>Error</ToastHeader>
-                        <ToastBody>{apiError}</ToastBody>
-                    </Toast>
-                )}
-                { showSuccessToast && (
-                    <Toast bg="success" onClose={() => { setSuccessToastMessage(undefined); }} key={"success"} autohide delay={5000}>
-                        <ToastHeader>Success</ToastHeader>
-                        <ToastBody>{successToastMessage}</ToastBody>
-                    </Toast>
-                )}
-            </ToastContainer>
+            <ToastContainerComponent
+                errors={errors}
+                showErrors={showErrors}
+                successMessage={successToastMessage}
+                showSuccessMessage={showSuccessToast}
+                setErrors={setErrors}
+                setSuccessToastMessage={setSuccessToastMessage}
+                />
         </div>
     );
 }

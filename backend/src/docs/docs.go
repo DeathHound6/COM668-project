@@ -889,6 +889,15 @@ const docTemplate = `{
                         "name": "provider_type",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "description": "Provider data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/utility.ProviderPostRequestBodySchema"
+                        }
                     }
                 ],
                 "responses": {
@@ -996,6 +1005,15 @@ const docTemplate = `{
                         "name": "provider_id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "Provider data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/utility.ProviderPutRequestBodySchema"
+                        }
                     }
                 ],
                 "responses": {
@@ -1348,11 +1366,8 @@ const docTemplate = `{
     "definitions": {
         "controller.GetManyHostsResponseSchema": {
             "type": "object",
-            "required": [
-                "data",
-                "meta"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "data": {
                     "type": "array",
                     "items": {
@@ -1366,11 +1381,8 @@ const docTemplate = `{
         },
         "controller.GetManyIncidentsResponseSchema": {
             "type": "object",
-            "required": [
-                "data",
-                "meta"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "data": {
                     "type": "array",
                     "items": {
@@ -1384,11 +1396,8 @@ const docTemplate = `{
         },
         "controller.GetManyProvidersResponseSchema": {
             "type": "object",
-            "required": [
-                "data",
-                "meta"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "data": {
                     "type": "array",
                     "items": {
@@ -1402,11 +1411,8 @@ const docTemplate = `{
         },
         "controller.GetManyTeamsResponseSchema": {
             "type": "object",
-            "required": [
-                "data",
-                "meta"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "data": {
                     "type": "array",
                     "items": {
@@ -1420,10 +1426,8 @@ const docTemplate = `{
         },
         "utility.ErrorResponseSchema": {
             "type": "object",
-            "required": [
-                "error"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "error": {
                     "type": "string"
                 }
@@ -1431,17 +1435,10 @@ const docTemplate = `{
         },
         "utility.HostMachineGetResponseBodySchema": {
             "type": "object",
-            "required": [
-                "hostname",
-                "os",
-                "team",
-                "uuid"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "hostname": {
-                    "type": "string",
-                    "maxLength": 255,
-                    "minLength": 1
+                    "type": "string"
                 },
                 "ip4": {
                     "type": "string"
@@ -1450,12 +1447,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "os": {
-                    "type": "string",
-                    "enum": [
-                        "Windows",
-                        "Linux",
-                        "MacOS"
-                    ]
+                    "type": "string"
                 },
                 "team": {
                     "$ref": "#/definitions/utility.TeamGetResponseBodySchema"
@@ -1467,16 +1459,10 @@ const docTemplate = `{
         },
         "utility.HostMachinePostPutRequestBodySchema": {
             "type": "object",
-            "required": [
-                "hostname",
-                "os",
-                "teamID"
-            ],
             "properties": {
+                "BodySchema": {},
                 "hostname": {
-                    "type": "string",
-                    "maxLength": 255,
-                    "minLength": 1
+                    "type": "string"
                 },
                 "ip4": {
                     "type": "string"
@@ -1485,12 +1471,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "os": {
-                    "type": "string",
-                    "enum": [
-                        "Windows",
-                        "Linux",
-                        "MacOS"
-                    ]
+                    "type": "string"
                 },
                 "teamID": {
                     "type": "string"
@@ -1499,16 +1480,10 @@ const docTemplate = `{
         },
         "utility.IncidentCommentGetResponseBodySchema": {
             "type": "object",
-            "required": [
-                "comment",
-                "commentedAt",
-                "commentedBy",
-                "uuid"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "comment": {
-                    "type": "string",
-                    "maxLength": 200
+                    "type": "string"
                 },
                 "commentedAt": {
                     "type": "string"
@@ -1523,31 +1498,17 @@ const docTemplate = `{
         },
         "utility.IncidentCommentPostRequestBodySchema": {
             "type": "object",
-            "required": [
-                "comment"
-            ],
             "properties": {
+                "BodySchema": {},
                 "comment": {
-                    "type": "string",
-                    "maxLength": 200,
-                    "minLength": 1
+                    "type": "string"
                 }
             }
         },
         "utility.IncidentGetResponseBodySchema": {
             "type": "object",
-            "required": [
-                "comments",
-                "createdAt",
-                "description",
-                "hostsAffected",
-                "resolutionTeams",
-                "resolvedAt",
-                "resolvedBy",
-                "summary",
-                "uuid"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "comments": {
                     "type": "array",
                     "items": {
@@ -1558,8 +1519,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "description": {
-                    "type": "string",
-                    "maxLength": 500
+                    "type": "string"
                 },
                 "hostsAffected": {
                     "type": "array",
@@ -1580,8 +1540,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/utility.UserGetResponseBodySchema"
                 },
                 "summary": {
-                    "type": "string",
-                    "maxLength": 100
+                    "type": "string"
                 },
                 "uuid": {
                     "type": "string"
@@ -1590,18 +1549,10 @@ const docTemplate = `{
         },
         "utility.IncidentPutRequestBodySchema": {
             "type": "object",
-            "required": [
-                "description",
-                "hostsAffected",
-                "resolutionTeams",
-                "resolved",
-                "summary"
-            ],
             "properties": {
+                "BodySchema": {},
                 "description": {
-                    "type": "string",
-                    "maxLength": 500,
-                    "minLength": 1
+                    "type": "string"
                 },
                 "hostsAffected": {
                     "type": "array",
@@ -1619,24 +1570,17 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "summary": {
-                    "type": "string",
-                    "maxLength": 100,
-                    "minLength": 1
+                    "type": "string"
                 }
             }
         },
         "utility.KeyValueSchema": {
             "type": "object",
-            "required": [
-                "key",
-                "required",
-                "type",
-                "value"
-            ],
             "properties": {
+                "BodySchema": {},
+                "ResponseSchema": {},
                 "key": {
-                    "type": "string",
-                    "maxLength": 20
+                    "type": "string"
                 },
                 "required": {
                     "type": "boolean"
@@ -1645,20 +1589,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "value": {
-                    "type": "string",
-                    "maxLength": 30
+                    "type": "string"
                 }
             }
         },
         "utility.MetaSchema": {
             "type": "object",
-            "required": [
-                "page",
-                "pageSize",
-                "pages",
-                "total"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "page": {
                     "type": "integer"
                 },
@@ -1675,13 +1613,8 @@ const docTemplate = `{
         },
         "utility.ProviderGetResponseSchema": {
             "type": "object",
-            "required": [
-                "fields",
-                "name",
-                "type",
-                "uuid"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "fields": {
                     "type": "array",
                     "items": {
@@ -1689,8 +1622,7 @@ const docTemplate = `{
                     }
                 },
                 "name": {
-                    "type": "string",
-                    "maxLength": 30
+                    "type": "string"
                 },
                 "type": {
                     "type": "string"
@@ -1700,16 +1632,36 @@ const docTemplate = `{
                 }
             }
         },
+        "utility.ProviderPostRequestBodySchema": {
+            "type": "object",
+            "properties": {
+                "BodySchema": {},
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "utility.ProviderPutRequestBodySchema": {
+            "type": "object",
+            "properties": {
+                "BodySchema": {},
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utility.KeyValueSchema"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "utility.TeamGetResponseBodySchema": {
             "type": "object",
-            "required": [
-                "name",
-                "uuid"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "name": {
-                    "type": "string",
-                    "maxLength": 30
+                    "type": "string"
                 },
                 "uuid": {
                     "type": "string"
@@ -1718,29 +1670,19 @@ const docTemplate = `{
         },
         "utility.UserGetResponseBodySchema": {
             "type": "object",
-            "required": [
-                "admin",
-                "email",
-                "name",
-                "slackID",
-                "teams",
-                "uuid"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "admin": {
                     "type": "boolean"
                 },
                 "email": {
-                    "type": "string",
-                    "maxLength": 30
+                    "type": "string"
                 },
                 "name": {
-                    "type": "string",
-                    "maxLength": 30
+                    "type": "string"
                 },
                 "slackID": {
-                    "type": "string",
-                    "maxLength": 30
+                    "type": "string"
                 },
                 "teams": {
                     "type": "array",
@@ -1755,46 +1697,28 @@ const docTemplate = `{
         },
         "utility.UserLoginRequestBodySchema": {
             "type": "object",
-            "required": [
-                "email",
-                "password"
-            ],
             "properties": {
+                "BodySchema": {},
                 "email": {
-                    "type": "string",
-                    "maxLength": 30,
-                    "minLength": 1
+                    "type": "string"
                 },
                 "password": {
-                    "type": "string",
-                    "maxLength": 72,
-                    "minLength": 1
+                    "type": "string"
                 }
             }
         },
         "utility.UserPostRequestBodySchema": {
             "type": "object",
-            "required": [
-                "email",
-                "name",
-                "password",
-                "teams"
-            ],
             "properties": {
+                "BodySchema": {},
                 "email": {
-                    "type": "string",
-                    "maxLength": 30,
-                    "minLength": 1
+                    "type": "string"
                 },
                 "name": {
-                    "type": "string",
-                    "maxLength": 30,
-                    "minLength": 1
+                    "type": "string"
                 },
                 "password": {
-                    "type": "string",
-                    "maxLength": 72,
-                    "minLength": 1
+                    "type": "string"
                 },
                 "teams": {
                     "type": "array",

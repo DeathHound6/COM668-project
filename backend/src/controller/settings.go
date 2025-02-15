@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type GetManyProvidersResponseSchema utility.GetManyResponseSchema[*utility.ProviderGetResponseSchema]
@@ -115,6 +116,14 @@ func GetProviders() gin.HandlerFunc {
 func GetProvider() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		providerID := ctx.Param("provider_id")
+		if _, err := uuid.Parse(providerID); err != nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "Invalid provider ID",
+			})
+			ctx.Next()
+			return
+		}
 
 		provider, err := database.GetProvider(ctx, database.GetProvidersFilters{UUID: &providerID})
 		if err != nil {
@@ -154,7 +163,8 @@ func GetProvider() gin.HandlerFunc {
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			provider_type	query	string	true	"The type of provider"	Enums(log, alert)
+//	@Param			provider_type	query	string									true	"The type of provider"	Enums(log, alert)
+//	@Param			body			body	utility.ProviderPostRequestBodySchema	true	"Provider data"
 //	@Success		201
 //	@Failure		401	{object}	utility.ErrorResponseSchema
 //	@Failure		403	{object}	utility.ErrorResponseSchema
@@ -181,6 +191,15 @@ func CreateProvider() gin.HandlerFunc {
 			return
 		}
 
+		if status, err := body.Validate(); err != nil {
+			ctx.Set("Status", status)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
 		provider := &database.Provider{
 			Name:   body.Name,
 			Fields: []database.ProviderField{},
@@ -194,22 +213,9 @@ func CreateProvider() gin.HandlerFunc {
 			ctx.Next()
 			return
 		}
-		fields := make([]utility.KeyValueSchema, 0)
-		for _, field := range provider.Fields {
-			fields = append(fields, utility.KeyValueSchema{
-				Key:      field.Key,
-				Value:    field.Value,
-				Type:     field.Type,
-				Required: &field.Required,
-			})
-		}
+
 		ctx.Set("Status", http.StatusCreated)
-		ctx.Set("Body", &utility.ProviderGetResponseSchema{
-			UUID:   provider.UUID,
-			Name:   provider.Name,
-			Fields: fields,
-			Type:   provider.Type,
-		})
+		ctx.Header("Location", fmt.Sprintf("%s://%s/providers/%s", ctx.Request.URL.Scheme, ctx.Request.URL.Host, provider.UUID))
 	}
 }
 
@@ -221,7 +227,8 @@ func CreateProvider() gin.HandlerFunc {
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			provider_id	path	string	true	"Provider ID"	format(uuid)
+//	@Param			provider_id	path	string									true	"Provider ID"	format(uuid)
+//	@Param			body		body	utility.ProviderPutRequestBodySchema	true	"Provider data"
 //	@Success		204
 //	@Failure		401	{object}	utility.ErrorResponseSchema
 //	@Failure		403	{object}	utility.ErrorResponseSchema
@@ -230,6 +237,16 @@ func CreateProvider() gin.HandlerFunc {
 //	@Router			/providers/{provider_id} [put]
 func UpdateProvider() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		providerID := ctx.Param("provider_id")
+		if _, err := uuid.Parse(providerID); err != nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "Invalid provider ID",
+			})
+			ctx.Next()
+			return
+		}
+
 		var body *utility.ProviderPutRequestBodySchema
 		if err := ctx.ShouldBindJSON(&body); err != nil {
 			ctx.Set("Status", http.StatusBadRequest)
@@ -240,8 +257,16 @@ func UpdateProvider() gin.HandlerFunc {
 			return
 		}
 
-		providerID := ctx.Param("provider_id")
-		_, err := database.GetProvider(ctx, database.GetProvidersFilters{UUID: &providerID})
+		if status, err := body.Validate(); err != nil {
+			ctx.Set("Status", status)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		provider, err := database.GetProvider(ctx, database.GetProvidersFilters{UUID: &providerID})
 		if err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
 			ctx.Set("Body", &utility.ErrorResponseSchema{
@@ -250,8 +275,23 @@ func UpdateProvider() gin.HandlerFunc {
 			ctx.Next()
 			return
 		}
+		provider.Name = body.Name
+		provider.Fields = []database.ProviderField{}
+		for _, field := range body.Fields {
+			var required bool = false
+			if field.Required != nil {
+				required = *field.Required
+			}
+			providerField := database.ProviderField{
+				Key:      field.Key,
+				Value:    field.Value,
+				Type:     field.Type,
+				Required: required,
+			}
+			provider.Fields = append(provider.Fields, providerField)
+		}
 
-		if err := database.UpdateProvider(ctx, database.GetProvidersFilters{UUID: &providerID}, body); err != nil {
+		if err := database.UpdateProvider(ctx, provider); err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
 			ctx.Set("Body", &utility.ErrorResponseSchema{
 				Error: err.Error(),
@@ -281,6 +321,15 @@ func UpdateProvider() gin.HandlerFunc {
 func DeleteProvider() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		providerID := ctx.Param("provider_id")
+		if _, err := uuid.Parse(providerID); err != nil {
+			ctx.Set("Status", http.StatusBadRequest)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "Invalid provider ID",
+			})
+			ctx.Next()
+			return
+		}
+
 		_, err := database.GetProvider(ctx, database.GetProvidersFilters{UUID: &providerID})
 		if err != nil {
 			ctx.Set("Status", http.StatusNotFound)

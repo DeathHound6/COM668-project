@@ -21,18 +21,22 @@ var (
 	conn             *gorm.DB    = nil
 	defaultProviders []*Provider = []*Provider{
 		{
+			UUID: "0a846a37-d039-42c6-a1c9-699763ae646e",
 			Name: "Sentry",
 			Type: "log",
 		},
 		{
+			UUID: "31a3e142-1222-45ca-9c89-91c736cdf4a6",
 			Name: "DynaTrace",
 			Type: "log",
 		},
 		{
+			UUID: "24d0e277-1f85-4779-9d25-3db24055b493",
 			Name: "Slack",
 			Type: "alert",
 		},
 		{
+			UUID: "87c6c563-21df-4a3e-8746-f7871e6fa431",
 			Name: "Microsoft Teams",
 			Type: "alert",
 		},
@@ -83,23 +87,28 @@ var (
 	}
 	defaultTeams []*Team = []*Team{
 		{
+			UUID: "574b5d6a-1fcd-43bf-bb31-7e870ca458d4",
 			Name: "Engineering",
 		},
 		{
+			UUID: "7544efed-9e6f-4bf1-a8f9-9a93df5944df",
 			Name: "DevOps",
 		},
 		{
+			UUID: "89e7fdc7-dd8c-471c-9e23-94cf678412a2",
 			Name: "Monitoring",
 		},
 	}
 	defaultUsers []*User = []*User{
 		{
+			UUID:     "39ab8bf8-fd8c-43c2-b691-3acb4f5a3fab",
 			Name:     "System",
 			Email:    "test@example.com",
 			Password: "system_user",
 			Admin:    true,
 		},
 		{
+			UUID:     "417cd42a-ddff-42dc-b358-801807522dbd",
 			Name:     "Test User",
 			Email:    "user1@example.com",
 			Password: "test_user",
@@ -118,6 +127,7 @@ var (
 	}
 	defaultHosts []*HostMachine = []*HostMachine{
 		{
+			UUID:     "c3cb5381-7b79-4bbe-9337-8a27f94646a4",
 			Hostname: "test_app",
 			IP4:      utility.Pointer("172.18.0.3"),
 			IP6:      nil,
@@ -127,6 +137,7 @@ var (
 	}
 	defaultIncidents []*Incident = []*Incident{
 		{
+			UUID:         "eddb82c0-50fd-4faa-adc0-95db00df52da",
 			Summary:      "Test Incident",
 			Description:  "This is a test incident",
 			Comments:     []IncidentComment{},
@@ -135,6 +146,7 @@ var (
 			ResolvedByID: nil,
 		},
 		{
+			UUID:         "30daaadd-596c-4676-9194-c8f48a654931",
 			Summary:      "Test Incident 2",
 			Description:  "This is a test incident",
 			CreatedAt:    time.Now().Add(time.Hour * -3),
@@ -144,6 +156,7 @@ var (
 	}
 	defaultIncidentComments []*IncidentComment = []*IncidentComment{
 		{
+			UUID:          "3ca620e9-b90f-492d-9597-5677f762ec00",
 			Comment:       "This is a test comment",
 			IncidentID:    2,
 			CommentedByID: 1,

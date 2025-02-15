@@ -74,6 +74,16 @@ func CreateUser() gin.HandlerFunc {
 			ctx.Next()
 			return
 		}
+
+		if status, err := body.Validate(); err != nil {
+			ctx.Set("Status", status)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
 		user, err := database.CreateUser(ctx, body)
 		if err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
@@ -124,7 +134,18 @@ func LoginUser() gin.HandlerFunc {
 			return
 		}
 
-		user, err := database.GetUser(ctx, body.Email)
+		if status, err := body.Validate(); err != nil {
+			ctx.Set("Status", status)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		user, err := database.GetUser(ctx, database.GetUserFilters{
+			Email: &body.Email,
+		})
 		if user == nil || err != nil || !user.ValidatePassword(body.Password) {
 			if err != nil {
 				log.Default().Println(err)
@@ -142,7 +163,7 @@ func LoginUser() gin.HandlerFunc {
 		claims["iss"] = "COM668"
 		claims["iat"] = jwt.NewNumericDate(time.Now())
 		claims["exp"] = jwt.NewNumericDate(time.Now().Add(time.Hour * 24))
-		claims["sub"] = base64.StdEncoding.EncodeToString([]byte(user.Email))
+		claims["sub"] = base64.StdEncoding.EncodeToString([]byte(user.UUID))
 		token.Claims = claims
 		jwtString, err := token.SignedString([]byte(os.Getenv("JWT_SIGNING_KEY")))
 		if err != nil {

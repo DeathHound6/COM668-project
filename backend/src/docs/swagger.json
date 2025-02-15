@@ -885,6 +885,15 @@
                         "name": "provider_type",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "description": "Provider data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/utility.ProviderPostRequestBodySchema"
+                        }
                     }
                 ],
                 "responses": {
@@ -992,6 +1001,15 @@
                         "name": "provider_id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "Provider data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/utility.ProviderPutRequestBodySchema"
+                        }
                     }
                 ],
                 "responses": {
@@ -1344,11 +1362,8 @@
     "definitions": {
         "controller.GetManyHostsResponseSchema": {
             "type": "object",
-            "required": [
-                "data",
-                "meta"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "data": {
                     "type": "array",
                     "items": {
@@ -1362,11 +1377,8 @@
         },
         "controller.GetManyIncidentsResponseSchema": {
             "type": "object",
-            "required": [
-                "data",
-                "meta"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "data": {
                     "type": "array",
                     "items": {
@@ -1380,11 +1392,8 @@
         },
         "controller.GetManyProvidersResponseSchema": {
             "type": "object",
-            "required": [
-                "data",
-                "meta"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "data": {
                     "type": "array",
                     "items": {
@@ -1398,11 +1407,8 @@
         },
         "controller.GetManyTeamsResponseSchema": {
             "type": "object",
-            "required": [
-                "data",
-                "meta"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "data": {
                     "type": "array",
                     "items": {
@@ -1416,10 +1422,8 @@
         },
         "utility.ErrorResponseSchema": {
             "type": "object",
-            "required": [
-                "error"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "error": {
                     "type": "string"
                 }
@@ -1427,17 +1431,10 @@
         },
         "utility.HostMachineGetResponseBodySchema": {
             "type": "object",
-            "required": [
-                "hostname",
-                "os",
-                "team",
-                "uuid"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "hostname": {
-                    "type": "string",
-                    "maxLength": 255,
-                    "minLength": 1
+                    "type": "string"
                 },
                 "ip4": {
                     "type": "string"
@@ -1446,12 +1443,7 @@
                     "type": "string"
                 },
                 "os": {
-                    "type": "string",
-                    "enum": [
-                        "Windows",
-                        "Linux",
-                        "MacOS"
-                    ]
+                    "type": "string"
                 },
                 "team": {
                     "$ref": "#/definitions/utility.TeamGetResponseBodySchema"
@@ -1463,16 +1455,10 @@
         },
         "utility.HostMachinePostPutRequestBodySchema": {
             "type": "object",
-            "required": [
-                "hostname",
-                "os",
-                "teamID"
-            ],
             "properties": {
+                "BodySchema": {},
                 "hostname": {
-                    "type": "string",
-                    "maxLength": 255,
-                    "minLength": 1
+                    "type": "string"
                 },
                 "ip4": {
                     "type": "string"
@@ -1481,12 +1467,7 @@
                     "type": "string"
                 },
                 "os": {
-                    "type": "string",
-                    "enum": [
-                        "Windows",
-                        "Linux",
-                        "MacOS"
-                    ]
+                    "type": "string"
                 },
                 "teamID": {
                     "type": "string"
@@ -1495,16 +1476,10 @@
         },
         "utility.IncidentCommentGetResponseBodySchema": {
             "type": "object",
-            "required": [
-                "comment",
-                "commentedAt",
-                "commentedBy",
-                "uuid"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "comment": {
-                    "type": "string",
-                    "maxLength": 200
+                    "type": "string"
                 },
                 "commentedAt": {
                     "type": "string"
@@ -1519,31 +1494,17 @@
         },
         "utility.IncidentCommentPostRequestBodySchema": {
             "type": "object",
-            "required": [
-                "comment"
-            ],
             "properties": {
+                "BodySchema": {},
                 "comment": {
-                    "type": "string",
-                    "maxLength": 200,
-                    "minLength": 1
+                    "type": "string"
                 }
             }
         },
         "utility.IncidentGetResponseBodySchema": {
             "type": "object",
-            "required": [
-                "comments",
-                "createdAt",
-                "description",
-                "hostsAffected",
-                "resolutionTeams",
-                "resolvedAt",
-                "resolvedBy",
-                "summary",
-                "uuid"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "comments": {
                     "type": "array",
                     "items": {
@@ -1554,8 +1515,7 @@
                     "type": "string"
                 },
                 "description": {
-                    "type": "string",
-                    "maxLength": 500
+                    "type": "string"
                 },
                 "hostsAffected": {
                     "type": "array",
@@ -1576,8 +1536,7 @@
                     "$ref": "#/definitions/utility.UserGetResponseBodySchema"
                 },
                 "summary": {
-                    "type": "string",
-                    "maxLength": 100
+                    "type": "string"
                 },
                 "uuid": {
                     "type": "string"
@@ -1586,18 +1545,10 @@
         },
         "utility.IncidentPutRequestBodySchema": {
             "type": "object",
-            "required": [
-                "description",
-                "hostsAffected",
-                "resolutionTeams",
-                "resolved",
-                "summary"
-            ],
             "properties": {
+                "BodySchema": {},
                 "description": {
-                    "type": "string",
-                    "maxLength": 500,
-                    "minLength": 1
+                    "type": "string"
                 },
                 "hostsAffected": {
                     "type": "array",
@@ -1615,24 +1566,17 @@
                     "type": "boolean"
                 },
                 "summary": {
-                    "type": "string",
-                    "maxLength": 100,
-                    "minLength": 1
+                    "type": "string"
                 }
             }
         },
         "utility.KeyValueSchema": {
             "type": "object",
-            "required": [
-                "key",
-                "required",
-                "type",
-                "value"
-            ],
             "properties": {
+                "BodySchema": {},
+                "ResponseSchema": {},
                 "key": {
-                    "type": "string",
-                    "maxLength": 20
+                    "type": "string"
                 },
                 "required": {
                     "type": "boolean"
@@ -1641,20 +1585,14 @@
                     "type": "string"
                 },
                 "value": {
-                    "type": "string",
-                    "maxLength": 30
+                    "type": "string"
                 }
             }
         },
         "utility.MetaSchema": {
             "type": "object",
-            "required": [
-                "page",
-                "pageSize",
-                "pages",
-                "total"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "page": {
                     "type": "integer"
                 },
@@ -1671,13 +1609,8 @@
         },
         "utility.ProviderGetResponseSchema": {
             "type": "object",
-            "required": [
-                "fields",
-                "name",
-                "type",
-                "uuid"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "fields": {
                     "type": "array",
                     "items": {
@@ -1685,8 +1618,7 @@
                     }
                 },
                 "name": {
-                    "type": "string",
-                    "maxLength": 30
+                    "type": "string"
                 },
                 "type": {
                     "type": "string"
@@ -1696,16 +1628,36 @@
                 }
             }
         },
+        "utility.ProviderPostRequestBodySchema": {
+            "type": "object",
+            "properties": {
+                "BodySchema": {},
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "utility.ProviderPutRequestBodySchema": {
+            "type": "object",
+            "properties": {
+                "BodySchema": {},
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utility.KeyValueSchema"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "utility.TeamGetResponseBodySchema": {
             "type": "object",
-            "required": [
-                "name",
-                "uuid"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "name": {
-                    "type": "string",
-                    "maxLength": 30
+                    "type": "string"
                 },
                 "uuid": {
                     "type": "string"
@@ -1714,29 +1666,19 @@
         },
         "utility.UserGetResponseBodySchema": {
             "type": "object",
-            "required": [
-                "admin",
-                "email",
-                "name",
-                "slackID",
-                "teams",
-                "uuid"
-            ],
             "properties": {
+                "ResponseSchema": {},
                 "admin": {
                     "type": "boolean"
                 },
                 "email": {
-                    "type": "string",
-                    "maxLength": 30
+                    "type": "string"
                 },
                 "name": {
-                    "type": "string",
-                    "maxLength": 30
+                    "type": "string"
                 },
                 "slackID": {
-                    "type": "string",
-                    "maxLength": 30
+                    "type": "string"
                 },
                 "teams": {
                     "type": "array",
@@ -1751,46 +1693,28 @@
         },
         "utility.UserLoginRequestBodySchema": {
             "type": "object",
-            "required": [
-                "email",
-                "password"
-            ],
             "properties": {
+                "BodySchema": {},
                 "email": {
-                    "type": "string",
-                    "maxLength": 30,
-                    "minLength": 1
+                    "type": "string"
                 },
                 "password": {
-                    "type": "string",
-                    "maxLength": 72,
-                    "minLength": 1
+                    "type": "string"
                 }
             }
         },
         "utility.UserPostRequestBodySchema": {
             "type": "object",
-            "required": [
-                "email",
-                "name",
-                "password",
-                "teams"
-            ],
             "properties": {
+                "BodySchema": {},
                 "email": {
-                    "type": "string",
-                    "maxLength": 30,
-                    "minLength": 1
+                    "type": "string"
                 },
                 "name": {
-                    "type": "string",
-                    "maxLength": 30,
-                    "minLength": 1
+                    "type": "string"
                 },
                 "password": {
-                    "type": "string",
-                    "maxLength": 72,
-                    "minLength": 1
+                    "type": "string"
                 },
                 "teams": {
                     "type": "array",

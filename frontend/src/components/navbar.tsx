@@ -25,21 +25,24 @@ export default function NavbarComponent() {
     const [user, setUser] = useState({} as User | null);
 
     useEffect(() => {
+        // Redirect the user to the dashboard if they are on the root path
+        if (pathname == "/")
+            redirect("/dashboard", RedirectType.replace);
         // Handle the case where the JWT token is expired on page load
         const userinfo = localStorage.getItem("u");
         const expireTimestamp = localStorage.getItem("e");
-        if (window.location.pathname.toLowerCase() != "/login" && (userinfo == null || expireTimestamp == null))
+        if (pathname.toLowerCase() != "/login" && (userinfo == null || expireTimestamp == null))
             redirect("/login", RedirectType.replace);
 
         if (expireTimestamp != null && parseInt(expireTimestamp) < Date.now()) {
             localStorage.removeItem("u");
             localStorage.removeItem("e");
-            if (window.location.pathname.toLowerCase() != "/login")
+            if (pathname.toLowerCase() != "/login")
                 redirect("/login", RedirectType.replace);
         }
 
         // if the user is on the login page and already logged in, redirect them to the dashboard
-        if (window.location.pathname.toLowerCase() == "/login" && userinfo != null)
+        if (pathname.toLowerCase() == "/login" && userinfo != null)
             redirect("/dashboard", RedirectType.replace);
         setUser(userinfo != null ? JSON.parse(userinfo) : null);
     }, [pathname]);
@@ -66,17 +69,15 @@ export default function NavbarComponent() {
                     <NavLink href="/history" eventKey="/history">Incident History</NavLink>
                 </NavItem>
                 {
-                    user != null && user["admin"] == true && (
-                        <>
-                            <NavItem className="p-2 m-1 border rounded">
-                                <NavLink href="/settings" eventKey="/settings">Settings</NavLink>
-                            </NavItem>
-                            <NavItem className="p-2 m-1 border rounded">
-                                <NavLink href="/hosts" eventKey="/hosts">Host Inventory</NavLink>
-                            </NavItem>
-                        </>
+                    (user != null && user.admin) && (
+                        <NavItem className="p-2 m-1 border rounded">
+                            <NavLink href="/settings" eventKey="/settings">Settings</NavLink>
+                        </NavItem>
                     )
                 }
+                <NavItem className="p-2 m-1 border rounded">
+                    <NavLink href="/hosts" eventKey="/hosts">Host Inventory</NavLink>
+                </NavItem>
             </Nav>
             <NavItem className="me-auto"></NavItem>
             <NavItem>
@@ -88,7 +89,7 @@ export default function NavbarComponent() {
                             : (<DropdownItemText>Signed in as <span style={{color: "grey"}}>{user["name"]}</span></DropdownItemText>)
                         }
                         { user != null && (
-                            <>
+                            <div>
                                 <DropdownDivider />
                                 <DropdownItem onClick={() => authSlack()}>
                                     <Row xs={4}>
@@ -104,7 +105,7 @@ export default function NavbarComponent() {
                                 <DropdownItem onClick={() => logout()}>
                                     Logout
                                 </DropdownItem>
-                            </>
+                            </div>
                         )}
                     </DropdownMenu>
                 </Dropdown>

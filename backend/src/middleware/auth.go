@@ -123,7 +123,9 @@ func UserAuthRequestMW() gin.HandlerFunc {
 		}
 		sub = string(subBytes)
 
-		user, err := database.GetUser(ctx, sub)
+		user, err := database.GetUser(ctx, database.GetUserFilters{
+			UUID: &sub,
+		})
 		if err != nil {
 			ctx.Set("Status", http.StatusUnauthorized)
 			ctx.Set("Body", &utility.ErrorResponseSchema{

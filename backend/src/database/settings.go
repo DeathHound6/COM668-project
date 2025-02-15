@@ -28,20 +28,16 @@ type ProviderField struct {
 
 func (p *Provider) BeforeCreate(tx *gorm.DB) error {
 	ctx := GetContext(tx)
-	uuid, err := utility.GenerateRandomUUID()
-	if err != nil {
-		if ctx != nil {
-			ctx.Set("errorCode", http.StatusInternalServerError)
+	if p.UUID == "" {
+		uuid, err := utility.GenerateRandomUUID()
+		if err != nil {
+			if ctx != nil {
+				ctx.Set("errorCode", http.StatusInternalServerError)
+			}
+			return errors.New("failed to create a provider uuid")
 		}
-		return errors.New("failed to create a provider uuid")
+		p.UUID = uuid
 	}
-	if len(p.Name) > 30 {
-		if ctx != nil {
-			ctx.Set("errorCode", http.StatusBadRequest)
-		}
-		return errors.New("provider name cannot be greater than 30 characters")
-	}
-	p.UUID = uuid
 	return nil
 }
 
@@ -114,39 +110,30 @@ func CreateProvider(ctx *gin.Context, provider *Provider) error {
 }
 
 // Update a Provider
-func UpdateProvider(ctx *gin.Context, filters GetProvidersFilters, body *utility.ProviderPutRequestBodySchema) error {
-	tx := GetDBTransaction(ctx).Model(&Provider{})
-	if filters.UUID != nil {
-		tx = tx.Where("uuid = ?", *filters.UUID)
-	}
-	var provider *Provider = nil
-	tx = tx.Find(&provider)
-	if tx.Error != nil {
-		return handleError(ctx, tx.Error)
-	}
+func UpdateProvider(ctx *gin.Context, provider *Provider) error {
+	tx := GetDBTransaction(ctx)
 
-	tx = tx.Update("name", body.Name)
-	if tx.Error != nil {
+	// update name
+	if err := tx.Model(&Provider{}).Where("id = ?", provider.ID).Update("name", provider.Name).Error; err != nil {
 		return handleError(ctx, tx.Error)
 	}
-	tx = tx.Model(&ProviderField{}).Where("provider_id = ?", provider.ID).Delete(&ProviderField{})
-	if tx.Error != nil {
-		return handleError(ctx, tx.Error)
+	// replace fields
+	if err := tx.Model(&ProviderField{}).Where("provider_id = ?", provider.ID).Delete(&ProviderField{}).Error; err != nil {
+		return handleError(ctx, err)
 	}
 	fields := make([]ProviderField, 0)
-	for _, field := range body.Fields {
+	for _, field := range provider.Fields {
 		providerField := ProviderField{
 			ProviderID: provider.ID,
 			Key:        field.Key,
 			Value:      field.Value,
 			Type:       field.Type,
-			Required:   *field.Required,
+			Required:   field.Required,
 		}
 		fields = append(fields, providerField)
 	}
-	tx = tx.Model(&ProviderField{}).Create(&fields)
-	if tx.Error != nil {
-		return handleError(ctx, tx.Error)
+	if err := tx.Model(&ProviderField{}).Create(&fields).Error; err != nil {
+		return handleError(ctx, err)
 	}
 	return nil
 }

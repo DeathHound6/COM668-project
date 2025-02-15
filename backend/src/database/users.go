@@ -4,16 +4,11 @@ import (
 	"com668-backend/utility"
 	"errors"
 	"net/http"
-	"regexp"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-)
-
-var (
-	EmailRegexp string = "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+.[A-Za-z]{2,}"
 )
 
 type User struct {
@@ -42,37 +37,15 @@ func (user *User) ValidatePassword(password string) bool {
 
 func (user *User) BeforeCreate(tx *gorm.DB) error {
 	ctx := GetContext(tx)
-	uuid, err := utility.GenerateRandomUUID()
-	if err != nil {
-		if ctx != nil {
-			ctx.Set("errorCode", http.StatusInternalServerError)
+	if user.UUID == "" {
+		uuid, err := utility.GenerateRandomUUID()
+		if err != nil {
+			if ctx != nil {
+				ctx.Set("errorCode", http.StatusInternalServerError)
+			}
+			return errors.New("failed to create a user uuid")
 		}
-		return errors.New("failed to create a user uuid")
-	}
-	if len(user.Name) > 30 {
-		if ctx != nil {
-			ctx.Set("errorCode", http.StatusBadRequest)
-		}
-		return errors.New("user name cannot be greater than 30 characters")
-	}
-	if len(user.Email) > 30 {
-		if ctx != nil {
-			ctx.Set("errorCode", http.StatusBadRequest)
-		}
-		return errors.New("user email cannot be greater than 30 characters")
-	}
-	if matched, err := regexp.MatchString(EmailRegexp, user.Email); !matched || err != nil {
-		if ctx != nil {
-			ctx.Set("errorCode", http.StatusBadRequest)
-		}
-		return errors.New("user email is not a valid email")
-	}
-	// NOTE: 72 chars is the max bcrypt supports
-	if len(user.Password) > 72 {
-		if ctx != nil {
-			ctx.Set("errorCode", http.StatusBadRequest)
-		}
-		return errors.New("user password cannot be greater than 72 characters")
+		user.UUID = uuid
 	}
 	password, err := user.hashPassword()
 	if err != nil {
@@ -82,37 +55,11 @@ func (user *User) BeforeCreate(tx *gorm.DB) error {
 		return err
 	}
 	user.Password = password
-	user.UUID = uuid
 	return nil
 }
 
 func (user *User) BeforeUpdate(tx *gorm.DB) error {
 	ctx := GetContext(tx)
-	if len(user.Name) > 30 {
-		if ctx != nil {
-			ctx.Set("errorCode", http.StatusBadRequest)
-		}
-		return errors.New("user name cannot be greater than 30 characters")
-	}
-	if len(user.Email) > 30 {
-		if ctx != nil {
-			ctx.Set("errorCode", http.StatusBadRequest)
-		}
-		return errors.New("user email cannot be greater than 30 characters")
-	}
-	if matched, err := regexp.MatchString(EmailRegexp, user.Email); !matched || err != nil {
-		if ctx != nil {
-			ctx.Set("errorCode", http.StatusBadRequest)
-		}
-		return errors.New("user email is not a valid email")
-	}
-	// NOTE: 72 chars is the max bcrypt supports
-	if len(user.Password) > 72 {
-		if ctx != nil {
-			ctx.Set("errorCode", http.StatusBadRequest)
-		}
-		return errors.New("user password cannot be greater than 72 characters")
-	}
 	password, err := user.hashPassword()
 	if err != nil {
 		if ctx != nil {
@@ -131,9 +78,19 @@ type TeamUser struct {
 	User   User `gorm:"foreignKey:user_id;references:id"`
 }
 
-func GetUser(ctx *gin.Context, email string) (*User, error) {
+type GetUserFilters struct {
+	UUID  *string
+	Email *string
+}
+
+func GetUser(ctx *gin.Context, filters GetUserFilters) (*User, error) {
 	tx := GetDBTransaction(ctx).Model(&User{})
-	tx = tx.Where("email = ?", email)
+	if filters.UUID != nil {
+		tx = tx.Where("uuid = ?", *filters.UUID)
+	}
+	if filters.Email != nil {
+		tx = tx.Where("email = ?", *filters.Email)
+	}
 	users := make([]*User, 0)
 	tx = tx.Preload("Teams")
 	tx = tx.Find(&users)
