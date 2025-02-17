@@ -38,7 +38,7 @@ export async function CreateSetting({ name, providerType }: { name: string, prov
     return parts[parts.length - 1];
 }
 
-export async function UpdateSetting(setting: Settings): Promise<void> {
+export async function UpdateSetting(setting: Settings): Promise<undefined> {
     const response = await fetch(`/api/providers/${setting.uuid}`, {
         method: "PUT",
         headers: {
@@ -51,9 +51,10 @@ export async function UpdateSetting(setting: Settings): Promise<void> {
         const data: ErrorResponse = JSON.parse(await response.text());
         throw new APIError(data.error, response.status);
     }
+    return undefined;
 }
 
-export async function DeleteSetting({ uuid }: { uuid: string }): Promise<void> {
+export async function DeleteSetting({ uuid }: { uuid: string }): Promise<undefined> {
     const response = await fetch(`/api/providers/${uuid}`, {
         method: "DELETE",
     });
@@ -62,4 +63,5 @@ export async function DeleteSetting({ uuid }: { uuid: string }): Promise<void> {
         const data: ErrorResponse = JSON.parse(await response.text());
         throw new APIError(data.error, response.status);
     }
+    return undefined;
 }

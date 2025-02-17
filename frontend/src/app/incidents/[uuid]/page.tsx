@@ -31,6 +31,7 @@ import { GetHosts } from "../../../actions/hosts";
 import ToastContainerComponent from "../../../components/toastContainer";
 
 export default function IncidentPage({ params }: { params: Promise<{ uuid: string }> }) {
+    const [pending, setPending] = useState(false);
     const [loaded, setLoaded] = useState(false);
     const [incident, setIncident] = useState(undefined as Incident | undefined);
     const [user, setUser] = useState(undefined as User | undefined);
@@ -58,58 +59,52 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
     }
 
     useEffect(() => {
+        setPending(true);
         async function fetchData() {
             setLoaded(false);
-            GetIncident({ uuid: (await params).uuid })
-                .then(
-                    (incidentData) => {
-                        setIncident(incidentData);
-                        setResolved(incidentData.resolvedAt != undefined);
-                        setSummary(incidentData.summary);
-                        setDescription(incidentData.description);
-                        setComments(incidentData.comments);
-                        GetTeams({ pageSize: 1000 })
-                            .then(
-                                (teamsData) => {
-                                    const newTeams = teamsData.data.filter((team: Team) => !incidentData.resolutionTeams.map((t: Team) => t.uuid).includes(team.uuid));
-                                    setTeamID(newTeams.length > 0 ? newTeams[0].uuid : "");
-                                    setTeams(teamsData.data);
-                                },
-                                (err: APIError) => {
-                                    setTeamID("");
-                                    setTeams([]);
-                                    handleError(err);
-                                }
-                            );
-                        GetHosts({ pageSize: 1000 })
-                            .then(
-                                (hostsData) => {
-                                    const newHosts = hostsData.data.filter((host: HostMachine) => !incidentData.hostsAffected.map((h: HostMachine) => h.uuid).includes(host.uuid));
-                                    setHostID(newHosts.length > 0 ? newHosts[0].uuid : "");
-                                    setHosts(hostsData.data);
-                                },
-                                (err: APIError) => {
-                                    setHostID("");
-                                    setHosts([]);
-                                    handleError(err);
-                                }
-                            );
-                    },
-                    () => {
-                        setIncident(undefined);
-                    }
-                );
-            GetMe()
-                .then(
-                    (data) => {
-                        setUser(data);
-                        setLoaded(true);
-                    },
-                    () => {
-                        // this shouldnt ever fail - if it does, the user should be redirected to login instead
-                        setLoaded(true);
-                    }
-                );
+            setPending(true);
+
+            const userResponse = await GetMe().catch(handleError);
+            if (!userResponse)
+                return;
+            setUser(userResponse);
+
+            setLoaded(false);
+            const incidentResponse = await GetIncident({ uuid: (await params).uuid }).catch(handleError);
+            setPending(false);
+            setLoaded(true);
+            if (!incidentResponse)
+                return;
+            setIncident(incidentResponse);
+            setResolved(incidentResponse.resolvedAt != undefined);
+            setSummary(incidentResponse.summary);
+            setDescription(incidentResponse.description);
+            setComments(incidentResponse.comments);
+
+            setLoaded(false);
+            setPending(true);
+            const teamsResponse = await GetTeams({ pageSize: 1000 }).catch(handleError);
+            setPending(false);
+            setLoaded(true);
+            if (!teamsResponse)
+                return;
+            const newTeams = teamsResponse.data.filter((team: Team) => !incidentResponse.resolutionTeams.map((t: Team) => t.uuid).includes(team.uuid));
+            setTeamID(newTeams.length > 0 ? newTeams[0].uuid : "");
+            setTeams(teamsResponse.data);
+
+            setLoaded(false);
+            setPending(true);
+            const hostsResponse = await GetHosts({ pageSize: 1000 }).catch(handleError);
+            setPending(false);
+            setLoaded(true);
+            if (!hostsResponse)
+                return;
+            const newHosts = hostsResponse.data.filter((host: HostMachine) => !incidentResponse.hostsAffected.map((h: HostMachine) => h.uuid).includes(host.uuid));
+            setHostID(newHosts.length > 0 ? newHosts[0].uuid : "");
+            setHosts(hostsResponse.data);
+
+            setLoaded(true);
+            setPending(false);
         }
         fetchData();
     }, []);

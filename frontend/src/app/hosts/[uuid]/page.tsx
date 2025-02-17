@@ -2,11 +2,12 @@
 
 import { Button, Card, CardBody, CardTitle, Col, FloatingLabel, FormControl, FormSelect, Row, Spinner } from "react-bootstrap";
 import { DeleteHost, GetHost, UpdateHost } from "../../../actions/hosts";
-import { APIError, type Team, type HostMachine } from "../../../interfaces";
+import { APIError, type Team, type HostMachine, type User } from "../../../interfaces";
 import { useEffect, useState } from "react";
 import { GetTeams } from "../../../actions/teams";
 import { z } from "zod";
 import ToastContainerComponent from "../../../components/toastContainer";
+import { GetMe } from "../../../actions/users";
 
 const oses = [
     "Windows",
@@ -22,6 +23,7 @@ const hostSchema = z.object({
 });
 
 export default function HostDetailsPage({ params }: { params: Promise<{ uuid: string }> }) {
+    const [user, setUser] = useState(undefined as User | undefined);
     const [host, setHost] = useState(undefined as HostMachine | undefined);
     const [teams, setTeams] = useState([] as Team[]);
 
@@ -50,6 +52,10 @@ export default function HostDetailsPage({ params }: { params: Promise<{ uuid: st
         setLoaded(false);
         async function fetchData() {
             setPending(true);
+            const userResponse = await GetMe().catch(handleError);
+            if (userResponse == undefined)
+                return;
+            setUser(userResponse);
             const teamsResponse = await GetTeams({ pageSize: 1000 }).catch(handleError);
             if (teamsResponse == undefined)
                 return;
@@ -123,16 +129,6 @@ export default function HostDetailsPage({ params }: { params: Promise<{ uuid: st
         );
     }
 
-    function onCloseToast(index: number) {
-        const e = [...showErrors];
-        if (e.length <= index) {
-            setErrors((prev) => [...prev, "invalid error index"]);
-            return;
-        }
-        e[index] = false;
-        setShowErrors(e);
-    }
-
     return (
         <main className="text-center mx-2">
             {
@@ -151,7 +147,7 @@ export default function HostDetailsPage({ params }: { params: Promise<{ uuid: st
                                                 <Col style={{textAlign: "left"}}></Col>
                                                 <Col style={{textAlign: "center"}}></Col>
                                                 <Col style={{textAlign: "right"}}>
-                                                    <Button variant="danger" onClick={() => deleteHost()}>Delete Host</Button>
+                                                    <Button variant="danger" onClick={() => deleteHost()} disabled={pending || !user?.admin}>Delete Host</Button>
                                                 </Col>
                                             </Row>
 
@@ -187,7 +183,7 @@ export default function HostDetailsPage({ params }: { params: Promise<{ uuid: st
                                                             }
                                                         </FormSelect>
                                                     </FloatingLabel>
-                                                    <Button variant="primary" className="mt-2" onClick={() => updateHost()} disabled={pending}>Save</Button>
+                                                    <Button variant="primary" className="mt-2" onClick={() => updateHost()} disabled={pending || !user?.admin}>Save</Button>
                                                 </CardBody>
                                             </Card>
                                         </div>

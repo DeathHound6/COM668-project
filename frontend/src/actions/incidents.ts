@@ -22,7 +22,7 @@ export async function GetIncidents({ params }: { params: Object }): Promise<GetM
     return JSON.parse(await response.text());
 }
 
-export async function UpdateIncident({ uuid, incident }: { uuid: string, incident: any }): Promise<void> {
+export async function UpdateIncident({ uuid, incident }: { uuid: string, incident: any }): Promise<undefined> {
     const response = await fetch(`/api/incidents/${uuid}`, {
         method: "PUT",
         headers: {
@@ -35,6 +35,7 @@ export async function UpdateIncident({ uuid, incident }: { uuid: string, inciden
         const data: ErrorResponse = JSON.parse(await response.text());
         throw new APIError(data.error, response.status);
     }
+    return undefined;
 }
 
 export async function PostComment({ uuid, comment }: { uuid: string, comment: string }): Promise<string> {
@@ -54,7 +55,7 @@ export async function PostComment({ uuid, comment }: { uuid: string, comment: st
     return parts[parts.length-1];
 }
 
-export async function DeleteComment({ incidentUUID, commentUUID }: { incidentUUID: string, commentUUID: string }): Promise<void> {
+export async function DeleteComment({ incidentUUID, commentUUID }: { incidentUUID: string, commentUUID: string }): Promise<undefined> {
     const response = await fetch(`/api/incidents/${incidentUUID}/comments/${commentUUID}`, {
         method: "DELETE",
     });
@@ -63,4 +64,5 @@ export async function DeleteComment({ incidentUUID, commentUUID }: { incidentUUI
         const data: ErrorResponse = JSON.parse(await response.text());
         throw new APIError(data.error, response.status);
     }
+    return undefined;
 }

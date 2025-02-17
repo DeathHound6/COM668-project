@@ -1,6 +1,6 @@
 "use client";
 
-import type { HostMachine, Team, APIError } from "../../interfaces";
+import type { HostMachine, Team, APIError, User } from "../../interfaces";
 import {
     Button,
     Card,
@@ -22,6 +22,7 @@ import { z } from "zod";
 import { GetTeams } from "../../actions/teams";
 import { GetHosts, CreateHost, GetHost } from "../../actions/hosts";
 import ToastContainerComponent from "../../components/toastContainer";
+import { GetMe } from "../../actions/users";
 
 const oses = [
     "Windows",
@@ -40,6 +41,7 @@ export default function HostsPage() {
     const [hosts, setHosts] = useState([] as HostMachine[]);
     const [teams, setTeams] = useState([] as Team[]);
     const [errors, setErrors] = useState([] as string[]);
+    const [user, setUser] = useState(undefined as User | undefined);
     const [pending, setPending] = useState(true);
     const [loaded, setLoaded] = useState(false);
 
@@ -67,6 +69,12 @@ export default function HostsPage() {
         setLoaded(false);
         async function fetchData() {
             setPending(true);
+            const userResponse = await GetMe().catch(handleError);
+            setPending(false);
+            if (!userResponse)
+                return;
+            setUser(userResponse);
+
             const teamsResponse = await GetTeams({ pageSize: 1000 }).catch(handleError);
             setPending(false);
             if (!teamsResponse)
@@ -212,7 +220,7 @@ export default function HostsPage() {
                                                                 <FloatingLabel label="Team" controlId="team" key="team" className="mt-2">
                                                                     <FormControl type="text" value={host.team.name} readOnly disabled />
                                                                 </FloatingLabel>
-                                                                <Button variant="primary" className="mt-2" href={`/hosts/${host.uuid}`}>Edit</Button>
+                                                                <Button variant="primary" className="mt-2" href={`/hosts/${host.uuid}`} disabled={pending || !user?.admin}>Edit</Button>
                                                             </CardBody>
                                                         </Card>
                                                     </Col>

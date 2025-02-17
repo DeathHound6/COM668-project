@@ -43,7 +43,7 @@ export async function CreateHost({ hostname, os, ip4, ip6, teamID }: { hostname:
     return parts[parts.length-1];
 }
 
-export async function UpdateHost({ uuid, body }: {uuid: string, body: { hostname: string, os: string, ip4?: string, ip6?: string, teamID: string }}): Promise<void> {
+export async function UpdateHost({ uuid, body }: {uuid: string, body: { hostname: string, os: string, ip4?: string, ip6?: string, teamID: string }}): Promise<undefined> {
     const response = await fetch(`/api/hosts/${uuid}`, {
         method: "PUT",
         headers: {
@@ -56,9 +56,10 @@ export async function UpdateHost({ uuid, body }: {uuid: string, body: { hostname
         const data: ErrorResponse = JSON.parse(await response.text());
         throw new APIError(data.error, response.status);
     }
+    return undefined;
 }
 
-export async function DeleteHost(uuid: string): Promise<void> {
+export async function DeleteHost(uuid: string): Promise<undefined> {
     const response = await fetch(`/api/hosts/${uuid}`, {
         method: "DELETE"
     });
@@ -67,4 +68,5 @@ export async function DeleteHost(uuid: string): Promise<void> {
         const data: ErrorResponse = JSON.parse(await response.text());
         throw new APIError(data.error, response.status);
     }
+    return undefined;
 }

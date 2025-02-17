@@ -13,29 +13,20 @@ import {
     FloatingLabel,
     FormControl,
     InputGroup,
-    OverlayTrigger,
-    Tooltip,
     Modal,
     ModalHeader,
     ModalTitle,
     ModalBody,
     ModalFooter,
-    FormSelect,
-    Spinner,
-    FormCheck
+    Spinner
 } from "react-bootstrap";
 import InputGroupText from "react-bootstrap/esm/InputGroupText";
-import { XLg, Trash } from "react-bootstrap-icons";
 import { z } from "zod";
-import { CreateSetting, DeleteSetting, GetSetting, GetSettings, UpdateSetting } from "../../actions/settings";
+import { CreateSetting, GetSetting, GetSettings } from "../../actions/settings";
 import ToastContainerComponent from "../../components/toastContainer";
+import { GetMe } from "../../actions/users";
+import { RedirectType, redirect } from "next/navigation";
 
-const newFieldSchema = z.object({
-    key: z.string().trim().min(1, "field key is required"),
-    value: z.string().trim().min(1, "field value is required"),
-    type: z.string().trim().min(1, "field type is required"),
-    required: z.boolean()
-});
 const newSettingSchema = z.object({
     name: z.string().trim().min(1, "setting name is required")
 });
@@ -46,14 +37,6 @@ export default function SettingsPage() {
 
     const [settings, setSettings] = useState([] as Settings[]);
     const [providerType, setProviderType] = useState("log" as "alert"|"log");
-
-    const [newfieldProviderIndex, setNewFieldProviderIndex] = useState(-1);
-    const [showNewFieldModal, setShowNewFieldModal] = useState(false);
-
-    const [fieldKey, setFieldKey] = useState("");
-    const [fieldValue, setFieldValue] = useState("");
-    const [fieldType, setFieldType] = useState("string");
-    const [fieldRequired, setFieldRequired] = useState(false);
 
     const [errors, setErrors] = useState([] as string[]);
     const [showErrors, setShowErrors] = useState([] as boolean[]);
@@ -67,7 +50,6 @@ export default function SettingsPage() {
     function handleError(error: APIError) {
         if ([400, 404, 500].includes(error.status))
             setErrors((prev) => [...prev, error.message]);
-        setLoaded(true);
         setPending(false);
     }
 
@@ -75,18 +57,15 @@ export default function SettingsPage() {
         setPending(true);
         async function fetchData() {
             setLoaded(false);
-            GetSettings({ providerType })
-                .then(
-                    (data) => {
-                        setSettings(data.data);
-                        setLoaded(true);
-                        setPending(false);
-                    },
-                    (err) => {
-                        handleError(err);
-                        setSettings([]);
-                    }
-                );
+            const userResponse = await GetMe().catch(handleError);
+            if (!userResponse || !userResponse.admin)
+                redirect("/dashboard", RedirectType.replace);
+            const settingsResponse = await GetSettings({ providerType }).catch(handleError);
+            if (!settingsResponse)
+                return;
+            setSettings(settingsResponse.data);
+            setLoaded(true);
+            setPending(false);
         }
         fetchData();
     }, [providerType]);
@@ -95,118 +74,6 @@ export default function SettingsPage() {
         setShowErrors(new Array(errors.length).fill(true));
         setShowSuccessToast(successToastMessage != undefined);
     }, [errors, successToastMessage]);
-
-    function updateSetting(index: number) {
-        setPending(true);
-        if (settings.length <= index) {
-            setErrors((prev) => [...prev, "invalid provider index"]);
-            setPending(false);
-            return;
-        }
-
-        const setting = settings[index];
-        UpdateSetting(setting)
-            .then(
-                () => {
-                    setSuccessToastMessage("Setting updated successfully");
-                    setPending(false);
-                },
-                handleError
-            );
-    }
-
-    function createField() {
-        setPending(true);
-
-        if (newfieldProviderIndex == -1) {
-            setPending(false);
-            setErrors((prev) => [...prev, "no provider selected"]);
-            return;
-        }
-        if (settings.length <= newfieldProviderIndex) {
-            setPending(false);
-            setErrors((prev) => [...prev, "invalid provider index"]);
-            return;
-        }
-
-        const key = fieldKey;
-        const value = fieldValue;
-        const type = fieldType;
-        const required = fieldRequired;
-
-        const validatedFields = newFieldSchema.safeParse({ key, value, type, required });
-        if (!validatedFields.success) {
-            const newErrors = validatedFields.error.flatten().fieldErrors ?? { key: [], value: [], type: [], required: [] };
-            const existingErrors = [
-                ...newErrors.key ?? [],
-                ...newErrors.value ?? [],
-                ...newErrors.type ?? [],
-                ...newErrors.required ?? []
-            ];
-            setErrors((prev) => [...prev, ...existingErrors]);
-            setPending(false);
-            return;
-        }
-
-        if (type == "number") {
-            const parsedValue = parseFloat(value);
-            if (isNaN(parsedValue)) {
-                setErrors((prev) => [...prev, "invalid number value"]);
-                setPending(false);
-                return;
-            }
-        } else if (type === "bool") {
-            const valid = ["true", "false", "1", "0"];
-            if (!valid.includes(value.toLowerCase())) {
-                setErrors((prev) => [...prev, "invalid boolean value"]);
-                setPending(false);
-                return;
-            }
-        } else if (type == "string") {}
-
-        const setting = settings[newfieldProviderIndex];
-        setting.fields.push({
-            key,
-            value,
-            type,
-            required
-        });
-        setSettings((prev) => { const temp = [...prev]; temp[newfieldProviderIndex] = setting; return temp; });
-        setShowNewFieldModal(false);
-        setPending(false);
-    }
-
-    function deleteField(providerIndex: number, fieldKey: string) {
-        setPending(true);
-        if (settings.length <= providerIndex) {
-            setPending(false);
-            setErrors((prev) => [...prev, "invalid provider index"]);
-            return;
-        }
-
-        const newSettings = [...settings];
-        const setting = newSettings[providerIndex];
-        setting.fields = setting.fields.filter((field: SettingField) => field.key != fieldKey);
-        newSettings[providerIndex] = setting;
-        setSettings(newSettings);
-        setPending(false);
-    }
-
-    function deleteSetting(index: number) {
-        setPending(true);
-        const setting = settings[index];
-        DeleteSetting({ uuid: setting.uuid })
-            .then(
-                () => {
-                    const newSettings = [...settings];
-                    newSettings.splice(index, 1);
-                    setPending(false);
-                    setSettings(newSettings);
-                    setSuccessToastMessage("Setting deleted successfully");
-                },
-                handleError
-            );
-    }
 
     function createSetting() {
         setPending(true);
@@ -218,56 +85,25 @@ export default function SettingsPage() {
             setPending(false);
             return;
         }
-        CreateSetting({ name, providerType })
-            .then(
-                async(uuid) => {
-                    const setting = await GetSetting({ uuid }).catch(handleError);
-                    if (!setting)
-                        return;
-                    const newSettings = [...settings];
-                    newSettings.push(setting);
-                    setSettings(newSettings);
-                    setShowNewSettingModal(false);
-                    setSuccessToastMessage("Setting created successfully");
-                    setPending(false);
-                },
-                handleError
-            );
+        async function post() {
+            const postResponse = await CreateSetting({ name, providerType }).catch(handleError);
+            if (!postResponse)
+                return;
+            const setting = await GetSetting({ uuid: postResponse }).catch(handleError);
+            if (!setting)
+                return;
+            const newSettings = [...settings];
+            newSettings.push(setting);
+            setSettings(newSettings);
+            setShowNewSettingModal(false);
+            setSuccessToastMessage("Setting created successfully");
+            setPending(false);
+        }
+        post();
     }
 
     return (
         <div className="m-2" style={{textAlign: "center"}}>
-            {/* Modal for creating a new setting field */}
-            <Modal
-               show={showNewFieldModal}
-               onHide={() => { setNewFieldProviderIndex(-1); setShowNewFieldModal(false); }}
-               backdrop="static"
-               centered={true}
-               restoreFocus={false}>
-                <ModalHeader closeButton>
-                    <ModalTitle>Create New Field</ModalTitle>
-                </ModalHeader>
-                <ModalBody>
-                    <FloatingLabel controlId="newFieldKey" label="Field Key" className="mb-3">
-                        <FormControl type="text" autoFocus value={fieldKey} onChange={(e) => setFieldKey(e.target.value)} />
-                    </FloatingLabel>
-                    <FloatingLabel controlId="newFieldValue" label="Field Value" className="mb-3">
-                        <FormControl type="text" value={fieldValue} onChange={(e) => setFieldValue(e.target.value)} />
-                    </FloatingLabel>
-                    <FloatingLabel controlId="newFieldDescription" label="Field Data Type" className="mb-3">
-                        <FormSelect value={fieldType} onChange={(e) => setFieldType(e.target.value)}>
-                            <option value="string">String</option>
-                            <option value="number">Number</option>
-                            <option value="bool">Boolean</option>
-                        </FormSelect>
-                    </FloatingLabel>
-                    <FormCheck className="mx-auto" label="Required Field" checked={fieldRequired} onChange={(e) => setFieldRequired(e.target.checked)} />
-                </ModalBody>
-                <ModalFooter>
-                    <Button variant="primary" disabled={pending} onClick={() => createField()}>Create Field</Button>
-                </ModalFooter>
-            </Modal>
-
             {/* Modal for creating a new setting */}
             <Modal
                show={showNewSettingModal}
@@ -331,36 +167,19 @@ export default function SettingsPage() {
                                                 <Col key={`col-${setting.uuid}`}>
                                                     <Card className="m-2 p-2 border rounded" key={`c-${setting.uuid}`}>
                                                         <CardBody key={`cb-${setting.uuid}`}>
-                                                            <CardTitle key={`ct-${setting.uuid}`}>
-                                                                <Row>
-                                                                    <Col className="ms-5">{setting.name}</Col>
-                                                                    <Col xs={2}>
-                                                                        <OverlayTrigger overlay={<Tooltip>Delete Setting</Tooltip>}>
-                                                                            <Trash style={{color: pending ? "gray" : "red", cursor: "pointer"}} onClick={() => pending ? null : deleteSetting(index)} />
-                                                                        </OverlayTrigger>
-                                                                    </Col>
-                                                                </Row>
-                                                            </CardTitle>
+                                                            <CardTitle key={`ct-${setting.uuid}`}>{setting.name}</CardTitle>
                                                             {
                                                                 setting.fields.map((field: SettingField) => (
                                                                     <InputGroup key={`ig-${setting.uuid}-${field.key}`} className="m-2">
-                                                                        <FloatingLabel controlId="floatingKey" label={field.key} key={`fl-${setting.uuid}-${field.key}`}>
-                                                                            <FormControl type="text" defaultValue={field.value} key={`fc-${setting.uuid}-${field.key}`} />
+                                                                        <FloatingLabel controlId="floatingKey" label={field.key}>
+                                                                            <FormControl type="text" value={field.value} disabled />
                                                                         </FloatingLabel>
-                                                                        <InputGroupText key={`igt-${setting.uuid}-${field.key}`}>{field.type}</InputGroupText>
-                                                                        <OverlayTrigger overlay={<Tooltip>{field.required ? "Field is required" : "Delete Field"}</Tooltip>}>
-                                                                            <InputGroupText
-                                                                            style={{cursor: "pointer", color: field.required ? "grey" : "red"}}
-                                                                            onClick={() => field.required ? null : deleteField(index, field.key)}>
-                                                                                <XLg />
-                                                                            </InputGroupText>
-                                                                        </OverlayTrigger>
+                                                                        <InputGroupText>{field.type}</InputGroupText>
+                                                                        <InputGroup.Checkbox checked={field.required} disabled />
                                                                     </InputGroup>
                                                                 ))
                                                             }
-                                                            <Button variant="secondary" onClick={() => {setNewFieldProviderIndex(index); setShowNewFieldModal(true);}}>Create new field</Button>
-                                                            <br />
-                                                            <Button variant="primary" className="mt-2" onClick={() => updateSetting(index)} disabled={pending}>Save</Button>
+                                                            <Button variant="primary" className="mt-2" href={`/settings/${setting.uuid}`}>Edit</Button>
                                                         </CardBody>
                                                     </Card>
                                                 </Col>
