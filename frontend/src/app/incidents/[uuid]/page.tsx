@@ -52,8 +52,11 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
     const [successMessage, setSuccessMessage] = useState(undefined as string | undefined);
     const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
-    function handleError(err: APIError) {
-        if ([400, 500].includes(err.status))
+    function handleError(err: APIError, include404 = true) {
+        const statuses = [400, 500];
+        if (include404)
+            statuses.push(404);
+        if (statuses.includes(err.status))
             setErrors((prev) => [...prev, err.message]);
         setLoaded(true);
     }
@@ -64,13 +67,13 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
             setLoaded(false);
             setPending(true);
 
-            const userResponse = await GetMe().catch(handleError);
+            const userResponse = await GetMe().catch((e) => handleError(e, false));
             if (!userResponse)
                 return;
             setUser(userResponse);
 
             setLoaded(false);
-            const incidentResponse = await GetIncident({ uuid: (await params).uuid }).catch(handleError);
+            const incidentResponse = await GetIncident({ uuid: (await params).uuid }).catch((e) => handleError(e, false));
             setPending(false);
             setLoaded(true);
             if (!incidentResponse)
@@ -114,24 +117,24 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
         setShowSuccessMessage(successMessage != undefined);
     }, [errors, successMessage]);
 
-    function deleteComment(index: number) {
+    async function deleteComment(index: number) {
         // this shouldnt hit, just here to ensure typescript is happy
         if (incident == undefined) {
             setErrors((prev) => [...prev, "Incident not found"]);
             return;
         }
-        const comment = incident.comments[index];
-        DeleteComment({ incidentUUID: incident.uuid, commentUUID: comment.uuid })
-            .then(
-                () => {
-                    const newComments = incident.comments.filter((c: IncidentComment) => c.uuid != comment.uuid);
-                    setComments(newComments);
-                },
-                handleError
-            );
+        const comment = comments[index];
+        if (comment == undefined) {
+            setErrors((prev) => [...prev, "Comment not found"]);
+            return;
+        }
+        const deleteResponse = await DeleteComment({ incidentUUID: incident.uuid, commentUUID: comment.uuid }).catch(handleError);
+        if (deleteResponse != undefined)
+            return;
+        setComments(comments.filter((c: IncidentComment) => c.uuid != comment.uuid));
     }
 
-    function postComment() {
+    async function postComment() {
         // this also shouldnt hit, just here to ensure typescript is happy
         if (incident == undefined) {
             setErrors((prev) => [...prev, "Incident not found"]);
@@ -142,17 +145,14 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
             setErrors((prev) => [...prev, "Comment must be between 1 and 200 characters"]);
             return;
         }
-        PostComment({ uuid: incident.uuid, comment })
-            .then(
-                (uuid) => {
-                    setComments((prev) => [{ uuid, comment, commentedBy: user as User, commentedAt: new Date().toISOString() } as IncidentComment, ...prev]);
-                    setComment("");
-                },
-                handleError
-            );
+        const postResponse = await PostComment({ uuid: incident.uuid, comment }).catch(handleError);
+        if (postResponse == undefined)
+            return;
+        setComments((prev) => [{ uuid: postResponse, comment, commentedBy: user as User, commentedAt: new Date().toISOString() } as IncidentComment, ...prev]);
+        setComment("");
     }
 
-    function updateIncident() {
+    async function updateIncident() {
         // this shouldnt hit, just here to ensure typescript is happy
         if (incident == undefined) {
             setErrors((prev) => [...prev, "Incident not found"]);
@@ -174,33 +174,21 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
             hostsAffected: incident.hostsAffected.length > 0 ? [...incident.hostsAffected.map((host: HostMachine) => host.uuid)] : [],
             resolved
         };
-        UpdateIncident({ uuid: incident.uuid, incident: updated })
-            .then(
-                () => {
-                    setIncident({
-                        uuid: incident.uuid,
-                        summary,
-                        description,
-                        resolutionTeams: teams.filter((team: Team) => updated.resolutionTeams.includes(team.uuid)),
-                        hostsAffected: hosts.filter((host: HostMachine) => updated.hostsAffected.includes(host.uuid)),
-                        createdAt: incident.createdAt,
-                        resolvedAt: resolved ? new Date().toISOString() : undefined,
-                        resolvedBy: resolved ? user : undefined,
-                        comments
-                    } as Incident);
-                },
-                handleError
-            );
-    }
-
-    function onCloseToast(index: number) {
-        const e = [...errors];
-        if (e.length <= index) {
-            setErrors((prev) => [...prev, "invalid error index"]);
+        const updateResponse = await UpdateIncident({ uuid: incident.uuid, incident: updated }).catch(handleError);
+        if (updateResponse != undefined)
             return;
-        }
-        e.splice(index, 1);
-        setErrors(e);
+        setSuccessMessage("Incident updated successfully");
+        setIncident({
+            uuid: incident.uuid,
+            summary,
+            description,
+            resolutionTeams: teams.filter((team: Team) => updated.resolutionTeams.includes(team.uuid)),
+            hostsAffected: hosts.filter((host: HostMachine) => updated.hostsAffected.includes(host.uuid)),
+            createdAt: incident.createdAt,
+            resolvedAt: resolved ? new Date().toISOString() : undefined,
+            resolvedBy: resolved ? user : undefined,
+            comments
+        } as Incident);
     }
 
     function IncidentCommentCard({ comment, index }: { comment: IncidentComment, index: number }) {
@@ -396,12 +384,12 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
                                                 <Col className="text-center">
                                                     <h1 className="underline mb-2" style={{fontSize: 24}}>Comments</h1>
                                                     {
-                                                        incident.comments.length == 0
+                                                        comments.length == 0
                                                             ? (<div>
                                                                 <p className="mt-2">No comments have been posted on this incident</p>
                                                             </div>)
                                                             : comments.map((comment: IncidentComment, index: number) => (
-                                                                <IncidentCommentCard key={`comment-${index}`} comment={comment} index={index} />
+                                                                <IncidentCommentCard key={comment.uuid} comment={comment} index={index} />
                                                             ))
                                                     }
                                                     <Card className="mt-4">
