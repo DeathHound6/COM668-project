@@ -9,13 +9,10 @@ import {
     FormCheck,
     Pagination,
     Row,
-    Spinner,
-    Toast,
-    ToastBody,
-    ToastContainer,
-    ToastHeader
+    Spinner
 } from "react-bootstrap";
 import { GetIncidents } from "../../actions/incidents";
+import ToastContainerComponent from "../../components/toastContainer";
 
 export default function HistoryPage() {
     const [loaded, setLoaded] = useState(false);
@@ -25,18 +22,13 @@ export default function HistoryPage() {
     const [maxPage, setMaxPage] = useState(1);
     const [myTeams, setMyTeams] = useState(false);
 
-    const [apiError, setAPIError] = useState(undefined as string | undefined);
-    const [showAPIError, setShowAPIError] = useState(false);
+    const [errors, setErrors] = useState([] as string[]);
 
     function handleError(err: APIError) {
         if ([400, 404, 500].includes(err.status))
-            setAPIError(err.message);
+            setErrors((prev) => [...prev, err.message]);
         setLoaded(true);
     }
-
-    useEffect(() => {
-        setShowAPIError(apiError != undefined);
-    }, [apiError]);
 
     useEffect(() => {
         setLoaded(false);
@@ -71,7 +63,7 @@ export default function HistoryPage() {
                     !loaded
                         ? (<Spinner role="status" animation="border" className="my-auto mx-auto" />)
                         : (
-                            <>
+                            <div>
                                 {
                                     incidents.length == 0
                                         ? (
@@ -108,18 +100,16 @@ export default function HistoryPage() {
                                     <Pagination.Next onClick={() => setPage((prev) => prev + 1)} disabled={page == maxPage || maxPage == 0} />
                                     <Pagination.Last onClick={() => setPage(maxPage)} disabled={maxPage == 0} />
                                 </Pagination>
-                            </>
+                            </div>
                         )
                 }
             </div>
-            <ToastContainer position="bottom-end" className="p-3">
-                { showAPIError && (
-                    <Toast bg="danger" onClose={() => { setAPIError(undefined); }} key={"error"} autohide delay={5000}>
-                        <ToastHeader>Error</ToastHeader>
-                        <ToastBody>{apiError}</ToastBody>
-                    </Toast>
-                )}
-            </ToastContainer>
+
+            <ToastContainerComponent
+                errors={errors}
+                successMessages={[]}
+                setErrors={setErrors}
+                setSuccessToastMessages={() => {}} />
         </main>
     );
 }

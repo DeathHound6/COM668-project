@@ -26,9 +26,7 @@ export default function SettingPage({ params }: { params: Promise<{uuid: string}
     const [setting, setSetting] = useState({} as Settings);
 
     const [errors, setErrors] = useState([] as string[]);
-    const [showErrors, setShowErrors] = useState([] as boolean[]);
-    const [successMessage, setSuccessMessage] = useState(undefined as string | undefined);
-    const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+    const [successMessages, setSuccessMessages] = useState([] as string[]);
 
     const [showNewFieldModal, setShowNewFieldModal] = useState(false);
 
@@ -44,11 +42,6 @@ export default function SettingPage({ params }: { params: Promise<{uuid: string}
             setErrors((prev) => [...prev, error.message]);
         setPending(false);
     }
-
-    useEffect(() => {
-        setShowErrors(new Array(errors.length).fill(true));
-        setShowSuccessMessage(successMessage != undefined);
-    }, [errors, successMessage]);
 
     useEffect(() => {
         async function fetchData() {
@@ -128,7 +121,7 @@ export default function SettingPage({ params }: { params: Promise<{uuid: string}
             const updateResponse = await UpdateSetting({ ...setting, fields: newFields }).catch(handleError);
             if (updateResponse != undefined)
                 return;
-            setSuccessMessage("Field created successfully");
+            setSuccessMessages((prev) => [...prev, "Field created successfully"]);
             setFieldKey("");
             setFieldValue("");
             setFieldType("string");
@@ -153,7 +146,7 @@ export default function SettingPage({ params }: { params: Promise<{uuid: string}
             if (updateResponse != undefined)
                 return;
             setFields(newFields);
-            setSuccessMessage("Field deleted successfully");
+            setSuccessMessages((prev) => [...prev, "Field deleted successfully"]);
             setPending(false);
         }
         deleteF();
@@ -175,7 +168,7 @@ export default function SettingPage({ params }: { params: Promise<{uuid: string}
             if (updateResponse != undefined)
                 return;
             setSetting({ ...setting, name: settingName, fields });
-            setSuccessMessage("Setting updated successfully");
+            setSuccessMessages((prev) => [...prev, "Setting updated successfully"]);
             setPending(false);
         }
         update();
@@ -286,12 +279,10 @@ export default function SettingPage({ params }: { params: Promise<{uuid: string}
 
             {/* Toasts for showing error messages */}
             <ToastContainerComponent
-                successMessage={successMessage}
-                showSuccessMessage={showSuccessMessage}
+                successMessages={successMessages}
                 errors={errors}
-                showErrors={showErrors}
                 setErrors={setErrors}
-                setSuccessToastMessage={setSuccessMessage}
+                setSuccessToastMessages={setSuccessMessages}
                 />
         </main>
     )

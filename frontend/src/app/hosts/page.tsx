@@ -15,7 +15,7 @@ import {
     ModalHeader,
     ModalTitle,
     Row,
-    Spinner,
+    Spinner
 } from "react-bootstrap";
 import { useEffect, useState } from "react";
 import { z } from "zod";
@@ -47,10 +47,7 @@ export default function HostsPage() {
 
     const [showCreateModal, setShowCreateModal] = useState(false);
 
-    const [showErrors, setShowErrors] = useState([] as boolean[]);
-
-    const [showSuccessToast, setShowSuccessToast] = useState(false);
-    const [successToastMessage, setSuccessToastMessage] = useState(undefined as string | undefined);
+    const [successToastMessages, setSuccessToastMessages] = useState([] as string[]);
 
     const [hostname, setHostname] = useState("");
     const [ip4, setIp4] = useState("");
@@ -93,11 +90,6 @@ export default function HostsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    useEffect(() => {
-        setShowErrors(new Array(errors.length).fill(true));
-        setShowSuccessToast(successToastMessage != undefined);
-    }, [errors, successToastMessage]);
-
     function createHost() {
         setPending(true);
         const validatedFields = hostSchema.safeParse({ hostname, ip4: ip4.length ? ip4 : undefined, ip6: ip6.length ? ip6 : undefined, os, teamID });
@@ -123,7 +115,7 @@ export default function HostsPage() {
                     return;
                 setHosts((prev) => [...prev, host]);
                 setShowCreateModal(false);
-                setSuccessToastMessage("Host created successfully");
+                setSuccessToastMessages((prev) => [...prev, "Host created successfully"]);
             },
             handleError
         );
@@ -236,11 +228,9 @@ export default function HostsPage() {
             {/* Toasts for showing error messages */}
             <ToastContainerComponent
                 errors={errors}
-                showErrors={showErrors}
-                successMessage={successToastMessage}
-                showSuccessMessage={showSuccessToast}
+                successMessages={successToastMessages}
                 setErrors={setErrors}
-                setSuccessToastMessage={setSuccessToastMessage}
+                setSuccessToastMessages={setSuccessToastMessages}
                 />
         </div>
     );

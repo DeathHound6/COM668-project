@@ -48,9 +48,7 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
     const [hosts, setHosts] = useState([] as HostMachine[]);
 
     const [errors, setErrors] = useState([] as string[]);
-    const [showErrors, setShowErrors] = useState([] as boolean[]);
-    const [successMessage, setSuccessMessage] = useState(undefined as string | undefined);
-    const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+    const [successMessages, setSuccessMessages] = useState([] as string[]);
 
     function handleError(err: APIError, include404 = true) {
         const statuses = [400, 500];
@@ -112,12 +110,9 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
         fetchData();
     }, []);
 
-    useEffect(() => {
-        setShowErrors(errors.map(() => true));
-        setShowSuccessMessage(successMessage != undefined);
-    }, [errors, successMessage]);
-
     async function deleteComment(index: number) {
+        if (pending)
+            return;
         // this shouldnt hit, just here to ensure typescript is happy
         if (incident == undefined) {
             setErrors((prev) => [...prev, "Incident not found"]);
@@ -131,10 +126,13 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
         const deleteResponse = await DeleteComment({ incidentUUID: incident.uuid, commentUUID: comment.uuid }).catch(handleError);
         if (deleteResponse != undefined)
             return;
+        setSuccessMessages((prev) => [...prev, "Comment deleted successfully"]);
         setComments(comments.filter((c: IncidentComment) => c.uuid != comment.uuid));
     }
 
     async function postComment() {
+        if (pending)
+            return;
         // this also shouldnt hit, just here to ensure typescript is happy
         if (incident == undefined) {
             setErrors((prev) => [...prev, "Incident not found"]);
@@ -148,11 +146,14 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
         const postResponse = await PostComment({ uuid: incident.uuid, comment }).catch(handleError);
         if (postResponse == undefined)
             return;
+        setSuccessMessages((prev) => [...prev, "Comment posted successfully"]);
         setComments((prev) => [{ uuid: postResponse, comment, commentedBy: user as User, commentedAt: new Date().toISOString() } as IncidentComment, ...prev]);
         setComment("");
     }
 
     async function updateIncident() {
+        if (pending)
+            return;
         // this shouldnt hit, just here to ensure typescript is happy
         if (incident == undefined) {
             setErrors((prev) => [...prev, "Incident not found"]);
@@ -177,7 +178,7 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
         const updateResponse = await UpdateIncident({ uuid: incident.uuid, incident: updated }).catch(handleError);
         if (updateResponse != undefined)
             return;
-        setSuccessMessage("Incident updated successfully");
+        setSuccessMessages((prev) => [...prev, "Incident updated successfully"]);
         setIncident({
             uuid: incident.uuid,
             summary,
@@ -203,8 +204,8 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
                         <Col xs={1}>
                             {
                                 (user.admin || comment.commentedBy.uuid == user.uuid) && (
-                                    <OverlayTrigger overlay={<Tooltip>Delete Comment</Tooltip>}>
-                                        <Trash style={{color: "red", cursor: "pointer"}} onClick={() => deleteComment(index)} />
+                                    <OverlayTrigger overlay={<Tooltip style={{color: pending ? "grey" : "red", cursor: "pointer"}}>Delete Comment</Tooltip>}>
+                                        <Trash style={{color: "red", cursor: "pointer"}} onClick={() => pending ? null : deleteComment(index)} />
                                     </OverlayTrigger>
                                 )
                             }
@@ -225,7 +226,7 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
                         <Col style={{textAlign: "right"}}>
                             { /* <FormCheck type="switch" label="Notify Teams" inline /> */}
                             <FormCheck type="switch" label="Resolved" inline checked={resolved} onChange={(e) => setResolved(e.target.checked)} />
-                            <Button onClick={() => updateIncident()} className="ms-2">Update Incident</Button>
+                            <Button onClick={() => updateIncident()} className="ms-2" disabled={pending}>Update Incident</Button>
                         </Col>
                     </Row>
             )}
@@ -399,7 +400,7 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
                                                                 <FormControl as="textarea" rows={3} value={comment} onChange={(e) => setComment(e.target.value)} isInvalid={comment.length > 200} />
                                                                 <FormControl.Feedback type="invalid" tooltip>Comment must be between 1 and 200 characters</FormControl.Feedback>
                                                             </FloatingLabel>
-                                                            <Button className="mt-2" variant="primary" onClick={() => postComment()} disabled={comment.length > 200 || comment.length == 0}>Post Comment</Button>
+                                                            <Button className="mt-2" variant="primary" onClick={() => postComment()} disabled={pending || comment.length > 200 || comment.length == 0}>Post Comment</Button>
                                                         </CardBody>
                                                     </Card>
                                                 </Col>
@@ -414,11 +415,9 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
             {/* Toasts for showing error messages */}
             <ToastContainerComponent
                 errors={errors}
-                showErrors={showErrors}
-                successMessage={successMessage}
-                showSuccessMessage={showSuccessMessage}
+                successMessages={successMessages}
                 setErrors={setErrors}
-                setSuccessToastMessage={setSuccessMessage}
+                setSuccessToastMessages={setSuccessMessages}
                 />
         </main>
     );

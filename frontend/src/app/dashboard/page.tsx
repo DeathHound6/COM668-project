@@ -9,13 +9,10 @@ import {
     FormCheck,
     Pagination,
     Row,
-    Spinner,
-    Toast,
-    ToastBody,
-    ToastContainer,
-    ToastHeader
+    Spinner
 } from "react-bootstrap";
 import { GetIncidents } from "../../actions/incidents";
+import ToastContainerComponent from "../../components/toastContainer";
 
 export default function DashboardPage() {
     const [loaded, setLoaded] = useState(false);
@@ -25,18 +22,13 @@ export default function DashboardPage() {
     const [maxPage, setMaxPage] = useState(1);
     const [myTeams, setMyTeams] = useState(false);
 
-    const [apiError, setAPIError] = useState(undefined as string | undefined);
-    const [showAPIError, setShowAPIError] = useState(false);
+    const [errors, setErrors] = useState([] as string[]);
 
     function handleError(err: APIError) {
         if ([400, 404, 500].includes(err.status))
-            setAPIError(err.message);
+            setErrors((prev) => [...prev, err.message]);
         setLoaded(true);
     }
-
-    useEffect(() => {
-        setShowAPIError(apiError != undefined);
-    }, [apiError]);
 
     useEffect(() => {
         setLoaded(false);
@@ -112,14 +104,13 @@ export default function DashboardPage() {
                         )
                 }
             </div>
-            <ToastContainer position="bottom-end" className="p-3">
-                { showAPIError && (
-                    <Toast bg="danger" onClose={() => { setAPIError(undefined); }} key={"error"} autohide delay={5000}>
-                        <ToastHeader>Error</ToastHeader>
-                        <ToastBody>{apiError}</ToastBody>
-                    </Toast>
-                )}
-            </ToastContainer>
+
+            <ToastContainerComponent
+                errors={errors}
+                setErrors={setErrors}
+                successMessages={[]}
+                setSuccessToastMessages={() => {}}
+            />
         </main>
     );
 }

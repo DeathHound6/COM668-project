@@ -8,6 +8,7 @@ import { GetTeams } from "../../../actions/teams";
 import { z } from "zod";
 import ToastContainerComponent from "../../../components/toastContainer";
 import { GetMe } from "../../../actions/users";
+import { redirect, RedirectType } from "next/navigation";
 
 const oses = [
     "Windows",
@@ -30,10 +31,8 @@ export default function HostDetailsPage({ params }: { params: Promise<{ uuid: st
     const [pending, setPending] = useState(true);
     const [loaded, setLoaded] = useState(false);
 
-    const [successMessage, setSuccessMessage] = useState(undefined as string | undefined);
-    const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+    const [successMessages, setSuccessMessages] = useState([] as string[]);
     const [errors, setErrors] = useState([] as string[]);
-    const [showErrors, setShowErrors] = useState([] as boolean[]);
 
     const [hostname, setHostname] = useState("");
     const [ip4, setIp4] = useState("");
@@ -42,7 +41,7 @@ export default function HostDetailsPage({ params }: { params: Promise<{ uuid: st
     const [teamID, setTeamID] = useState("");
 
     function handleError(err: APIError) {
-        if ([400, 403, 500].includes(err.status))
+        if ([400, 500].includes(err.status))
             setErrors((prev) => [...prev, err.message]);
         setLoaded(true);
         setPending(false);
@@ -75,11 +74,6 @@ export default function HostDetailsPage({ params }: { params: Promise<{ uuid: st
         fetchData();
     }, []);
 
-    useEffect(() => {
-        setShowErrors(new Array(errors.length).fill(true));
-        setShowSuccessMessage(successMessage != undefined);
-    }, [errors, successMessage]);
-
     async function deleteHost() {
         // this shouldnt hit, this is just to keep typescript happy
         if (host == undefined)
@@ -88,7 +82,7 @@ export default function HostDetailsPage({ params }: { params: Promise<{ uuid: st
         DeleteHost(host.uuid).then(
             async() => {
                 setPending(false);
-                window.location.href = "/hosts";
+                redirect("/hosts", RedirectType.replace);
             },
             handleError
         );
@@ -123,7 +117,7 @@ export default function HostDetailsPage({ params }: { params: Promise<{ uuid: st
         UpdateHost({ uuid: host.uuid, body }).then(
             () => {
                 setPending(false);
-                setSuccessMessage("Host updated successfully");
+                setSuccessMessages((prev) => [...prev, "Host updated successfully"]);
             },
             handleError
         );
@@ -195,12 +189,10 @@ export default function HostDetailsPage({ params }: { params: Promise<{ uuid: st
 
             {/* Toasts for showing error messages */}
             <ToastContainerComponent
-                successMessage={successMessage}
-                showSuccessMessage={showSuccessMessage}
+                successMessages={successMessages}
                 errors={errors}
-                showErrors={showErrors}
                 setErrors={setErrors}
-                setSuccessToastMessage={setSuccessMessage}
+                setSuccessToastMessages={setSuccessMessages}
                 />
         </main>
     );

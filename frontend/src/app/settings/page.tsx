@@ -39,13 +39,11 @@ export default function SettingsPage() {
     const [providerType, setProviderType] = useState("log" as "alert"|"log");
 
     const [errors, setErrors] = useState([] as string[]);
-    const [showErrors, setShowErrors] = useState([] as boolean[]);
 
     const [showNewSettingModal, setShowNewSettingModal] = useState(false);
     const [settingName, setSettingName] = useState("");
 
-    const [successToastMessage, setSuccessToastMessage] = useState(undefined as string | undefined);
-    const [showSuccessToast, setShowSuccessToast] = useState(false);
+    const [successToastMessages, setSuccessToastMessages] = useState([] as string[]);
 
     function handleError(error: APIError) {
         if ([400, 404, 500].includes(error.status))
@@ -70,11 +68,6 @@ export default function SettingsPage() {
         fetchData();
     }, [providerType]);
 
-    useEffect(() => {
-        setShowErrors(new Array(errors.length).fill(true));
-        setShowSuccessToast(successToastMessage != undefined);
-    }, [errors, successToastMessage]);
-
     function createSetting() {
         setPending(true);
         const name = settingName;
@@ -96,7 +89,7 @@ export default function SettingsPage() {
             newSettings.push(setting);
             setSettings(newSettings);
             setShowNewSettingModal(false);
-            setSuccessToastMessage("Setting created successfully");
+            setSuccessToastMessages((prev) => [...prev, "Setting created successfully"]);
             setPending(false);
         }
         post();
@@ -195,11 +188,9 @@ export default function SettingsPage() {
             {/* Toasts for showing error messages */}
             <ToastContainerComponent
                 errors={errors}
-                showErrors={showErrors}
-                successMessage={successToastMessage}
-                showSuccessMessage={showSuccessToast}
+                successMessages={successToastMessages}
                 setErrors={setErrors}
-                setSuccessToastMessage={setSuccessToastMessage}
+                setSuccessToastMessages={setSuccessToastMessages}
                 />
         </div>
     );
