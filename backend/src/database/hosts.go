@@ -39,6 +39,7 @@ type GetHostsFilters struct {
 	UUIDs    []string
 	Page     *int
 	PageSize *int
+	Hostname *string
 }
 
 func GetHost(ctx *gin.Context, filters GetHostsFilters) (*HostMachine, error) {
@@ -58,10 +59,13 @@ func GetHost(ctx *gin.Context, filters GetHostsFilters) (*HostMachine, error) {
 
 func GetHosts(ctx *gin.Context, filters GetHostsFilters) ([]*HostMachine, int64, error) {
 	tx := GetDBTransaction(ctx).Model(&HostMachine{})
-	tx = tx.Preload("Team")
+	tx = tx.Preload("Team").Preload("Team.Users")
 
 	if len(filters.UUIDs) > 0 {
 		tx = tx.Where("uuid IN (?)", filters.UUIDs)
+	}
+	if filters.Hostname != nil {
+		tx = tx.Where("hostname = ?", *filters.Hostname)
 	}
 
 	var count int64

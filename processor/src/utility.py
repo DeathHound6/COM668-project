@@ -1,3 +1,4 @@
+import hashlib
 from logging import Formatter, DEBUG, INFO, WARNING, ERROR, CRITICAL
 from typing import Optional, Any
 from enum import Enum
@@ -69,3 +70,21 @@ class LoggerFormatter(Formatter):
         log_fmt = self.FORMATS.get(record.levelno)
         formatter = Formatter(log_fmt)
         return formatter.format(record)
+
+
+class ThreadLocalStorage:
+    def __init__(self):
+        self._storage = {}
+
+    def set(self, key: str, value: Any):
+        self._storage[key] = value
+
+    def get(self, key: str) -> Any:
+        return self._storage.get(key)
+
+    def delete(self, key: str):
+        del self._storage[key]
+
+
+def generate_hash(data: str) -> str:
+    return hashlib.sha1(data.encode()).hexdigest()

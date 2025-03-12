@@ -64,9 +64,19 @@ func GetTeams() gin.HandlerFunc {
 			},
 		}
 		for _, team := range teams {
+			users := make([]utility.UserGetResponseBodySchema, 0)
+			for _, user := range team.Users {
+				users = append(users, utility.UserGetResponseBodySchema{
+					UUID:    user.UUID,
+					Name:    user.Name,
+					SlackID: user.SlackID,
+					Admin:   &user.Admin,
+				})
+			}
 			t := &utility.TeamGetResponseBodySchema{
-				UUID: team.UUID,
-				Name: team.Name,
+				UUID:  team.UUID,
+				Name:  team.Name,
+				Users: users,
 			}
 			resp.Data = append(resp.Data, t)
 		}

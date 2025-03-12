@@ -22,6 +22,7 @@ type Incident struct {
 	ResolvedByID    *uint             `gorm:"column:resolved_by_id"`
 	ResolvedBy      *User             `gorm:"foreignKey:resolved_by_id;references:id"`
 	ResolutionTeams []Team            `gorm:"many2many:incident_resolution_team"`
+	Hash            string            `gorm:"column:hash;size:64;not null"`
 }
 
 func (incident *Incident) BeforeCreate(tx *gorm.DB) error {
@@ -86,6 +87,7 @@ type GetIncidentsFilters struct {
 	Resolved *bool
 	Page     *int
 	PageSize *int
+	Hash     *string
 }
 
 func GetIncident(ctx *gin.Context, uuid string) (*Incident, error) {
@@ -137,6 +139,9 @@ func GetIncidents(ctx *gin.Context, filters GetIncidentsFilters) ([]*Incident, i
 	if filters.UUID != nil {
 		tx = tx.Where("tbl_incident.uuid = ?", *filters.UUID)
 	}
+	if filters.Hash != nil {
+		tx = tx.Where("tbl_incident.hash = ?", *filters.Hash)
+	}
 
 	var count int64
 	tx.Count(&count)
@@ -160,6 +165,7 @@ func CreateIncident(ctx *gin.Context, body *utility.IncidentPostRequestBodySchem
 		Summary:     body.Summary,
 		Description: body.Description,
 		CreatedAt:   time.Now(),
+		Hash:        body.Hash,
 	}
 	tx = tx.Create(incident)
 	if tx.Error != nil {
@@ -185,7 +191,7 @@ func CreateIncident(ctx *gin.Context, body *utility.IncidentPostRequestBodySchem
 			HostMachineID: host.ID,
 		})
 	}
-	tx = tx.Model(&IncidentHost{}).CreateInBatches(hosts, 1)
+	tx = GetDBTransaction(ctx).Model(&IncidentHost{}).CreateInBatches(hosts, 1)
 	if tx.Error != nil {
 		return nil, handleError(ctx, tx.Error)
 	}
@@ -209,7 +215,7 @@ func CreateIncident(ctx *gin.Context, body *utility.IncidentPostRequestBodySchem
 			TeamID:     team.ID,
 		})
 	}
-	tx = tx.Model(&IncidentResolutionTeam{}).CreateInBatches(teams, 1)
+	tx = GetDBTransaction(ctx).Model(&IncidentResolutionTeam{}).CreateInBatches(teams, 1)
 	if tx.Error != nil {
 		return nil, handleError(ctx, tx.Error)
 	}

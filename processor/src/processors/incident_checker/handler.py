@@ -1,12 +1,11 @@
 from config import logger
 from .sentry import handle_sentry
-from http_clients.backend import get_providers, get_jwt
+from http_clients.backend import backend_client
 
 
 def incident_checker():
-    jwt = get_jwt()
-    log_providers = get_providers("log", jwt)
-    alert_providers = get_providers("alert", jwt)
+    log_providers = backend_client.get_providers("log")
+    alert_providers = backend_client.get_providers("alert")
 
     for provider in log_providers:
         enabled_field = [field for field in provider["fields"] if field["key"] == "enabled"]

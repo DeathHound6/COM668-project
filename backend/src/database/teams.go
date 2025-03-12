@@ -54,6 +54,7 @@ func GetTeam(ctx *gin.Context, filters GetTeamsFilters) (*Team, error) {
 
 func GetTeams(ctx *gin.Context, filters GetTeamsFilters) ([]*Team, int64, error) {
 	tx := GetDBTransaction(ctx).Model(&Team{})
+	tx = tx.Preload("Users")
 
 	if len(filters.UUIDs) > 0 {
 		tx = tx.Where("uuid IN (?)", filters.UUIDs)

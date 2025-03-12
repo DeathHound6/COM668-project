@@ -88,7 +88,7 @@ var (
 	defaultTeams []*Team = []*Team{
 		{
 			UUID: "574b5d6a-1fcd-43bf-bb31-7e870ca458d4",
-			Name: "Engineering",
+			Name: "App 1",
 		},
 		{
 			UUID: "7544efed-9e6f-4bf1-a8f9-9a93df5944df",
@@ -96,7 +96,7 @@ var (
 		},
 		{
 			UUID: "89e7fdc7-dd8c-471c-9e23-94cf678412a2",
-			Name: "Monitoring",
+			Name: "NetOps",
 		},
 	}
 	defaultUsers []*User = []*User{
@@ -128,7 +128,7 @@ var (
 	defaultHosts []*HostMachine = []*HostMachine{
 		{
 			UUID:     "c3cb5381-7b79-4bbe-9337-8a27f94646a4",
-			Hostname: "test_app",
+			Hostname: "7e83c1b6c515",
 			IP4:      utility.Pointer("172.18.0.3"),
 			IP6:      nil,
 			OS:       "Linux",

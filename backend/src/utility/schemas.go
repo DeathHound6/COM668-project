@@ -205,6 +205,7 @@ type IncidentPostRequestBodySchema struct {
 	Description     string   `json:"description"`
 	ResolutionTeams []string `json:"resolutionTeams"`
 	HostsAffected   []string `json:"hostsAffected"`
+	Hash            string   `json:"hash"`
 }
 
 func (i IncidentPostRequestBodySchema) Validate() (int, error) {
@@ -264,12 +265,17 @@ func (u UserGetResponseBodySchema) String() string {
 
 type TeamGetResponseBodySchema struct {
 	ResponseSchema
-	UUID string `json:"uuid"`
-	Name string `json:"name"`
+	UUID  string                      `json:"uuid"`
+	Name  string                      `json:"name"`
+	Users []UserGetResponseBodySchema `json:"users"`
 }
 
 func (t TeamGetResponseBodySchema) JSON() map[string]any {
-	return map[string]any{"uuid": t.UUID, "name": t.Name}
+	users := make([]map[string]any, 0)
+	for _, u := range t.Users {
+		users = append(users, u.JSON())
+	}
+	return map[string]any{"uuid": t.UUID, "name": t.Name, "users": users}
 }
 func (t TeamGetResponseBodySchema) String() string {
 	return fmt.Sprintf("{'uuid': '%s', 'name': '%s'}", t.UUID, t.Name)
@@ -301,6 +307,7 @@ type IncidentGetResponseBodySchema struct {
 	ResolvedAt      *time.Time                             `json:"resolvedAt"`
 	ResolvedBy      *UserGetResponseBodySchema             `json:"resolvedBy"`
 	ResolutionTeams []TeamGetResponseBodySchema            `json:"resolutionTeams"`
+	Hash            string                                 `json:"hash"`
 }
 
 func (i IncidentGetResponseBodySchema) JSON() map[string]any {
@@ -320,7 +327,7 @@ func (i IncidentGetResponseBodySchema) JSON() map[string]any {
 	if i.ResolvedBy != nil {
 		resolvedBy = Pointer(i.ResolvedBy.JSON())
 	}
-	return map[string]any{"uuid": i.UUID, "comments": comments, "hostsAffected": hosts, "summary": i.Summary, "description": i.Description, "createdAt": i.CreatedAt, "resolvedAt": i.ResolvedAt, "resolvedBy": resolvedBy, "resolutionTeams": resolutionTeams}
+	return map[string]any{"uuid": i.UUID, "comments": comments, "hostsAffected": hosts, "summary": i.Summary, "description": i.Description, "createdAt": i.CreatedAt, "resolvedAt": i.ResolvedAt, "resolvedBy": resolvedBy, "resolutionTeams": resolutionTeams, "hash": i.Hash}
 }
 func (i IncidentGetResponseBodySchema) String() string {
 	comments := make([]string, 0)

@@ -26,6 +26,7 @@ type GetManyIncidentsResponseSchema utility.GetManyResponseSchema[*utility.Incid
 //	@Param			pageSize	query		int		false	"Number of items per page"
 //	@Param			resolved	query		bool	false	"Filter by resolved status"
 //	@Param			myTeams		query		bool	false	"Filter by my team"
+//	@Param			hash		query		string	false	"Filter by hash"
 //	@Success		200			{object}	GetManyIncidentsResponseSchema
 //	@Failure		401			{object}	utility.ErrorResponseSchema
 //	@Failure		500			{object}	utility.ErrorResponseSchema
@@ -76,6 +77,11 @@ func GetIncidents() gin.HandlerFunc {
 			return
 		}
 		filters.MyTeams = myTeamsBool
+
+		hash := ctx.Query("hash")
+		if hash != "" {
+			filters.Hash = &hash
+		}
 
 		incidents, count, err := database.GetIncidents(ctx, filters)
 		if err != nil {
@@ -235,11 +241,22 @@ func GetIncident() gin.HandlerFunc {
 			ResolvedBy:      resolvedBy,
 			CreatedAt:       incident.CreatedAt,
 			ResolutionTeams: make([]utility.TeamGetResponseBodySchema, 0),
+			Hash:            incident.Hash,
 		}
 		for _, team := range incident.ResolutionTeams {
+			users := make([]utility.UserGetResponseBodySchema, 0)
+			for _, user := range team.Users {
+				users = append(users, utility.UserGetResponseBodySchema{
+					UUID:    user.UUID,
+					Name:    user.Name,
+					SlackID: user.SlackID,
+					Admin:   &user.Admin,
+				})
+			}
 			inc.ResolutionTeams = append(inc.ResolutionTeams, utility.TeamGetResponseBodySchema{
-				UUID: team.UUID,
-				Name: team.Name,
+				UUID:  team.UUID,
+				Name:  team.Name,
+				Users: users,
 			})
 		}
 		for _, comment := range incident.Comments {
@@ -291,7 +308,8 @@ func GetIncident() gin.HandlerFunc {
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Header			201	header	string	"GET URL"
+//	@Param			incident	body	utility.IncidentPostRequestBodySchema	true	"The request body"
+//	@Header			201			header	string									"GET URL"
 //	@Success		201
 //	@Router			/incidents [post]
 func CreateIncident() gin.HandlerFunc {

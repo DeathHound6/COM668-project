@@ -24,7 +24,7 @@ func FormatResponseMW() gin.HandlerFunc {
 				log.Default().Printf("[%s] Body not set in context on POST. Assuming 201 Created\n", reqID)
 				status = http.StatusCreated
 			}
-			if !bodyOk {
+			if !bodyOk && ctx.Writer.Header().Get("Location") == "" {
 				log.Default().Printf("[%s] Body not set in context. Assuming 204 No Content\n", reqID)
 				status = http.StatusNoContent
 			}

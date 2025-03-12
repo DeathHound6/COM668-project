@@ -21,8 +21,9 @@ type GetManyHostsResponseSchema utility.GetManyResponseSchema[*utility.HostMachi
 //	@Security		JWT
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query		int	false	"Page number"
-//	@Param			pageSize	query		int	false	"Number of items per page"
+//	@Param			page		query		int	false		"Page number"
+//	@Param			pageSize	query		int	false		"Number of items per page"
+//	@Param			hostname	query		string	false	"Server hostname"
 //	@Success		200			{object}	GetManyHostsResponseSchema
 //	@Failure		401			{object}	utility.ErrorResponseSchema
 //	@Failure		403			{object}	utility.ErrorResponseSchema
@@ -42,10 +43,16 @@ func GetHosts() gin.HandlerFunc {
 		page := params["page"].(int)
 		pageSize := params["pageSize"].(int)
 
-		hosts, count, err := database.GetHosts(ctx, database.GetHostsFilters{
+		filters := database.GetHostsFilters{
 			Page:     &page,
 			PageSize: &pageSize,
-		})
+		}
+
+		if hostname, ok := ctx.GetQuery("hostname"); ok && len(hostname) > 0 {
+			filters.Hostname = &hostname
+		}
+
+		hosts, count, err := database.GetHosts(ctx, filters)
 		if err != nil {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
 			ctx.Set("Body", &utility.ErrorResponseSchema{
@@ -65,6 +72,15 @@ func GetHosts() gin.HandlerFunc {
 			},
 		}
 		for _, host := range hosts {
+			users := make([]utility.UserGetResponseBodySchema, 0)
+			for _, user := range host.Team.Users {
+				users = append(users, utility.UserGetResponseBodySchema{
+					UUID:    user.UUID,
+					Name:    user.Name,
+					SlackID: user.SlackID,
+					Admin:   &user.Admin,
+				})
+			}
 			h := &utility.HostMachineGetResponseBodySchema{
 				UUID:     host.UUID,
 				Hostname: host.Hostname,
@@ -72,8 +88,9 @@ func GetHosts() gin.HandlerFunc {
 				IP6:      host.IP6,
 				OS:       host.OS,
 				Team: utility.TeamGetResponseBodySchema{
-					UUID: host.Team.UUID,
-					Name: host.Team.Name,
+					UUID:  host.Team.UUID,
+					Name:  host.Team.Name,
+					Users: users,
 				},
 			}
 			resp.Data = append(resp.Data, h)

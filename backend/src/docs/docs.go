@@ -143,6 +143,12 @@ const docTemplate = `{
                         "description": "Number of items per page",
                         "name": "pageSize",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Server hostname",
+                        "name": "hostname",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -470,6 +476,12 @@ const docTemplate = `{
                         "description": "Filter by my team",
                         "name": "myTeams",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by hash",
+                        "name": "hash",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -510,6 +522,17 @@ const docTemplate = `{
                     "Incidents"
                 ],
                 "summary": "Create an incident",
+                "parameters": [
+                    {
+                        "description": "The request body",
+                        "name": "incident",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/utility.IncidentPostRequestBodySchema"
+                        }
+                    }
+                ],
                 "responses": {
                     "201": {
                         "description": "Created"
@@ -1521,6 +1544,9 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "hash": {
+                    "type": "string"
+                },
                 "hostsAffected": {
                     "type": "array",
                     "items": {
@@ -1543,6 +1569,33 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "utility.IncidentPostRequestBodySchema": {
+            "type": "object",
+            "properties": {
+                "BodySchema": {},
+                "description": {
+                    "type": "string"
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "hostsAffected": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "resolutionTeams": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "summary": {
                     "type": "string"
                 }
             }
@@ -1662,6 +1715,12 @@ const docTemplate = `{
                 "ResponseSchema": {},
                 "name": {
                     "type": "string"
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/utility.UserGetResponseBodySchema"
+                    }
                 },
                 "uuid": {
                     "type": "string"
