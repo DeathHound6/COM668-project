@@ -13,21 +13,21 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     const [authedFor, setAuthedFor] = useState(null as string | null);
 
     useEffect(() => {
-        const authCompleteFor = localStorage.getItem("auth");
-        if (authCompleteFor == null)
-            return;
-        GetMe()
-        .then(
-            () => {
+        async function fetchData() {
+            const authCompleteFor = localStorage.getItem("auth");
+            if (authCompleteFor == null)
+                return;
+            try {
+                await GetMe();
                 setAuthedFor(authCompleteFor);
                 localStorage.removeItem("auth");
-            },
-            () => {
+            } catch(e) {
                 localStorage.removeItem("u");
                 localStorage.removeItem("e");
                 redirect("/login", RedirectType.replace);
             }
-        );
+        }
+        fetchData();
     }, [url]);
 
     return (

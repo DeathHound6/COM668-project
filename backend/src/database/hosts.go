@@ -36,10 +36,10 @@ func (host *HostMachine) BeforeCreate(tx *gorm.DB) error {
 }
 
 type GetHostsFilters struct {
-	UUIDs    []string
-	Page     *int
-	PageSize *int
-	Hostname *string
+	UUIDs     []string
+	Page      *int
+	PageSize  *int
+	Hostnames *[]string
 }
 
 func GetHost(ctx *gin.Context, filters GetHostsFilters) (*HostMachine, error) {
@@ -64,8 +64,8 @@ func GetHosts(ctx *gin.Context, filters GetHostsFilters) ([]*HostMachine, int64,
 	if len(filters.UUIDs) > 0 {
 		tx = tx.Where("uuid IN (?)", filters.UUIDs)
 	}
-	if filters.Hostname != nil {
-		tx = tx.Where("hostname = ?", *filters.Hostname)
+	if filters.Hostnames != nil {
+		tx = tx.Where("hostname IN (?)", *filters.Hostnames)
 	}
 
 	var count int64

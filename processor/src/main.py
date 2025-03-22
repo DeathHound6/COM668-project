@@ -2,6 +2,7 @@ from config import logger
 from multiprocessing import Process
 from time import sleep
 from processors.incident_checker.handler import incident_checker
+from processors.incident_resolver.handler import incident_resolver
 from typing import Any
 
 
@@ -18,13 +19,22 @@ def main():
     logger.info("Waiting for the API to start")
     sleep(5)
 
-    processes = [{
-        "name": "Incident Checker",
-        "args": {
-            "func": incident_checker,
-            "wait_time": 30
+    processes = [
+        {
+            "name": "Incident Checker",
+            "args": {
+                "func": incident_checker,
+                "wait_time": 30
+            }
+        },
+        {
+            "name": "Incident Resolver",
+            "args": {
+                "func": incident_resolver,
+                "wait_time": 60
+            }
         }
-    }]
+    ]
     running_processes: list[tuple[Process, dict[str, Any]]] = []
 
     # Startup the processes

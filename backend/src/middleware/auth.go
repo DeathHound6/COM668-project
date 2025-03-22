@@ -134,6 +134,14 @@ func UserAuthRequestMW() gin.HandlerFunc {
 			ctx.Next()
 			return
 		}
+		if user == nil {
+			ctx.Set("Status", http.StatusUnauthorized)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "invalid user credentials",
+			})
+			ctx.Next()
+			return
+		}
 		ctx.Set("user", user)
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -23,7 +24,7 @@ type GetManyHostsResponseSchema utility.GetManyResponseSchema[*utility.HostMachi
 //	@Produce		json
 //	@Param			page		query		int	false		"Page number"
 //	@Param			pageSize	query		int	false		"Number of items per page"
-//	@Param			hostname	query		string	false	"Server hostname"
+//	@Param			hostnames	query		string	false	"Server hostname"
 //	@Success		200			{object}	GetManyHostsResponseSchema
 //	@Failure		401			{object}	utility.ErrorResponseSchema
 //	@Failure		403			{object}	utility.ErrorResponseSchema
@@ -48,8 +49,10 @@ func GetHosts() gin.HandlerFunc {
 			PageSize: &pageSize,
 		}
 
-		if hostname, ok := ctx.GetQuery("hostname"); ok && len(hostname) > 0 {
-			filters.Hostname = &hostname
+		if hostname, ok := ctx.GetQuery("hostnames"); ok && len(hostname) > 0 {
+			hostnames := make([]string, 0)
+			hostnames = append(hostnames, strings.Split(hostname, ",")...)
+			filters.Hostnames = &hostnames
 		}
 
 		hosts, count, err := database.GetHosts(ctx, filters)

@@ -231,6 +231,12 @@ func (i IncidentPostRequestBodySchema) Validate() (int, error) {
 			return 400, errors.New("'hostsAffected' must be a list of valid UUIDs")
 		}
 	}
+	if len(i.Hash) == 0 {
+		return 400, errors.New("'hash' is required")
+	}
+	if len(i.Hash) > 40 {
+		return 400, errors.New("'hash' cannot be longer than 40 characters")
+	}
 	return -1, nil
 }
 
@@ -278,7 +284,11 @@ func (t TeamGetResponseBodySchema) JSON() map[string]any {
 	return map[string]any{"uuid": t.UUID, "name": t.Name, "users": users}
 }
 func (t TeamGetResponseBodySchema) String() string {
-	return fmt.Sprintf("{'uuid': '%s', 'name': '%s'}", t.UUID, t.Name)
+	users := make([]string, 0)
+	for _, u := range t.Users {
+		users = append(users, u.String())
+	}
+	return fmt.Sprintf("{'uuid': '%s', 'name': '%s', 'users': ['%s']}", t.UUID, t.Name, strings.Join(users, " "))
 }
 
 type IncidentCommentGetResponseBodySchema struct {
@@ -350,7 +360,7 @@ func (i IncidentGetResponseBodySchema) String() string {
 	if i.ResolvedBy != nil {
 		resolvedBy = i.ResolvedBy.String()
 	}
-	return fmt.Sprintf("{'uuid': '%s', 'comments': [%s], 'hostsAffected': [%s], 'summary': '%s', 'description': '%s', 'createdAt': '%s', 'resolvedAt': '%s', 'resolvedBy': %s, 'resolutionTeams': [%s]}", i.UUID, strings.Join(comments, " "), strings.Join(hosts, " "), i.Summary, i.Description, i.CreatedAt, resolvedAt, resolvedBy, strings.Join(resolutionTeams, " "))
+	return fmt.Sprintf("{'uuid': '%s', 'comments': [%s], 'hostsAffected': [%s], 'summary': '%s', 'description': '%s', 'createdAt': '%s', 'resolvedAt': '%s', 'resolvedBy': %s, 'resolutionTeams': [%s], 'hash': '%s'}", i.UUID, strings.Join(comments, " "), strings.Join(hosts, " "), i.Summary, i.Description, i.CreatedAt, resolvedAt, resolvedBy, strings.Join(resolutionTeams, " "), i.Hash)
 }
 
 type HostMachineGetResponseBodySchema struct {

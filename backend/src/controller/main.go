@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"com668-backend/database"
 	"com668-backend/middleware"
 	"com668-backend/utility"
 	"errors"
@@ -177,6 +176,9 @@ func register(engine *gin.Engine, method string, endpoint string, handler gin.Ha
 		handlers = append(handlers, middleware.TransactionRequestMW())
 		if options.useAuth {
 			handlers = append(handlers, middleware.UserAuthRequestMW())
+			if options.useAdminAuth {
+				handlers = append(handlers, middleware.AdminUserAuthRequestMW())
+			}
 		}
 	}
 
@@ -190,25 +192,6 @@ func register(engine *gin.Engine, method string, endpoint string, handler gin.Ha
 			_, ok = body.(*utility.ErrorResponseSchema)
 		}
 		if body == nil || !ok {
-			if options.useDB && options.useAuth && options.useAdminAuth {
-				user := ctx.MustGet("user").(*database.User)
-				if user == nil {
-					ctx.Set("Status", http.StatusUnauthorized)
-					ctx.Set("Body", utility.ErrorResponseSchema{
-						Error: "user is not authenticated",
-					})
-					ctx.Next()
-					return
-				}
-				if !user.Admin {
-					ctx.Set("Status", http.StatusForbidden)
-					ctx.Set("Body", utility.ErrorResponseSchema{
-						Error: "user is not an admin",
-					})
-					ctx.Next()
-					return
-				}
-			}
 			log.Default().Printf("[%s] Running endpoint handler for %s %s\n", reqID, ctx.Request.Method, ctx.Request.URL.Path)
 			handler(ctx)
 		}

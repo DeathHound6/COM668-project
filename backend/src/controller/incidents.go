@@ -584,11 +584,13 @@ func CreateIncidentComment() gin.HandlerFunc {
 //	@Success		204
 //	@Failure		400	{object}	utility.ErrorResponseSchema
 //	@Failure		401	{object}	utility.ErrorResponseSchema
+//	@Failure		403	{object}	utility.ErrorResponseSchema
 //	@Failure		404	{object}	utility.ErrorResponseSchema
 //	@Failure		500	{object}	utility.ErrorResponseSchema
 //	@Router			/incidents/{incident_id}/comments/{comment_id} [delete]
 func DeleteIncidentComment() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		user := ctx.MustGet("user").(*database.User)
 		incidentUUID := ctx.Param("incident_id")
 		if _, err := uuid.Parse(incidentUUID); err != nil {
 			ctx.Set("Status", http.StatusBadRequest)
@@ -613,6 +615,15 @@ func DeleteIncidentComment() gin.HandlerFunc {
 			ctx.Set("Status", ctx.GetInt("errorCode"))
 			ctx.Set("Body", &utility.ErrorResponseSchema{
 				Error: err.Error(),
+			})
+			ctx.Next()
+			return
+		}
+
+		if !user.Admin && comment.CommentedByID != user.ID {
+			ctx.Set("Status", http.StatusForbidden)
+			ctx.Set("Body", &utility.ErrorResponseSchema{
+				Error: "you are not allowed to delete this comment",
 			})
 			ctx.Next()
 			return

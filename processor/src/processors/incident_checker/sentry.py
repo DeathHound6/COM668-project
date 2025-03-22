@@ -86,7 +86,7 @@ def handle_event(event: dict[str, Any], alert_providers: list[dict[str, Any]]):
             root_cause = "Unknown dependency issue"
     elif file is not None:
         # NOTE: If error is not from node_modules, it is most likely a code issue
-        root_cause = endpoint
+        root_cause = f"Endpoint {endpoint}"
         pass
     else:
         # NOTE: If file not found
@@ -122,14 +122,17 @@ def handle_event(event: dict[str, Any], alert_providers: list[dict[str, Any]]):
     logger.info(f"[SENTRY] Determining resolution teams for event: {event['id']}")
     resolution_teams = []
     # TODO: AI/ML used to determine resolution teams based on existing team names and keywords in error message
-    if "node_modules" not in file:
+    if "node_modules" not in str(file):
         resolution_teams += [host["team"]["uuid"] for host in hosts]
-    if "net" in message.lower():
+    if "net" in str(message).lower():
         resolution_teams += [team["uuid"] for team in teams if team["name"] == "NetOps"]
 
+    if not resolution_teams:
+        resolution_teams = [host["team"]["uuid"] for host in hosts]
+
     incident_body = {
-        "summary": message,
-        "description": f"{message}\n{endpoint}\n{root_cause}",
+        "summary": message[:100],
+        "description": f"{message}\n{endpoint}\n{root_cause}"[:500],
         "hostsAffected": [host["uuid"] for host in hosts],
         "resolutionTeams": resolution_teams,
         "hash": incident_hash
@@ -156,7 +159,7 @@ def handle_event(event: dict[str, Any], alert_providers: list[dict[str, Any]]):
         for provider in alert_providers:
             try:
                 if any([field["value"] for field in provider["fields"] if str(field["name"]).lower() == "enabled"]) and \
-                provider["name"] == "slack":
+                   str(provider["name"]).lower() == "slack":
                     logger.info(f"[SENTRY] Sending incident to Slack channel: {channel_name}")
                     channel = slack_client.create_conversation(channel_name)
                     slack_client.join_conversation(channel["channel"]["id"])

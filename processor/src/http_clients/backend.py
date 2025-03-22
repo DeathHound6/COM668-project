@@ -38,7 +38,7 @@ class BackendAPIClient:
         return jwt
 
 
-    def get_providers(self, provider_type: str):
+    def get_providers(self, provider_type: str) -> list[dict[str, Any]]:
         self.handle_jwt()
         logger.info(f"[A.I.M.S] Getting providers of type '{provider_type}'")
         resp = make_api_request(
@@ -51,7 +51,6 @@ class BackendAPIClient:
                 "provider_type": provider_type
             }
         )
-        # If we get a 401, we need to get a new JWT
         if resp.status_code == 401:
             logger.info("[A.I.M.S] JWT expired. Getting new JWT and recalling get_providers")
             self.handle_jwt()
@@ -61,7 +60,7 @@ class BackendAPIClient:
         return resp.json()["data"]
 
 
-    def get_hosts(self, filters: dict[str, Any] = {}):
+    def get_hosts(self, filters: dict[str, Any] = {}) -> list[dict[str, Any]]:
         self.handle_jwt()
         logger.info("[A.I.M.S] Getting host machines")
         resp = make_api_request(
@@ -81,7 +80,7 @@ class BackendAPIClient:
         return resp.json()["data"]
 
 
-    def get_me(self):
+    def get_me(self) -> dict[str, Any]:
         self.handle_jwt()
         logger.info("[A.I.M.S] Getting user")
         resp = make_api_request(
@@ -100,7 +99,7 @@ class BackendAPIClient:
         return resp.json()["data"]
 
 
-    def get_teams(self, filters: dict[str, Any]):
+    def get_teams(self, filters: dict[str, Any]) -> list[dict[str, Any]]:
         self.handle_jwt()
         logger.info("[A.I.M.S] Getting teams")
         resp = make_api_request(
@@ -140,7 +139,7 @@ class BackendAPIClient:
         return resp.headers["Location"]
 
 
-    def get_incidents(self, params: dict[str, Any]) -> dict[str, Any]:
+    def get_incidents(self, params: dict[str, Any]={}) -> list[dict[str, Any]]:
         self.handle_jwt()
         logger.info("[A.I.M.S] Getting incidents")
         resp = make_api_request(
@@ -151,7 +150,6 @@ class BackendAPIClient:
                 "Authorization": self.jwt
             }
         )
-
         if resp.status_code == 401:
             logger.info("[A.I.M.S] JWT expired. Getting new JWT and recalling get_incidents")
             self.handle_jwt()
@@ -159,6 +157,59 @@ class BackendAPIClient:
         elif resp.status_code != 200:
             raise ExternalAPIException(resp.json()["error"])
         return resp.json()["data"]
+
+
+    def update_incident(self, incident_id: str, body: dict[str, Any]) -> None:
+        response = make_api_request(
+            url=f"{api_host}/incidents/{incident_id}",
+            method=HTTPMethodEnum.PUT,
+            headers={
+                "Authorization": self.jwt
+            },
+            body=body
+        )
+        if response.status_code == 401:
+            logger.info("[A.I.M.S] JWT expired. Getting new JWT and recalling update_incident")
+            self.handle_jwt()
+            return self.update_incident(incident_id, body)
+        elif response.status_code != 204:
+            raise ExternalAPIException(response.json()["error"])
+
+
+    def post_comment_on_incident(self, incident_id: str, comment: str) -> str:
+        response = make_api_request(
+            url=f"{api_host}/incidents/{incident_id}/comments",
+            method=HTTPMethodEnum.POST,
+            headers={
+                "Authorization": self.jwt
+            },
+            body={
+                "comment": comment
+            }
+        )
+        if response.status_code == 401:
+            logger.info("[A.I.M.S] JWT expired. Getting new JWT and recalling post_comment_on_incident")
+            self.handle_jwt()
+            return self.post_comment_on_incident(incident_id, comment)
+        elif response.status_code != 201:
+            raise ExternalAPIException(response.json()["error"])
+        return response.headers["Location"]
+
+
+    def delete_comment_on_incident(self, incident_id: str, comment_id: str) -> None:
+        response = make_api_request(
+            url=f"{api_host}/incidents/{incident_id}/comments/{comment_id}",
+            method=HTTPMethodEnum.DELETE,
+            headers={
+                "Authorization": self.jwt
+            }
+        )
+        if response.status_code == 401:
+            logger.info("[A.I.M.S] JWT expired. Getting new JWT and recalling delete_comment_on_incident")
+            self.handle_jwt()
+            return self.delete_comment_on_incident(incident_id, comment_id)
+        elif response.status_code != 204:
+            raise ExternalAPIException(response.json()["error"])
 
 
 backend_client = BackendAPIClient()
