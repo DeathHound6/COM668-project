@@ -76,7 +76,3 @@ func GetTeams(ctx *gin.Context, filters GetTeamsFilters) ([]*Team, int64, error)
 	}
 	return teams, count, nil
 }
-
-func CreateTeam(ctx *gin.Context, body *utility.TeamPostRequestBodySchema) error {
-	return nil
-}

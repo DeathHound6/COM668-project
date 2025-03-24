@@ -36,16 +36,6 @@ func RegisterControllers(engine *gin.Engine) {
 		useDB:        true,
 		useAdminAuth: false,
 	})
-	register(engine, http.MethodPost, "/teams", CreateTeam(), registerControllerOptions{
-		useAuth:      true,
-		useDB:        true,
-		useAdminAuth: true,
-	})
-	register(engine, http.MethodDelete, "/teams/:team_id", DeleteTeam(), registerControllerOptions{
-		useAuth:      true,
-		useDB:        true,
-		useAdminAuth: true,
-	})
 
 	// Register users endpoints
 	register(engine, http.MethodPost, "/users", CreateUser(), registerControllerOptions{

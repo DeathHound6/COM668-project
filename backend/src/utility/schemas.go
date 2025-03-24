@@ -84,21 +84,6 @@ func (u UserLoginRequestBodySchema) Validate() (int, error) {
 	return -1, nil
 }
 
-type TeamPostRequestBodySchema struct {
-	BodySchema
-	Name string `json:"name"`
-}
-
-func (t TeamPostRequestBodySchema) Validate() (int, error) {
-	if len(t.Name) == 0 {
-		return 400, errors.New("'name' is required")
-	}
-	if len(t.Name) > 30 {
-		return 400, errors.New("'name' cannot be longer than 30 characters")
-	}
-	return -1, nil
-}
-
 type KeyValueSchema struct {
 	ResponseSchema
 	BodySchema
