@@ -349,7 +349,7 @@ paths:
         type: integer
       - description: Server hostname
         in: query
-        name: hostname
+        name: hostnames
         type: string
       produces:
       - application/json
@@ -745,6 +745,10 @@ paths:
             $ref: '#/definitions/utility.ErrorResponseSchema'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/utility.ErrorResponseSchema'
         "404":

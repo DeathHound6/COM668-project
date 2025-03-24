@@ -17,6 +17,7 @@ func TestGetProviders(t *testing.T) {
 	}
 
 	t.Run("GetProviders ValidProviderType", func(t *testing.T) {
+		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/providers?provider_type=alert", nil)
 		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -40,6 +41,7 @@ func TestGetProviders(t *testing.T) {
 	})
 
 	t.Run("GetProviders InvalidProviderType", func(t *testing.T) {
+		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/providers?provider_type=invalid", nil)
 		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -66,6 +68,7 @@ func TestGetProviders(t *testing.T) {
 	})
 
 	t.Run("GetProviders InvalidCommonParams", func(t *testing.T) {
+		t.Parallel()
 		page := "invalid"
 		pageSize := "10"
 
@@ -125,6 +128,7 @@ func TestGetProviders(t *testing.T) {
 	})
 
 	t.Run("GetProviders Forbidden", func(t *testing.T) {
+		t.Parallel()
 		jwtString, err := getJWT(engine, TestUserEmail, TestUserPassword)
 		if err != nil {
 			t.Fatal(err)
@@ -154,6 +158,7 @@ func TestCreateProvider(t *testing.T) {
 	}
 
 	t.Run("CreateProvider", func(t *testing.T) {
+		t.Parallel()
 		body := map[string]any{
 			"name": "Test Provider",
 		}
@@ -177,6 +182,7 @@ func TestCreateProvider(t *testing.T) {
 	})
 
 	t.Run("CreateProvider InvalidProviderType", func(t *testing.T) {
+		t.Parallel()
 		body := map[string]any{
 			"name": "Test Provider",
 		}
@@ -210,6 +216,7 @@ func TestCreateProvider(t *testing.T) {
 	})
 
 	t.Run("CreateProvider InvalidBody", func(t *testing.T) {
+		t.Parallel()
 		body := map[string]any{
 			"a": 1,
 		}
@@ -236,7 +243,8 @@ func TestCreateProvider(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if resp.Error != "Key: 'ProviderPostRequestBodySchema.Name' Error:Field validation for 'Name' failed on the 'required' tag" {
+
+		if !strings.Contains(resp.Error, "' is required") {
 			t.Log(resp.Error)
 			t.Fatal("error response message was not expected message")
 		}
@@ -251,20 +259,18 @@ func TestUpdateProvider(t *testing.T) {
 	}
 
 	t.Run("UpdateProvider", func(t *testing.T) {
+		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/providers?provider_type=log", nil)
 		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
 
 		expected := http.StatusOK
 		if code := writer.Code; code != expected {
-			if strings.HasPrefix(fmt.Sprint(code), "4") || strings.HasPrefix(fmt.Sprint(code), "5") {
-				resp, err := utility.ReadJSONStruct[utility.ErrorResponseSchema](writer.Body.Bytes())
-				if err != nil {
-					t.Fatal(err)
-				}
-				t.Log(resp.Error)
+			resp, err := utility.ReadJSONStruct[utility.ErrorResponseSchema](writer.Body.Bytes())
+			if err != nil {
+				t.Fatal(err)
 			}
-			t.Log("could not get providers")
+			t.Log(resp.Error)
 			t.Fatalf("Status code %d != %d", code, expected)
 		}
 
@@ -300,6 +306,7 @@ func TestUpdateProvider(t *testing.T) {
 	})
 
 	t.Run("UpdateProvider InvalidUUID", func(t *testing.T) {
+		t.Parallel()
 		body := map[string]any{
 			"name":   "Test 2",
 			"fields": []map[string]any{{"key": "test", "value": "test", "type": "string", "required": false}},
@@ -336,6 +343,7 @@ func TestDeleteProvider(t *testing.T) {
 	}
 
 	t.Run("DeleteProvider", func(t *testing.T) {
+		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/providers?provider_type=log", nil)
 		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -377,6 +385,7 @@ func TestDeleteProvider(t *testing.T) {
 	})
 
 	t.Run("DeleteProvider InvalidUUID", func(t *testing.T) {
+		t.Parallel()
 		uuid, err := utility.GenerateRandomUUID()
 		if err != nil {
 			t.Fatal(err)

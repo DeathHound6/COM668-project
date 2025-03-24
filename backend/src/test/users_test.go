@@ -21,19 +21,18 @@ func TestGetMe(t *testing.T) {
 	}
 
 	t.Run("GetMe", func(t *testing.T) {
+		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/me", nil)
 		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
 
 		expected := http.StatusOK
 		if code := writer.Code; code != expected {
-			if strings.HasPrefix(fmt.Sprint(writer.Code), "4") || strings.HasPrefix(fmt.Sprint(writer.Code), "5") {
-				resp, err := utility.ReadJSONStruct[utility.ErrorResponseSchema](writer.Body.Bytes())
-				if err != nil {
-					t.Fatal(err)
-				}
-				t.Log(resp.Error)
+			resp, err := utility.ReadJSONStruct[utility.ErrorResponseSchema](writer.Body.Bytes())
+			if err != nil {
+				t.Fatal(err)
 			}
+			t.Log(resp.Error)
 			t.Fatalf("status code %d != %d", code, expected)
 		}
 
@@ -44,7 +43,7 @@ func TestGetMe(t *testing.T) {
 
 		token, err := jwt.Parse(
 			strings.Split(jwtString, " ")[1],
-			func(t *jwt.Token) (interface{}, error) {
+			func(t *jwt.Token) (any, error) {
 				return []byte(os.Getenv("JWT_SIGNING_KEY")), nil
 			},
 			jwt.WithValidMethods([]string{
@@ -62,12 +61,13 @@ func TestGetMe(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if resp.Email != string(subBytes) {
-			t.Fatal("email mismatch")
+		if resp.UUID != string(subBytes) {
+			t.Fatal("uuid mismatch")
 		}
 	})
 
 	t.Run("GetMe Unauthorized", func(t *testing.T) {
+		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/me", nil)
 		writer := makeRequest(engine, req)
 

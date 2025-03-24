@@ -147,7 +147,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Server hostname",
-                        "name": "hostname",
+                        "name": "hostnames",
                         "in": "query"
                     }
                 ],
@@ -761,6 +761,12 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utility.ErrorResponseSchema"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/utility.ErrorResponseSchema"
                         }
