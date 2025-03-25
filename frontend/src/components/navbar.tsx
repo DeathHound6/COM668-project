@@ -26,15 +26,22 @@ export default function NavbarComponent() {
 
     useEffect(() => {
         // Redirect the user to the dashboard if they are on the root path
-        if (pathname == "/")
+        if (pathname == "/") {
+            console.log(`URL is '/', redirecting to '/dashboard'`);
             redirect("/dashboard", RedirectType.replace);
+        }
         // Handle the case where the JWT token is expired on page load
         const userinfo = localStorage.getItem("u");
         const expireTimestamp = localStorage.getItem("e");
-        if (pathname.toLowerCase() != "/login" && (userinfo == null || expireTimestamp == null))
+        if (pathname.toLowerCase() != "/login" && (userinfo == null || expireTimestamp == null)) {
+            console.log(`User is not logged in, redirecting to '/login'`);
+            localStorage.removeItem("u");
+            localStorage.removeItem("e");
             redirect("/login", RedirectType.replace);
+        }
 
         if (expireTimestamp != null && parseInt(expireTimestamp) < Date.now()) {
+            console.log(`JWT token has expired, redirecting to '/login'`);
             localStorage.removeItem("u");
             localStorage.removeItem("e");
             if (pathname.toLowerCase() != "/login")
@@ -42,8 +49,10 @@ export default function NavbarComponent() {
         }
 
         // if the user is on the login page and already logged in, redirect them to the dashboard
-        if (pathname.toLowerCase() == "/login" && userinfo != null)
+        if (pathname.toLowerCase() == "/login" && userinfo != null) {
+            console.log(`User is already logged in, redirecting to '/dashboard'`);
             redirect("/dashboard", RedirectType.replace);
+        }
         setUser(userinfo != null ? JSON.parse(userinfo) : null);
     }, [pathname]);
 
