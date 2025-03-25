@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -116,7 +117,7 @@ func (k KeyValueSchema) Validate() (int, error) {
 	if len(k.Value) > 30 {
 		return 400, errors.New("'value' cannot be longer than 30 characters")
 	}
-	if !SliceHasElement([]string{"string", "number", "bool"}, k.Type) {
+	if !slices.Contains([]string{"string", "number", "bool"}, k.Type) {
 		return 400, errors.New("'type' must be one of 'string', 'number', or 'bool'")
 	}
 	if k.Required == nil {
@@ -422,7 +423,7 @@ func (h HostMachinePostPutRequestBodySchema) Validate() (int, error) {
 	if len(h.OS) == 0 {
 		return 400, errors.New("'os' is required")
 	}
-	if !SliceHasElement([]string{"Windows", "Linux", "MacOS"}, h.OS) {
+	if !slices.Contains([]string{"Windows", "Linux", "MacOS"}, h.OS) {
 		return 400, errors.New("'os' must be either 'Windows', 'Linux', or 'MacOS'")
 	}
 	if len(h.Hostname) == 0 {

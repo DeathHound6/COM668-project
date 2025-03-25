@@ -111,6 +111,7 @@ func GetIncidents(ctx *gin.Context, filters GetIncidentsFilters) ([]*Incident, i
 	tx = tx.Preload("HostsAffected").
 		Preload("HostsAffected.Team").
 		Preload("ResolutionTeams").
+		Preload("ResolutionTeams.Users").
 		Preload("ResolvedBy").
 		Preload("ResolvedBy.Teams").
 		Preload("Comments", func(t *gorm.DB) *gorm.DB {
@@ -173,7 +174,7 @@ func CreateIncident(ctx *gin.Context, body *utility.IncidentPostRequestBodySchem
 	}
 
 	// insert hosts - m2m
-	hosts := make([]IncidentHost, 0)
+	hosts := make([]*IncidentHost, 0)
 	hs, count, err := GetHosts(ctx, GetHostsFilters{
 		UUIDs:    body.HostsAffected,
 		PageSize: utility.Pointer(len(body.HostsAffected)),
@@ -186,7 +187,7 @@ func CreateIncident(ctx *gin.Context, body *utility.IncidentPostRequestBodySchem
 		return nil, errors.New("one or more hosts not found")
 	}
 	for _, host := range hs {
-		hosts = append(hosts, IncidentHost{
+		hosts = append(hosts, &IncidentHost{
 			IncidentID:    incident.ID,
 			HostMachineID: host.ID,
 		})
@@ -197,7 +198,7 @@ func CreateIncident(ctx *gin.Context, body *utility.IncidentPostRequestBodySchem
 	}
 
 	// insert resolution teams - m2m
-	teams := make([]IncidentResolutionTeam, 0)
+	teams := make([]*IncidentResolutionTeam, 0)
 	ts, count, err := GetTeams(ctx, GetTeamsFilters{
 		UUIDs:    body.ResolutionTeams,
 		PageSize: utility.Pointer(len(body.ResolutionTeams)),
@@ -210,7 +211,7 @@ func CreateIncident(ctx *gin.Context, body *utility.IncidentPostRequestBodySchem
 		return nil, errors.New("one or more teams not found")
 	}
 	for _, team := range ts {
-		teams = append(teams, IncidentResolutionTeam{
+		teams = append(teams, &IncidentResolutionTeam{
 			IncidentID: incident.ID,
 			TeamID:     team.ID,
 		})

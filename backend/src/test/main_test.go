@@ -41,10 +41,7 @@ func getJWT(engine *gin.Engine, userEmail string, userPassword string) (string, 
 	if err != nil {
 		return "", err
 	}
-	req, err := http.NewRequest(http.MethodPost, "/users/login", body)
-	if err != nil {
-		return "", err
-	}
+	req, _ := http.NewRequest(http.MethodPost, "/users/login", body)
 	req.Header.Add("Content-Type", "application/json")
 	writer := makeRequest(engine, req)
 	if writer.Code != http.StatusNoContent {

@@ -19,7 +19,7 @@ var (
 	AuthHeaderNameString string                 = "Authorization"
 )
 
-func UserAuthRequestMW() gin.HandlerFunc {
+func UserAuthRequestMW(adminAuth bool) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authType := "header"
 		jwtString := ctx.GetHeader(AuthHeaderNameString)
@@ -142,14 +142,7 @@ func UserAuthRequestMW() gin.HandlerFunc {
 			ctx.Next()
 			return
 		}
-		ctx.Set("user", user)
-	}
-}
-
-func AdminUserAuthRequestMW() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		user := ctx.MustGet("user").(*database.User)
-		if !user.Admin {
+		if adminAuth && !user.Admin {
 			ctx.Set("Status", http.StatusForbidden)
 			ctx.Set("Body", &utility.ErrorResponseSchema{
 				Error: "logged in user must be an admin",
@@ -157,5 +150,6 @@ func AdminUserAuthRequestMW() gin.HandlerFunc {
 			ctx.Next()
 			return
 		}
+		ctx.Set("user", user)
 	}
 }

@@ -165,10 +165,7 @@ func register(engine *gin.Engine, method string, endpoint string, handler gin.Ha
 	if options.useDB {
 		handlers = append(handlers, middleware.TransactionRequestMW())
 		if options.useAuth {
-			handlers = append(handlers, middleware.UserAuthRequestMW())
-			if options.useAdminAuth {
-				handlers = append(handlers, middleware.AdminUserAuthRequestMW())
-			}
+			handlers = append(handlers, middleware.UserAuthRequestMW(options.useAdminAuth))
 		}
 	}
 

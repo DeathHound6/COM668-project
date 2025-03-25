@@ -144,6 +144,7 @@ var (
 			CreatedAt:    time.Now(),
 			ResolvedAt:   nil,
 			ResolvedByID: nil,
+			Hash:         "b10c4cf0a834c7f5b07f395c633d906fe7d969b9",
 		},
 		{
 			UUID:         "30daaadd-596c-4676-9194-c8f48a654931",
@@ -152,6 +153,7 @@ var (
 			CreatedAt:    time.Now().Add(time.Hour * -3),
 			ResolvedAt:   utility.Pointer(time.Now()),
 			ResolvedByID: utility.Pointer(uint(2)),
+			Hash:         "5326ca01ce201c73f9b5d112c7d4c6eb0d14abbc",
 		},
 	}
 	defaultIncidentComments []*IncidentComment = []*IncidentComment{
@@ -257,6 +259,16 @@ func migrate(conn *gorm.DB) {
 			panic(err)
 		}
 	}
+	err := tx.SetupJoinTable(&Incident{}, "HostsAffected", &IncidentHost{})
+	if err != nil {
+		tx.Rollback()
+		panic(err)
+	}
+	err = tx.SetupJoinTable(&Incident{}, "ResolutionTeams", &IncidentResolutionTeam{})
+	if err != nil {
+		tx.Rollback()
+		panic(err)
+	}
 	tx = tx.Commit()
 	if tx.Error != nil {
 		tx.Rollback()
@@ -265,7 +277,7 @@ func migrate(conn *gorm.DB) {
 }
 
 func insertDefaultData(tx *gorm.DB) error {
-	data := []interface{}{
+	data := []any{
 		defaultTeams,
 		defaultUsers,
 		defaultTeamUsers,

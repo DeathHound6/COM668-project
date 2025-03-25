@@ -27,7 +27,6 @@ type GetManyHostsResponseSchema utility.GetManyResponseSchema[*utility.HostMachi
 //	@Param			hostnames	query		string	false	"Server hostname"
 //	@Success		200			{object}	GetManyHostsResponseSchema
 //	@Failure		401			{object}	utility.ErrorResponseSchema
-//	@Failure		403			{object}	utility.ErrorResponseSchema
 //	@Failure		500			{object}	utility.ErrorResponseSchema
 //	@Router			/hosts [get]
 func GetHosts() gin.HandlerFunc {
@@ -115,7 +114,6 @@ func GetHosts() gin.HandlerFunc {
 //	@Success		200		{object}	utility.HostMachineGetResponseBodySchema
 //	@Failure		400		{object}	utility.ErrorResponseSchema
 //	@Failure		401		{object}	utility.ErrorResponseSchema
-//	@Failure		403		{object}	utility.ErrorResponseSchema
 //	@Failure		404		{object}	utility.ErrorResponseSchema
 //	@Failure		500		{object}	utility.ErrorResponseSchema
 //	@Router			/hosts/{host_id} [get]

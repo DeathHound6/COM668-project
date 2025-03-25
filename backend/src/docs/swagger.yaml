@@ -362,10 +362,6 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/utility.ErrorResponseSchema'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/utility.ErrorResponseSchema'
         "500":
           description: Internal Server Error
           schema:
@@ -478,10 +474,6 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/utility.ErrorResponseSchema'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/utility.ErrorResponseSchema'
         "404":
           description: Not Found
           schema:
@@ -557,7 +549,7 @@ paths:
         in: query
         name: resolved
         type: boolean
-      - description: Filter by my team
+      - description: Filter by my teams only
         in: query
         name: myTeams
         type: boolean
@@ -601,6 +593,22 @@ paths:
       responses:
         "201":
           description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utility.ErrorResponseSchema'
       security:
       - JWT: []
       summary: Create an incident

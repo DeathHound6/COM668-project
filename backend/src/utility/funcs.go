@@ -7,15 +7,6 @@ import (
 	"github.com/google/uuid"
 )
 
-func SliceHasElement[T comparable](slice []T, element T) bool {
-	for _, elem := range slice {
-		if elem == element {
-			return true
-		}
-	}
-	return false
-}
-
 func GenerateRandomUUID() (string, error) {
 	id, err := uuid.NewRandom()
 	if err != nil {
@@ -31,10 +22,6 @@ func ReadJSONStruct[T any](bytes []byte) (*T, error) {
 		return nil, err
 	}
 	return &data, nil
-}
-
-func RemoveElementFromSlice[T any](slice []T, index int) []T {
-	return append(slice[:index], slice[index+1:]...)
 }
 
 func Pointer[T any](value T) *T {

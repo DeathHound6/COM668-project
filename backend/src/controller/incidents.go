@@ -25,7 +25,7 @@ type GetManyIncidentsResponseSchema utility.GetManyResponseSchema[*utility.Incid
 //	@Param			page		query		int		false	"Page number"
 //	@Param			pageSize	query		int		false	"Number of items per page"
 //	@Param			resolved	query		bool	false	"Filter by resolved status"
-//	@Param			myTeams		query		bool	false	"Filter by my team"
+//	@Param			myTeams		query		bool	false	"Filter by my teams only"
 //	@Param			hash		query		string	false	"Filter by hash"
 //	@Success		200			{object}	GetManyIncidentsResponseSchema
 //	@Failure		401			{object}	utility.ErrorResponseSchema
@@ -45,12 +45,11 @@ func GetIncidents() gin.HandlerFunc {
 		page := params["page"].(int)
 		pageSize := params["pageSize"].(int)
 
-		resolved := ctx.Query("resolved")
 		filters := database.GetIncidentsFilters{
 			Page:     &page,
 			PageSize: &pageSize,
 		}
-		if resolved != "" {
+		if resolved := ctx.Query("resolved"); resolved != "" {
 			resolvedBool, err := strconv.ParseBool(resolved)
 			if err != nil {
 				ctx.Set("Status", http.StatusBadRequest)
@@ -112,11 +111,23 @@ func GetIncidents() gin.HandlerFunc {
 				ResolvedAt:      incident.ResolvedAt,
 				CreatedAt:       incident.CreatedAt,
 				ResolutionTeams: make([]utility.TeamGetResponseBodySchema, 0),
+				Hash:            incident.Hash,
 			}
 			for _, team := range incident.ResolutionTeams {
+				users := make([]utility.UserGetResponseBodySchema, 0)
+				for _, user := range team.Users {
+					users = append(users, utility.UserGetResponseBodySchema{
+						UUID:    user.UUID,
+						Name:    user.Name,
+						Email:   user.Email,
+						SlackID: user.SlackID,
+						Admin:   &user.Admin,
+					})
+				}
 				inc.ResolutionTeams = append(inc.ResolutionTeams, utility.TeamGetResponseBodySchema{
-					UUID: team.UUID,
-					Name: team.Name,
+					UUID:  team.UUID,
+					Name:  team.Name,
+					Users: users,
 				})
 			}
 			for _, comment := range incident.Comments {
@@ -311,6 +322,10 @@ func GetIncident() gin.HandlerFunc {
 //	@Param			incident	body	utility.IncidentPostRequestBodySchema	true	"The request body"
 //	@Header			201			header	string									"GET URL"
 //	@Success		201
+//	@Failure		400	{object}	utility.ErrorResponseSchema
+//	@Failure		401	{object}	utility.ErrorResponseSchema
+//	@Failure		403	{object}	utility.ErrorResponseSchema
+//	@Failure		500	{object}	utility.ErrorResponseSchema
 //	@Router			/incidents [post]
 func CreateIncident() gin.HandlerFunc {
 	return func(ctx *gin.Context) {

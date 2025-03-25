@@ -5,6 +5,7 @@ import (
 	"com668-backend/utility"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -149,7 +150,7 @@ func TestGetHosts(t *testing.T) {
 			responseHostNames = append(responseHostNames, host.Hostname)
 		}
 		for _, host := range hosts {
-			if !utility.SliceHasElement(responseHostNames, host) {
+			if !slices.Contains(responseHostNames, host) {
 				t.Fatalf("host %s was not returned", host)
 			}
 		}
@@ -562,7 +563,7 @@ func TestDeleteHost(t *testing.T) {
 			t.Fatal("no data was returned")
 		}
 
-		req, _ = http.NewRequest(http.MethodDelete, fmt.Sprintf("/hosts/%s", resp.Data[0].UUID), nil)
+		req, _ = http.NewRequest(http.MethodDelete, fmt.Sprintf("/hosts/%s", resp.Data[len(resp.Data)-1].UUID), nil)
 		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
 		writer = makeRequest(engine, req)
 

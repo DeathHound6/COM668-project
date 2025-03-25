@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -45,7 +46,7 @@ func GetProviders() gin.HandlerFunc {
 		pageSize := params["pageSize"].(int)
 
 		providerType := strings.ToLower(ctx.Query("provider_type"))
-		if !utility.SliceHasElement([]string{"alert", "log"}, providerType) {
+		if !slices.Contains([]string{"alert", "log"}, providerType) {
 			ctx.Set("Status", http.StatusBadRequest)
 			ctx.Set("Body", &utility.ErrorResponseSchema{
 				Error: "'provider_type' query parameter must be either 'log' or 'alert'",
@@ -173,7 +174,7 @@ func GetProvider() gin.HandlerFunc {
 func CreateProvider() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		providerType := strings.ToLower(ctx.Query("provider_type"))
-		if !utility.SliceHasElement([]string{"alert", "log"}, providerType) {
+		if !slices.Contains([]string{"alert", "log"}, providerType) {
 			ctx.Set("Status", http.StatusBadRequest)
 			ctx.Set("Body", &utility.ErrorResponseSchema{
 				Error: "'provider_type' query parameter must be either 'log' or 'alert'",

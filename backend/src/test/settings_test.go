@@ -350,14 +350,11 @@ func TestDeleteProvider(t *testing.T) {
 
 		expected := http.StatusOK
 		if code := writer.Code; code != expected {
-			if strings.HasPrefix(fmt.Sprint(code), "4") || strings.HasPrefix(fmt.Sprint(code), "5") {
-				resp, err := utility.ReadJSONStruct[utility.ErrorResponseSchema](writer.Body.Bytes())
-				if err != nil {
-					t.Fatal(err)
-				}
-				t.Log(resp.Error)
+			resp, err := utility.ReadJSONStruct[utility.ErrorResponseSchema](writer.Body.Bytes())
+			if err != nil {
+				t.Fatal(err)
 			}
-			t.Log("could not get providers")
+			t.Log(resp.Error)
 			t.Fatalf("Status code %d != %d", code, expected)
 		}
 
@@ -369,7 +366,7 @@ func TestDeleteProvider(t *testing.T) {
 			t.Fatal("no providers found")
 		}
 
-		req, _ = http.NewRequest(http.MethodDelete, fmt.Sprintf("/providers/%s", resp.Data[0].UUID), nil)
+		req, _ = http.NewRequest(http.MethodDelete, fmt.Sprintf("/providers/%s", resp.Data[len(resp.Data)-1].UUID), nil)
 		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
 		writer = makeRequest(engine, req)
 
