@@ -17,7 +17,6 @@ func TestGetTeams(t *testing.T) {
 	}
 
 	t.Run("GetTeams", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/teams", nil)
 		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -41,7 +40,6 @@ func TestGetTeams(t *testing.T) {
 	})
 
 	t.Run("GetTeams InvalidCommonParams", func(t *testing.T) {
-		t.Parallel()
 		// invalid page
 		page := "invalid"
 		pageSize := "10"

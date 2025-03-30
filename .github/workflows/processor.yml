@@ -21,11 +21,18 @@ jobs:
               python3 -m pip install -r requirements-dev.txt
           - name: Flake8 Linting
             run: |
-              cd ./processor
-              flake8 --config ./bin/flake8.cfg
+              cd ./processor/src
+              flake8 --config ../bin/flake8.cfg
     testing:
         name: Testing
         runs-on: ubuntu-latest
+        env:
+              ENV: dev
+              API_HOST: https://example.com
+              API_USER_EMAIL: test@example.com
+              API_USER_PW: password
+              SENTRY_TOKEN: sntryu_1234567890
+              SLACK_TOKEN: xoxb-1234567890-1234567890123-123456789012345678901234
         steps:
           - name: Checkout
             uses: actions/checkout@v4
@@ -36,9 +43,10 @@ jobs:
           - name: Install Dependencies
             run: |
               cd ./processor
-              python3 -m pip install -r requirements.txt
-              python3 -m pip install -r requirements-dev.txt
+              pip3 install -r requirements.txt
+              pip3 install -r requirements-dev.txt
+              pip3 install -e .
           - name: Pytest Testing
             run: |
-              cd ./processor/test
-              pytest --disable-warnings -v
+              cd ./processor/src/test
+              pytest --disable-warnings -v --cov-config=../../bin/.coveragerc

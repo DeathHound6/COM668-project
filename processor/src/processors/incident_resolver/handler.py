@@ -1,7 +1,7 @@
-from http_clients.backend import backend_client
+from src.http_clients.backend import backend_client
 from datetime import datetime
-from config import logger
-from exceptions import ExternalAPIException
+from src.config import logger
+from src.exceptions import ExternalAPIException
 
 
 def incident_resolver():

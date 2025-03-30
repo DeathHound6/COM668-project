@@ -18,7 +18,6 @@ func TestGetHosts(t *testing.T) {
 	}
 
 	t.Run("GetHosts", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/hosts", nil)
 		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -42,7 +41,6 @@ func TestGetHosts(t *testing.T) {
 	})
 
 	t.Run("GetHosts InvalidCommonParams", func(t *testing.T) {
-		t.Parallel()
 		page := "invalid"
 		pageSize := "10"
 
@@ -102,7 +100,6 @@ func TestGetHosts(t *testing.T) {
 	})
 
 	t.Run("GetHosts ValidHostnames", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/hosts", nil)
 		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -157,7 +154,6 @@ func TestGetHosts(t *testing.T) {
 	})
 
 	t.Run("GetHosts InvalidHostnames", func(t *testing.T) {
-		t.Parallel()
 		hosts := []string{"invalid"}
 		req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/hosts?hostnames=%s", strings.Join(hosts, ",")), nil)
 		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
@@ -190,7 +186,6 @@ func TestGetHost(t *testing.T) {
 	}
 
 	t.Run("GetHost", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/hosts", nil)
 		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -235,7 +230,6 @@ func TestGetHost(t *testing.T) {
 	})
 
 	t.Run("GetHost InvalidUUID", func(t *testing.T) {
-		t.Parallel()
 		uuid, err := utility.GenerateRandomUUID()
 		if err != nil {
 			t.Fatal(err)
@@ -266,7 +260,6 @@ func TestCreateHost(t *testing.T) {
 	}
 
 	t.Run("CreateHost", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/teams", nil)
 		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -314,7 +307,6 @@ func TestCreateHost(t *testing.T) {
 	})
 
 	t.Run("CreateHost InvalidBody", func(t *testing.T) {
-		t.Parallel()
 		body, err := getJSONBodyAsReader(map[string]any{
 			"invalidField": "invalidValue",
 		})
@@ -356,7 +348,6 @@ func TestUpdateHost(t *testing.T) {
 	}
 
 	t.Run("UpdateHost", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/teams", nil)
 		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -425,7 +416,6 @@ func TestUpdateHost(t *testing.T) {
 	})
 
 	t.Run("UpdateHost InvalidUUID", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/teams", nil)
 		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -479,7 +469,6 @@ func TestUpdateHost(t *testing.T) {
 	})
 
 	t.Run("UpdateHost InvalidBody", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/hosts", nil)
 		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -541,7 +530,6 @@ func TestDeleteHost(t *testing.T) {
 	}
 
 	t.Run("DeleteHost", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/hosts", nil)
 		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -579,7 +567,6 @@ func TestDeleteHost(t *testing.T) {
 	})
 
 	t.Run("DeleteHost InvalidUUID", func(t *testing.T) {
-		t.Parallel()
 		uuid, err := utility.GenerateRandomUUID()
 		if err != nil {
 			t.Fatal(err)

@@ -10,7 +10,6 @@ services:
       dockerfile: ./Dockerfile
     volumes:
       - ./processor/src:/app/src
-      - ./processor/test:/app/test
   frontend:
     container_name: com668-frontend
     depends_on:

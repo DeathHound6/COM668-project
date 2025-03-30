@@ -1,6 +1,6 @@
-from config import logger
-from .sentry import handle_sentry
-from http_clients.backend import backend_client
+from src.config import logger
+from src.processors.incident_checker.sentry import handle_sentry
+from src.http_clients.backend import backend_client
 
 
 def incident_checker():

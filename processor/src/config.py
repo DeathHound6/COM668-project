@@ -1,5 +1,5 @@
 from logging import getLogger, StreamHandler, DEBUG, INFO
-from utility import LoggerFormatter
+from src.utility import LoggerFormatter
 from sys import stdout
 import os
 

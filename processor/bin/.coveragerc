@@ -1,0 +1,4 @@
+[run]
+branch = True
+source_pkgs = src
+omit = src/test/*.py,src/main.py

@@ -19,7 +19,6 @@ func TestGetIncidents(t *testing.T) {
 	}
 
 	t.Run("GetIncidents", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/incidents", nil)
 		req.Header.Set(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -43,7 +42,6 @@ func TestGetIncidents(t *testing.T) {
 	})
 
 	t.Run("GetIncidents ResolvedQuery", func(t *testing.T) {
-		t.Parallel()
 		// resolved
 		req, _ := http.NewRequest(http.MethodGet, "/incidents?resolved=true", nil)
 		req.Header.Set(middleware.AuthHeaderNameString, jwtString)
@@ -102,7 +100,6 @@ func TestGetIncidents(t *testing.T) {
 	})
 
 	t.Run("GetIncidents MyTeamsQuery", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/incidents?myTeams=true", nil)
 		req.Header.Set(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -147,7 +144,6 @@ func TestGetIncidents(t *testing.T) {
 	})
 
 	t.Run("GetIncidents HashQuery", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/incidents", nil)
 		req.Header.Set(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -204,7 +200,6 @@ func TestCreateIncident(t *testing.T) {
 	}
 
 	t.Run("CreateIncident", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/hosts", nil)
 		req.Header.Set(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -275,7 +270,6 @@ func TestCreateIncident(t *testing.T) {
 	})
 
 	t.Run("CreateIncident InvalidBody", func(t *testing.T) {
-		t.Parallel()
 		body, err := getJSONBodyAsReader(map[string]any{
 			"invalidField": "invalidValue",
 		})
@@ -308,7 +302,6 @@ func TestUpdateIncident(t *testing.T) {
 	}
 
 	t.Run("UpdateIncident", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/incidents", nil)
 		req.Header.Set(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -356,7 +349,6 @@ func TestUpdateIncident(t *testing.T) {
 	})
 
 	t.Run("UpdateIncident InvalidBody", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/incidents", nil)
 		req.Header.Set(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -409,7 +401,6 @@ func TestUpdateIncident(t *testing.T) {
 	})
 
 	t.Run("UpdateIncident InvalidUUID", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/incidents", nil)
 		req.Header.Set(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -471,7 +462,6 @@ func TestGetIncident(t *testing.T) {
 	}
 
 	t.Run("GetIncident", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/incidents", nil)
 		req.Header.Set(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -516,7 +506,6 @@ func TestGetIncident(t *testing.T) {
 	})
 
 	t.Run("GetIncident InvalidUUID", func(t *testing.T) {
-		t.Parallel()
 		uuid, err := utility.GenerateRandomUUID()
 		if err != nil {
 			t.Fatal(err)
@@ -547,7 +536,6 @@ func TestCreateIncidentComment(t *testing.T) {
 	}
 
 	t.Run("CreateIncidentComment", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/incidents", nil)
 		req.Header.Set(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -591,7 +579,6 @@ func TestCreateIncidentComment(t *testing.T) {
 	})
 
 	t.Run("CreateIncidentComment InvalidBody", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/incidents", nil)
 		req.Header.Set(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -640,7 +627,6 @@ func TestCreateIncidentComment(t *testing.T) {
 	})
 
 	t.Run("CreateIncidentComment InvalidUUID", func(t *testing.T) {
-		t.Parallel()
 		body, err := getJSONBodyAsReader(map[string]any{
 			"comment": "Test Comment",
 		})
@@ -699,49 +685,7 @@ func TestDeleteIncidentComment(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	t.Run("DeleteIncidentComment", func(t *testing.T) {
-		t.Parallel()
-		req, _ := http.NewRequest(http.MethodGet, "/incidents", nil)
-		req.Header.Set(middleware.AuthHeaderNameString, jwtString)
-		writer := makeRequest(engine, req)
-
-		expected := http.StatusOK
-		if code := writer.Code; code != expected {
-			resp, err := utility.ReadJSONStruct[utility.ErrorResponseSchema](writer.Body.Bytes())
-			if err != nil {
-				t.Fatal(err)
-			}
-			t.Log(resp.Error)
-			t.Fatalf("status code %d != %d", code, expected)
-		}
-		res, err := utility.ReadJSONStruct[utility.GetManyResponseSchema[utility.IncidentGetResponseBodySchema]](writer.Body.Bytes())
-		if err != nil {
-			t.Fatal(err)
-		}
-		if len(res.Data) == 0 {
-			t.Fatal("no data")
-		}
-		if len(res.Data[0].Comments) == 0 {
-			t.Fatal("no comments")
-		}
-
-		req, _ = http.NewRequest(http.MethodDelete, fmt.Sprintf("/incidents/%s/comments/%s", res.Data[0].UUID, res.Data[0].Comments[0].UUID), nil)
-		req.Header.Set(middleware.AuthHeaderNameString, jwtString)
-		writer = makeRequest(engine, req)
-
-		expected = http.StatusNoContent
-		if code := writer.Code; code != expected {
-			resp, err := utility.ReadJSONStruct[utility.ErrorResponseSchema](writer.Body.Bytes())
-			if err != nil {
-				t.Fatal(err)
-			}
-			t.Log(resp.Error)
-			t.Fatalf("status code %d != %d", code, expected)
-		}
-	})
-
 	t.Run("DeleteIncidentComment InvalidIncidentUUID", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/incidents", nil)
 		req.Header.Set(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -807,7 +751,6 @@ func TestDeleteIncidentComment(t *testing.T) {
 	})
 
 	t.Run("DeleteIncidentComment InvalidCommentUUID", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/incidents", nil)
 		req.Header.Set(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -873,7 +816,6 @@ func TestDeleteIncidentComment(t *testing.T) {
 	})
 
 	t.Run("DeleteIncidentComment Forbidden", func(t *testing.T) {
-		t.Parallel()
 		jwtString, err := getJWT(engine, TestAdminEmail, TestAdminPassword)
 		if err != nil {
 			t.Fatal(err)
@@ -969,6 +911,46 @@ func TestDeleteIncidentComment(t *testing.T) {
 		}
 		if !strings.Contains(res.Error, "you are not allowed to delete this comment") {
 			t.Fatal("error message mismatch")
+		}
+	})
+
+	t.Run("DeleteIncidentComment", func(t *testing.T) {
+		req, _ := http.NewRequest(http.MethodGet, "/incidents", nil)
+		req.Header.Set(middleware.AuthHeaderNameString, jwtString)
+		writer := makeRequest(engine, req)
+
+		expected := http.StatusOK
+		if code := writer.Code; code != expected {
+			resp, err := utility.ReadJSONStruct[utility.ErrorResponseSchema](writer.Body.Bytes())
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Log(resp.Error)
+			t.Fatalf("status code %d != %d", code, expected)
+		}
+		res, err := utility.ReadJSONStruct[utility.GetManyResponseSchema[utility.IncidentGetResponseBodySchema]](writer.Body.Bytes())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(res.Data) == 0 {
+			t.Fatal("no data")
+		}
+		if len(res.Data[0].Comments) == 0 {
+			t.Fatal("no comments")
+		}
+
+		req, _ = http.NewRequest(http.MethodDelete, fmt.Sprintf("/incidents/%s/comments/%s", res.Data[0].UUID, res.Data[0].Comments[0].UUID), nil)
+		req.Header.Set(middleware.AuthHeaderNameString, jwtString)
+		writer = makeRequest(engine, req)
+
+		expected = http.StatusNoContent
+		if code := writer.Code; code != expected {
+			resp, err := utility.ReadJSONStruct[utility.ErrorResponseSchema](writer.Body.Bytes())
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Log(resp.Error)
+			t.Fatalf("status code %d != %d", code, expected)
 		}
 	})
 }

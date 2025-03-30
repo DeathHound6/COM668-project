@@ -1,5 +1,5 @@
-from utility import make_api_request, HTTPMethodEnum
-from exceptions import ExternalAPIException
+from src.utility import make_api_request, HTTPMethodEnum
+from src.exceptions import ExternalAPIException
 from os import getenv
 from typing import Any
 

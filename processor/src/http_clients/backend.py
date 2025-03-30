@@ -1,6 +1,6 @@
-from config import api_host, logger
-from exceptions import ExternalAPIException
-from utility import make_api_request, HTTPMethodEnum, ThreadLocalStorage
+from src.config import api_host, logger
+from src.exceptions import ExternalAPIException
+from src.utility import make_api_request, HTTPMethodEnum, ThreadLocalStorage
 from os import getenv
 from typing import Any
 

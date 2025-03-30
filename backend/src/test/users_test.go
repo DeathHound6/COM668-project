@@ -21,7 +21,6 @@ func TestGetMe(t *testing.T) {
 	}
 
 	t.Run("GetMe", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/me", nil)
 		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -67,7 +66,6 @@ func TestGetMe(t *testing.T) {
 	})
 
 	t.Run("GetMe Unauthorized", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/me", nil)
 		writer := makeRequest(engine, req)
 
@@ -93,7 +91,6 @@ func TestCreateUser(t *testing.T) {
 	}
 
 	t.Run("CreateUser", func(t *testing.T) {
-		t.Parallel()
 		req, _ := http.NewRequest(http.MethodGet, "/teams", nil)
 		req.Header.Add(middleware.AuthHeaderNameString, jwtString)
 		writer := makeRequest(engine, req)
@@ -140,7 +137,6 @@ func TestCreateUser(t *testing.T) {
 	})
 
 	t.Run("CreateUser InvalidBody", func(t *testing.T) {
-		t.Parallel()
 		body, err := getJSONBodyAsReader(map[string]any{
 			"invalidField": "invalidValue",
 		})

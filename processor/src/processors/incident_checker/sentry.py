@@ -1,10 +1,10 @@
-from config import logger
-from http_clients.sentry import get_issues
-from http_clients.backend import backend_client
-from http_clients.slack import slack_client
+from src.config import logger
+from src.http_clients.sentry import sentry_client
+from src.http_clients.backend import backend_client
+from src.http_clients.slack import slack_client
 from typing import Any
-from exceptions import ExternalAPIException
-from utility import generate_hash
+from src.exceptions import ExternalAPIException
+from src.utility import generate_hash
 import re
 
 # Sentry API reqs
@@ -15,7 +15,7 @@ def handle_sentry(log_provider: dict[str, Any], alert_providers: list[dict[str, 
     handled_all_pages = False
     offset = 0
     while not handled_all_pages:
-        issue_events, link_headers = get_issues(log_provider["fields"], offset)
+        issue_events, link_headers = sentry_client.get_issues(log_provider["fields"], offset)
         for event in issue_events:
             # If it is an unhanded error event
             if any([tag["key"] == "handled" and tag["value"] == "no" for tag in event["tags"]]):
@@ -158,7 +158,7 @@ def handle_event(event: dict[str, Any], alert_providers: list[dict[str, Any]]):
         channel_name = f"incident-{incident_uuid}"
         for provider in alert_providers:
             try:
-                if any([field["value"] for field in provider["fields"] if str(field["name"]).lower() == "enabled"]) and \
+                if any([field["value"] for field in provider["fields"] if str(field["key"]).lower() == "enabled"]) and \
                    str(provider["name"]).lower() == "slack":
                     logger.info(f"[SENTRY] Sending incident to Slack channel: {channel_name}")
                     channel = slack_client.create_conversation(channel_name)

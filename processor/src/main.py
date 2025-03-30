@@ -1,8 +1,8 @@
-from config import logger
+from src.config import logger
 from multiprocessing import Process
 from time import sleep
-from processors.incident_checker.handler import incident_checker
-from processors.incident_resolver.handler import incident_resolver
+from src.processors.incident_checker.handler import incident_checker
+from src.processors.incident_resolver.handler import incident_resolver
 from typing import Any
 
 
@@ -47,7 +47,7 @@ def main():
     for proc, conf in running_processes:
         if not proc.is_alive():
             logger.warning(f"Process '{proc.name}' is not running. Restarting...")
-            running_processes.remove(proc)
+            running_processes.remove((proc, conf))
             p = Process(target=run, name=proc.name, kwargs=conf["args"])
             p.start()
             running_processes.append((p, conf))
