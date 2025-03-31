@@ -87,7 +87,7 @@ export default function HostsPage() {
             setLoaded(true);
         }
         fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+// eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     function createHost() {

@@ -21,7 +21,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 await GetMe();
                 setAuthedFor(authCompleteFor);
                 localStorage.removeItem("auth");
-            } catch(e) {
+            } catch {
                 localStorage.removeItem("u");
                 localStorage.removeItem("e");
                 redirect("/login", RedirectType.replace);

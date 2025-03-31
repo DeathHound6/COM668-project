@@ -108,6 +108,7 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
             setPending(false);
         }
         fetchData();
+// eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     async function deleteComment(index: number) {

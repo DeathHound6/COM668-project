@@ -62,6 +62,7 @@ export default function SettingPage({ params }: { params: Promise<{uuid: string}
             setFields(settingResponse.fields);
         }
         fetchData();
+// eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     function validateField(data: SettingField): boolean {

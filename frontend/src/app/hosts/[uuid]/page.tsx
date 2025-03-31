@@ -72,6 +72,7 @@ export default function HostDetailsPage({ params }: { params: Promise<{ uuid: st
             setPending(false);
         };
         fetchData();
+// eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     async function deleteHost() {

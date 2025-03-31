@@ -11,7 +11,7 @@ export async function GetIncident({ uuid }: { uuid: string }): Promise<Incident>
     return JSON.parse(await response.text());
 }
 
-export async function GetIncidents({ params }: { params: Object }): Promise<GetManyAPIResponse<Incident>> {
+export async function GetIncidents({ params }: { params: object }): Promise<GetManyAPIResponse<Incident>> {
     const paramsString = Object.keys(params).length > 0 ?  `?${Object.entries(params).map(([key, value]) => `${key}=${value}`).join("&")}` : "";
     const response = await fetch(`/api/incidents${paramsString}`);
     if (!response.ok) {
@@ -22,6 +22,7 @@ export async function GetIncidents({ params }: { params: Object }): Promise<GetM
     return JSON.parse(await response.text());
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function UpdateIncident({ uuid, incident }: { uuid: string, incident: any }): Promise<undefined> {
     const response = await fetch(`/api/incidents/${uuid}`, {
         method: "PUT",

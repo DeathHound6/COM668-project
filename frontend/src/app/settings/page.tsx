@@ -156,7 +156,7 @@ export default function SettingsPage() {
                                     <Row style={{textAlign: "center"}} xs={2} md={4} className="mx-5 mt-3">
                                         {
                                             /* Render settings */
-                                            settings.length > 0 && settings.map((setting: Settings, index: number) => (
+                                            settings.length > 0 && settings.map((setting: Settings) => (
                                                 <Col key={`col-${setting.uuid}`}>
                                                     <Card className="m-2 p-2 border rounded" key={`c-${setting.uuid}`}>
                                                         <CardBody key={`cb-${setting.uuid}`}>
