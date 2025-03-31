@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 from uuid import uuid4
-from src.config import logger
+from typing import Callable, Any, Union
+from copy import deepcopy
+import json
 
 
 LOG_PROVIDERS = [
@@ -88,15 +90,9 @@ SENTRY_EVENTS = [
 ]
 
 
-SENTRY_HEADERS = [
-    {
-        "rel": "next",
-        "cursor": {
-            "offset": 1
-        },
-        "results": False
-    }
-]
+SENTRY_HEADERS = {
+    "Link": "<https://sentry.io/api/0/projects/sentry/sentry/events/?cursor=0:0:0>; rel=\"next\"; results=\"true\"; cursor=\"0:0:0\""
+}
 
 
 INCIDENTS = [
@@ -161,16 +157,18 @@ SLACK_CONVERSATION = {
 
 
 class MockHTTPResponse:
-    def __init__(self, status_code, headers, json):
+    def __init__(self, status_code, headers, body):
         self.status_code = status_code
-        self.data = json
+        self.text = json.dumps(body)
         self.headers = headers
 
     def json(self):
-        return self.data
+        return json.loads(self.text)
 
 
-def mock_api_request(status_code={}, headers={}, body={}):
+def mock_api_request(status_code: dict[str, Callable[[dict[str, Any]], int]] = {},
+                     headers: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {},
+                     body: dict[str, Callable[[dict[str, Any]], Union[dict[str, Any], list[dict[str, Any]]]]] = {}):
     def wrapper(**kwargs):
         method = kwargs.get("method", None) or ""
         url = kwargs.get("url", None) or ""
@@ -179,27 +177,31 @@ def mock_api_request(status_code={}, headers={}, body={}):
         if method != "":
             method = method.value
 
-        default_status = {
-            "POST login": 204,
-            "POST incidents": 201,
-            "PUT incidents": 204,
-            "POST comments": 201,
-            "DELETE comments": 204,
+        default_status: dict[str, Callable[[dict[str, Any]], int]] = {
+            "POST login": lambda **_: 204,
+            "POST incidents": lambda **_: 201,
+            "PUT incidents": lambda **_: 204,
+            "POST comments": lambda **_: 201,
+            "DELETE comments": lambda **_: 204,
         }
-        default_headers = {
-            "GET events": SENTRY_HEADERS.copy(),
-            "POST login": {"Authorization": "Bearer test"}
+        default_headers: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
+            "GET events": lambda **_: deepcopy(SENTRY_HEADERS),
+            "POST login": lambda **_: {"Authorization": "Bearer test"},
+            "POST incidents": lambda **_: {"Location": "http://test.com/incidents/1"},
+            "POST comments": lambda **_: {"Location": "http://test.com/incidents/1/comments/1"},
+            "POST providers": lambda **_: {"Location": "http://test.com/providers/1"},
+            "POST hosts": lambda **_: {"Location": "http://test.com/hosts/1"}
         }
-        default_body = {
-            "GET events": SENTRY_EVENTS.copy(),
-            "GET incidents": {"data": INCIDENTS.copy()},
-            "GET providers": {"data": LOG_PROVIDERS.copy()
+        default_body: dict[str, Callable[[dict[str, Any]], Union[dict[str, Any], list[dict[str, Any]]]]] = {
+            "GET events": lambda **_: deepcopy(SENTRY_EVENTS),
+            "GET incidents": lambda **_: {"data": deepcopy(INCIDENTS)},
+            "GET providers": lambda **_: {"data": deepcopy(LOG_PROVIDERS)
                               if params.get("provider_type") == "log"
-                              else ALERT_PROVIDERS.copy()},
-            "GET hosts": {"data": HOSTS.copy()},
-            "GET teams": {"data": TEAMS.copy()},
-            "POST incidents": {"data": INCIDENTS.copy()},
-            "POST conversations.create": SLACK_CONVERSATION.copy()
+                              else deepcopy(ALERT_PROVIDERS)},
+            "GET hosts": lambda **_: {"data": deepcopy(HOSTS)},
+            "GET teams": lambda **_: {"data": deepcopy(TEAMS)},
+            "POST incidents": lambda **_: {"data": deepcopy(INCIDENTS)},
+            "POST conversations.create": lambda **_: deepcopy(SLACK_CONVERSATION)
         }
 
         endpoint = None
@@ -231,8 +233,8 @@ def mock_api_request(status_code={}, headers={}, body={}):
             return MockHTTPResponse(404, {}, {})
 
         method_endpoint = f"{method} {endpoint}"
-        status = status_code.get(method_endpoint, None) or default_status.get(method_endpoint, None) or 200
-        header = headers.get(method_endpoint, None) or default_headers.get(method_endpoint, None) or {}
-        json = body.get(method_endpoint, None) or default_body.get(method_endpoint, None) or {}
-        return MockHTTPResponse(status, header, json)
+        status = status_code.get(method_endpoint, default_status.get(method_endpoint, lambda **_: 200))
+        header = headers.get(method_endpoint, default_headers.get(method_endpoint, lambda **_: {}))
+        json = body.get(method_endpoint, default_body.get(method_endpoint,lambda **_: {}))
+        return MockHTTPResponse(status(**kwargs), header(**kwargs), json(**kwargs))
     return wrapper

@@ -1,12 +1,13 @@
-from src.utility import make_api_request, HTTPMethodEnum
+from src.utility import HTTPMethodEnum
+from src.http_clients.base import APIClient
 from src.exceptions import ExternalAPIException
 from os import getenv
 from typing import Any
 
 
-class SlackAPIClient:
+class SlackAPIClient(APIClient):
     def create_conversation(self, channel_name: str) -> dict[str, Any]:
-        response = make_api_request(
+        response = self.make_api_request(
             url="https://slack.com/api/conversations.create",
             params={
                 "name": channel_name,
@@ -23,9 +24,8 @@ class SlackAPIClient:
             raise ExternalAPIException(response.json()["error"])
         return response.json()
 
-
     def invite_to_conversation(self, conversation_id: str, user_ids: set[str]) -> dict[str, Any]:
-        response = make_api_request(
+        response = self.make_api_request(
             url="https://slack.com/api/conversations.invite",
             params={
                 "channel": conversation_id,
@@ -43,9 +43,8 @@ class SlackAPIClient:
             raise ExternalAPIException(response.json()["error"])
         return response.json()
 
-
     def join_conversation(self, conversation_id: str) -> dict[str, Any]:
-        response = make_api_request(
+        response = self.make_api_request(
             url="https://slack.com/api/conversations.join",
             params={
                 "channel": conversation_id
@@ -61,9 +60,8 @@ class SlackAPIClient:
             raise ExternalAPIException(response.json()["error"])
         return response.json()
 
-
     def send_message(self, conversation_id: str, message: str) -> dict[str, Any]:
-        response = make_api_request(
+        response = self.make_api_request(
             url="https://slack.com/api/chat.postMessage",
             params={
                 "channel": conversation_id,

@@ -49,4 +49,4 @@ jobs:
           - name: Pytest Testing
             run: |
               cd ./processor/src/test
-              pytest --disable-warnings -v --cov-config=../../bin/.coveragerc
+              pytest --disable-warnings -v --cov-config=../../bin/.coveragerc --cov=src

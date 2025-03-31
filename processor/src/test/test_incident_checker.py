@@ -1,11 +1,12 @@
-from mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 from src.processors.incident_checker.handler import incident_checker
-from src.test.fixtures import mock_api_request
+from src.test.fixtures import mock_api_request, SENTRY_HEADERS
 from src.utility import HTTPMethodEnum
+from copy import deepcopy
 
 
 class TestIncidentCheckerProcessor:
-    @patch("src.http_clients.backend.make_api_request")
+    @patch("src.http_clients.base.APIClient.make_api_request")
     def test_sentry_handler(self, mock_request: MagicMock):
         mock_request.side_effect = mock_api_request()
 
@@ -38,3 +39,21 @@ class TestIncidentCheckerProcessor:
                 assert method == HTTPMethodEnum.POST
             elif "login" in url:
                 assert method == HTTPMethodEnum.POST
+
+    @patch("src.http_clients.base.APIClient.make_api_request")
+    @patch("src.processors.incident_checker.sentry.handle_event")
+    def test_sentry_handler_all_pages(self, mock_handle_event: MagicMock, mock_request: MagicMock):
+        def mock_events(**kwargs):
+            offset = kwargs.get("params", {}).get("cursor", "0:0:0").split(":")[1]
+            headers = deepcopy(SENTRY_HEADERS)
+            if offset == "0":
+                headers["Link"] = headers["Link"].replace("true", "false")
+                headers["Link"] = headers["Link"].replace("0:0:0", "0:1:0")
+            elif offset == "1":
+                headers["Link"] = headers["Link"].replace("false", "true")
+            return headers
+        mock_request.side_effect = mock_api_request(headers={"GET events": mock_events})
+
+        incident_checker()
+
+        assert mock_handle_event.call_count == 2

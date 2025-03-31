@@ -25,7 +25,7 @@ func setup() *gin.Engine {
 	if err := database.Connect(); err != nil {
 		panic(err)
 	}
-	gin.SetMode(gin.TestMode)
+	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
 	controller.RegisterControllers(engine)
 	engine.Use(gin.CustomRecoveryWithWriter(gin.DefaultErrorWriter, middleware.RecoveryHandler()))

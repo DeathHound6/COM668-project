@@ -1,18 +1,17 @@
 from src.config import api_host, logger
 from src.exceptions import ExternalAPIException
-from src.utility import make_api_request, HTTPMethodEnum, ThreadLocalStorage
+from src.utility import HTTPMethodEnum, ThreadLocalStorage
+from src.http_clients.base import APIClient
 from os import getenv
 from typing import Any
 
 
-class BackendAPIClient:
+class BackendAPIClient(APIClient):
     jwt = None
     tls = ThreadLocalStorage()
 
-
     def __init__(self):
         self.jwt = None
-
 
     def handle_jwt(self):
         self.jwt = self.tls.get("jwt")
@@ -21,10 +20,9 @@ class BackendAPIClient:
             self.jwt = self.get_jwt()
             self.tls.set("jwt", self.jwt)
 
-
     def get_jwt(self) -> str:
         logger.info("[A.I.M.S] Getting JWT")
-        resp = make_api_request(
+        resp = self.make_api_request(
             url=f"{api_host}/users/login",
             method=HTTPMethodEnum.POST,
             body={
@@ -37,11 +35,10 @@ class BackendAPIClient:
         jwt = resp.headers["Authorization"]
         return jwt
 
-
     def get_providers(self, provider_type: str) -> list[dict[str, Any]]:
         self.handle_jwt()
         logger.info(f"[A.I.M.S] Getting providers of type '{provider_type}'")
-        resp = make_api_request(
+        resp = self.make_api_request(
             url=f"{api_host}/providers",
             method=HTTPMethodEnum.GET,
             headers={
@@ -59,11 +56,10 @@ class BackendAPIClient:
             raise ExternalAPIException(resp.json()["error"])
         return resp.json()["data"]
 
-
     def get_hosts(self, filters: dict[str, Any] = {}) -> list[dict[str, Any]]:
         self.handle_jwt()
         logger.info("[A.I.M.S] Getting host machines")
-        resp = make_api_request(
+        resp = self.make_api_request(
             url=f"{api_host}/hosts",
             params=filters,
             method=HTTPMethodEnum.GET,
@@ -79,11 +75,10 @@ class BackendAPIClient:
             raise ExternalAPIException(resp.json()["error"])
         return resp.json()["data"]
 
-
     def get_me(self) -> dict[str, Any]:
         self.handle_jwt()
         logger.info("[A.I.M.S] Getting user")
-        resp = make_api_request(
+        resp = self.make_api_request(
             url=f"{api_host}/me",
             method=HTTPMethodEnum.GET,
             headers={
@@ -98,11 +93,10 @@ class BackendAPIClient:
             raise ExternalAPIException(resp.json()["error"])
         return resp.json()["data"]
 
-
     def get_teams(self, filters: dict[str, Any]) -> list[dict[str, Any]]:
         self.handle_jwt()
         logger.info("[A.I.M.S] Getting teams")
-        resp = make_api_request(
+        resp = self.make_api_request(
             url=f"{api_host}/teams",
             method=HTTPMethodEnum.GET,
             headers={
@@ -118,11 +112,10 @@ class BackendAPIClient:
             raise ExternalAPIException(resp.json()["error"])
         return resp.json()["data"]
 
-
     def create_incident(self, incident_data: dict[str, Any]) -> str:
         self.handle_jwt()
         logger.info("[A.I.M.S] Creating incident")
-        resp = make_api_request(
+        resp = self.make_api_request(
             url=f"{api_host}/incidents",
             method=HTTPMethodEnum.POST,
             headers={
@@ -138,11 +131,10 @@ class BackendAPIClient:
             raise ExternalAPIException(resp.json()["error"])
         return resp.headers["Location"]
 
-
-    def get_incidents(self, params: dict[str, Any]={}) -> list[dict[str, Any]]:
+    def get_incidents(self, params: dict[str, Any] = {}) -> list[dict[str, Any]]:
         self.handle_jwt()
         logger.info("[A.I.M.S] Getting incidents")
-        resp = make_api_request(
+        resp = self.make_api_request(
             url=f"{api_host}/incidents",
             params=params,
             method=HTTPMethodEnum.GET,
@@ -158,9 +150,8 @@ class BackendAPIClient:
             raise ExternalAPIException(resp.json()["error"])
         return resp.json()["data"]
 
-
     def update_incident(self, incident_id: str, body: dict[str, Any]) -> None:
-        response = make_api_request(
+        response = self.make_api_request(
             url=f"{api_host}/incidents/{incident_id}",
             method=HTTPMethodEnum.PUT,
             headers={
@@ -175,9 +166,8 @@ class BackendAPIClient:
         elif response.status_code != 204:
             raise ExternalAPIException(response.json()["error"])
 
-
     def post_comment_on_incident(self, incident_id: str, comment: str) -> str:
-        response = make_api_request(
+        response = self.make_api_request(
             url=f"{api_host}/incidents/{incident_id}/comments",
             method=HTTPMethodEnum.POST,
             headers={
@@ -195,9 +185,8 @@ class BackendAPIClient:
             raise ExternalAPIException(response.json()["error"])
         return response.headers["Location"]
 
-
     def delete_comment_on_incident(self, incident_id: str, comment_id: str) -> None:
-        response = make_api_request(
+        response = self.make_api_request(
             url=f"{api_host}/incidents/{incident_id}/comments/{comment_id}",
             method=HTTPMethodEnum.DELETE,
             headers={

@@ -11,6 +11,7 @@ import re
 # https://sentry.io/api/0/projects/testing-77/test_app/events/?full=1 -> body[index]["contexts"]["trace"]["trace_id"]
 # https://de.sentry.io/api/0/organizations/testing-77/events-trace/[trace_id]/?limit=10000&timestamp=[nowMS]&useSpans=1
 
+
 def handle_sentry(log_provider: dict[str, Any], alert_providers: list[dict[str, Any]]):
     handled_all_pages = False
     offset = 0
@@ -25,7 +26,14 @@ def handle_sentry(log_provider: dict[str, Any], alert_providers: list[dict[str, 
             if link["rel"] == "next":
                 offset = link["cursor"]["offset"]
                 handled_all_pages = link["results"]
+                if handled_all_pages:
+                    logger.info("[SENTRY] Handled all pages")
+                else:
+                    logger.info(f"[SENTRY] Handling next page of events with offset: {offset}")
                 break
+        else:
+            logger.info("[SENTRY] No Link headers found. Assuming all pages have been handled")
+            handled_all_pages = True
 
 
 def handle_event(event: dict[str, Any], alert_providers: list[dict[str, Any]]):
@@ -36,7 +44,8 @@ def handle_event(event: dict[str, Any], alert_providers: list[dict[str, Any]]):
     if len(event["errors"]) > 0:
         file = event["errors"][0]["data"]["url"]
 
-    # NOTE: future TODO: event["entries"][x]["data"]["type"] == "request" (request values), "breadcrumbs" (logs) for extra context
+    # NOTE: future TODO: event["entries"][x]["data"]["type"] == "request" (request values), "breadcrumbs" (logs)
+    # for extra context
     stack_trace = ""
     for entry in event["entries"]:
         if entry["type"] == "exception":
@@ -58,7 +67,7 @@ def handle_event(event: dict[str, Any], alert_providers: list[dict[str, Any]]):
             raise ExternalAPIException("Incident not found")
         logger.info(f"[SENTRY] Incident already exists for event: {event['id']}")
         return
-    except ExternalAPIException as e:
+    except ExternalAPIException:
         pass
 
     # NOTE: Only supporting JavaScript for now
@@ -116,7 +125,7 @@ def handle_event(event: dict[str, Any], alert_providers: list[dict[str, Any]]):
     except ExternalAPIException as e:
         logger.exception(e)
     if not teams:
-        logger.warning(f"[SENTRY] Could not find teams")
+        logger.warning("[SENTRY] Could not find teams")
         return
 
     logger.info(f"[SENTRY] Determining resolution teams for event: {event['id']}")
