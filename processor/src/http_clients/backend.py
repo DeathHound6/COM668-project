@@ -75,24 +75,6 @@ class BackendAPIClient(APIClient):
             raise ExternalAPIException(resp.json()["error"])
         return resp.json()["data"]
 
-    def get_me(self) -> dict[str, Any]:
-        self.handle_jwt()
-        logger.info("[A.I.M.S] Getting user")
-        resp = self.make_api_request(
-            url=f"{api_host}/me",
-            method=HTTPMethodEnum.GET,
-            headers={
-                "Authorization": self.jwt
-            }
-        )
-        if resp.status_code == 401:
-            logger.info("[A.I.M.S] JWT expired. Getting new JWT and recalling get_me")
-            self.handle_jwt()
-            return self.get_me()
-        elif resp.status_code != 200:
-            raise ExternalAPIException(resp.json()["error"])
-        return resp.json()["data"]
-
     def get_teams(self, filters: dict[str, Any]) -> list[dict[str, Any]]:
         self.handle_jwt()
         logger.info("[A.I.M.S] Getting teams")

@@ -20,5 +20,7 @@ def incident_checker():
             if str(provider["name"]).lower() == "sentry":
                 logger.info("Begin scanning Sentry")
                 handle_sentry(provider, alert_providers)
+
+            # NOTE: Add more providers here
         except Exception as e:
             logger.exception(e, stack_info=True)

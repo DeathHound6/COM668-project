@@ -9,7 +9,7 @@ class SentryAPIClient(APIClient):
     def parse_link_header(self, link_header: str) -> list[dict[str, str]]:
         parsed_links = list()
         # Example value
-        # <https://sentry.io/api/0/projects/sentry/sentry/events/?cursor=0:0:0>; rel="previous"; results="true"; cursor="0:0:0",
+        # <https://sentry.io/api/0/projects/sentry/sentry/events/?cursor=0:0:0>; rel="next"; results="true"; cursor="0:0:0",  # noqa: E501, W505
         for link in link_header.split(", "):
             parts = link.split("; ")
             rel = None

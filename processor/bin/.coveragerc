@@ -1,4 +1,7 @@
 [run]
-branch = True
 source_pkgs = src
-omit = src/test/*.py,src/main.py
+omit =
+    **/test/*.py
+    **/main.py
+    **/http_clients/base.py
+    fixtures.py

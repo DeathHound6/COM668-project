@@ -44,9 +44,6 @@ class ThreadLocalStorage:
     def get(self, key: str) -> Any:
         return self._storage.get(key)
 
-    def delete(self, key: str):
-        del self._storage[key]
-
 
 def generate_hash(data: str) -> str:
     return hashlib.sha1(data.encode()).hexdigest()

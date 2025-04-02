@@ -91,7 +91,7 @@ SENTRY_EVENTS = [
 
 
 SENTRY_HEADERS = {
-    "Link": "<https://sentry.io/api/0/projects/sentry/sentry/events/?cursor=0:0:0>; rel=\"next\"; results=\"true\"; cursor=\"0:0:0\""
+    "Link": "<https://sentry.io/api/0/projects/sentry/sentry/events/?cursor=0:0:0>; rel=\"next\"; results=\"true\"; cursor=\"0:0:0\""  # noqa: E501
 }
 
 
@@ -150,8 +150,9 @@ TEAMS = [
 
 
 SLACK_CONVERSATION = {
+    "ok": True,
     "channel": {
-        "id": uuid4()
+        "id": uuid4().hex
     }
 }
 
@@ -196,12 +197,15 @@ def mock_api_request(status_code: dict[str, Callable[[dict[str, Any]], int]] = {
             "GET events": lambda **_: deepcopy(SENTRY_EVENTS),
             "GET incidents": lambda **_: {"data": deepcopy(INCIDENTS)},
             "GET providers": lambda **_: {"data": deepcopy(LOG_PROVIDERS)
-                              if params.get("provider_type") == "log"
-                              else deepcopy(ALERT_PROVIDERS)},
+                                          if params.get("provider_type") == "log"
+                                          else deepcopy(ALERT_PROVIDERS)},
             "GET hosts": lambda **_: {"data": deepcopy(HOSTS)},
             "GET teams": lambda **_: {"data": deepcopy(TEAMS)},
             "POST incidents": lambda **_: {"data": deepcopy(INCIDENTS)},
-            "POST conversations.create": lambda **_: deepcopy(SLACK_CONVERSATION)
+            "POST conversations.create": lambda **_: deepcopy(SLACK_CONVERSATION),
+            "POST conversations.join": lambda **_: {"ok": True},
+            "POST conversations.invite": lambda **_: {"ok": True},
+            "POST chat.postMessage": lambda **_: {"ok": True}
         }
 
         endpoint = None
@@ -226,8 +230,8 @@ def mock_api_request(status_code: dict[str, Callable[[dict[str, Any]], int]] = {
             endpoint = "conversations.invite"
         elif "conversations.join" in url:
             endpoint = "conversations.join"
-        elif "postMessage" in url:
-            endpoint = "postMessage"
+        elif "chat.postMessage" in url:
+            endpoint = "chat.postMessage"
 
         if not endpoint:
             return MockHTTPResponse(404, {}, {})
@@ -235,6 +239,6 @@ def mock_api_request(status_code: dict[str, Callable[[dict[str, Any]], int]] = {
         method_endpoint = f"{method} {endpoint}"
         status = status_code.get(method_endpoint, default_status.get(method_endpoint, lambda **_: 200))
         header = headers.get(method_endpoint, default_headers.get(method_endpoint, lambda **_: {}))
-        json = body.get(method_endpoint, default_body.get(method_endpoint,lambda **_: {}))
+        json = body.get(method_endpoint, default_body.get(method_endpoint, lambda **_: {}))
         return MockHTTPResponse(status(**kwargs), header(**kwargs), json(**kwargs))
     return wrapper

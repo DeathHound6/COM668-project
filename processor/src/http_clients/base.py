@@ -2,10 +2,11 @@ from src.utility import HTTPMethodEnum
 from typing import Optional, Any
 import requests
 
+
 class APIClient:
     def make_api_request(self, url: str, method: HTTPMethodEnum, params: Optional[dict[str, Any]] = None,
-                        headers: Optional[dict[str, str]] = None,
-                        body: Optional[dict[str, Any]] = None) -> requests.Response:
+                         headers: Optional[dict[str, str]] = None,
+                         body: Optional[dict[str, Any]] = None) -> requests.Response:
         verify_ssl = False
         if headers is not None:
             if "Content-Type" not in list(headers.keys()):
