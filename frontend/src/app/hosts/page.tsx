@@ -23,6 +23,7 @@ import { GetTeams } from "../../actions/teams";
 import { GetHosts, CreateHost, GetHost } from "../../actions/hosts";
 import ToastContainerComponent from "../../components/toastContainer";
 import { GetMe } from "../../actions/users";
+import Paginator from "../../components/paginator";
 
 const oses = [
     "Windows",
@@ -44,6 +45,9 @@ export default function HostsPage() {
     const [user, setUser] = useState(undefined as User | undefined);
     const [pending, setPending] = useState(true);
     const [loaded, setLoaded] = useState(false);
+
+    const [page, setPage] = useState(1);
+    const [maxPage, setMaxPage] = useState(1);
 
     const [showCreateModal, setShowCreateModal] = useState(false);
 
@@ -72,23 +76,33 @@ export default function HostsPage() {
                 return;
             setUser(userResponse);
 
+            setPending(true);
             const teamsResponse = await GetTeams({ pageSize: 1000 }).catch(handleError);
             setPending(false);
             if (!teamsResponse)
                 return;
             setTeams(teamsResponse.data);
-
-            setPending(true);
-            const hostsResponse = await GetHosts({}).catch(handleError);
-            setPending(false);
-            if (!hostsResponse)
-                return;
-            setHosts(hostsResponse.data);
-            setLoaded(true);
+            if (teamsResponse.data.length > 0)
+                setTeamID(teamsResponse.data[0].uuid);
         }
         fetchData();
 // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        setLoaded(false);
+        async function fetchData() {
+            setPending(true);
+            const hostsResponse = await GetHosts({page}).catch(handleError);
+            setPending(false);
+            if (!hostsResponse)
+                return;
+            setHosts(hostsResponse.data);
+            setMaxPage(hostsResponse.meta.pages);
+            setLoaded(true);
+        }
+        fetchData();
+    }, [page]);
 
     function createHost() {
         setPending(true);
@@ -220,7 +234,8 @@ export default function HostsPage() {
                                             }
                                         </Row>
                                     )
-                            }
+                                }
+                            <Paginator page={page} maxPage={maxPage} setPage={setPage} />
                         </>
                     )
             }

@@ -11,8 +11,13 @@ export async function GetSetting({ uuid }: { uuid: string }): Promise<Settings> 
     return JSON.parse(await response.text());
 }
 
-export async function GetSettings({ providerType }: { providerType: "alert"|"log"}): Promise<GetManyAPIResponse<Settings>> {
-    const response = await fetch(`/api/providers?provider_type=${providerType}`);
+export async function GetSettings({ providerType, page, pageSize }: { providerType: "alert"|"log", page?: number, pageSize?: number}): Promise<GetManyAPIResponse<Settings>> {
+    const query = new URLSearchParams();
+    if (page) query.set("page", page.toString());
+    if (pageSize) query.set("pageSize", pageSize.toString());
+    if (providerType) query.set("provider_type", providerType);
+
+    const response = await fetch(`/api/providers${query.size > 0 ? `?${query.toString()}` : ""}`);
     if (!response.ok) {
         handleUnauthorized({ res: response });
         const data: ErrorResponse = JSON.parse(await response.text());
@@ -38,7 +43,7 @@ export async function CreateSetting({ name, providerType }: { name: string, prov
     return parts[parts.length - 1];
 }
 
-export async function UpdateSetting(setting: Settings): Promise<undefined> {
+export async function UpdateSetting(setting: Settings): Promise<boolean> {
     const response = await fetch(`/api/providers/${setting.uuid}`, {
         method: "PUT",
         headers: {
@@ -51,10 +56,10 @@ export async function UpdateSetting(setting: Settings): Promise<undefined> {
         const data: ErrorResponse = JSON.parse(await response.text());
         throw new APIError(data.error, response.status);
     }
-    return undefined;
+    return true;
 }
 
-export async function DeleteSetting({ uuid }: { uuid: string }): Promise<undefined> {
+export async function DeleteSetting({ uuid }: { uuid: string }): Promise<boolean> {
     const response = await fetch(`/api/providers/${uuid}`, {
         method: "DELETE",
     });
@@ -63,5 +68,5 @@ export async function DeleteSetting({ uuid }: { uuid: string }): Promise<undefin
         const data: ErrorResponse = JSON.parse(await response.text());
         throw new APIError(data.error, response.status);
     }
-    return undefined;
+    return true;
 }

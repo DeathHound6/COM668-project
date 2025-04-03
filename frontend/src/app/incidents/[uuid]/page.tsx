@@ -125,7 +125,7 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
             return;
         }
         const deleteResponse = await DeleteComment({ incidentUUID: incident.uuid, commentUUID: comment.uuid }).catch(handleError);
-        if (deleteResponse != undefined)
+        if (!deleteResponse)
             return;
         setSuccessMessages((prev) => [...prev, "Comment deleted successfully"]);
         setComments(comments.filter((c: IncidentComment) => c.uuid != comment.uuid));
@@ -177,7 +177,7 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
             resolved
         };
         const updateResponse = await UpdateIncident({ uuid: incident.uuid, incident: updated }).catch(handleError);
-        if (updateResponse != undefined)
+        if (!updateResponse)
             return;
         setSuccessMessages((prev) => [...prev, "Incident updated successfully"]);
         setIncident({
@@ -315,6 +315,7 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
                                                             incident.resolutionTeams.push(teams.find((team: Team) => team.uuid == teamID) as Team);
                                                             const newTeams = teams.filter((team: Team) => !incident.resolutionTeams.map((t: Team) => t.uuid).includes(team.uuid));
                                                             setTeamID(newTeams.length > 0 ? newTeams[0].uuid : "");
+                                                            updateIncident();
                                                         }} disabled={teamID == ""}>Add</Button>
                                                     </InputGroup>
                                                 </Col>
@@ -378,6 +379,7 @@ export default function IncidentPage({ params }: { params: Promise<{ uuid: strin
                                                             incident.hostsAffected.push(hosts.find((host: HostMachine) => host.uuid == hostID) as HostMachine);
                                                             const newHosts = hosts.filter((host: HostMachine) => !incident.hostsAffected.map((h: HostMachine) => h.uuid).includes(host.uuid));
                                                             setHostID(newHosts.length > 0 ? newHosts[0].uuid : "");
+                                                            updateIncident();
                                                         }} disabled={hostID == ""}>Add</Button>
                                                     </InputGroup>
                                                 </Col>

@@ -1,8 +1,9 @@
+import { Dispatch, SetStateAction } from "react";
 import { ToastContainer, Toast, ToastHeader, ToastBody } from "react-bootstrap";
 
 export default function ToastContainerComponent(
     { errors, successMessages, setErrors, setSuccessToastMessages }:
-    { errors: string[], successMessages: string[], setErrors: (errors: string[]) => void, setSuccessToastMessages: (messages: string[]) => void }
+    { errors: string[], successMessages: string[], setErrors: Dispatch<SetStateAction<string[]>>, setSuccessToastMessages: Dispatch<SetStateAction<string[]>> }
 ) {
     return (
         <ToastContainer position="bottom-end" className="p-3">

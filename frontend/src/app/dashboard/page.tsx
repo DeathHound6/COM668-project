@@ -7,12 +7,12 @@ import {
     Button,
     Col,
     FormCheck,
-    Pagination,
     Row,
     Spinner
 } from "react-bootstrap";
 import { GetIncidents } from "../../actions/incidents";
 import ToastContainerComponent from "../../components/toastContainer";
+import Paginator from "../../components/paginator";
 
 export default function DashboardPage() {
     const [loaded, setLoaded] = useState(false);
@@ -38,16 +38,11 @@ export default function DashboardPage() {
                 "resolved": false,
                 "page": page
             };
-            GetIncidents({ params })
-                .then(
-                    (data) => {
-                        setMaxPage(data.meta.pages);
-                        setIncidents(data.data);
-                        setLoaded(true);
-                    },
-                    handleError
-                );
-
+            const incidents = await GetIncidents({ params }).catch(handleError);
+            if (!incidents) return;
+            setMaxPage(incidents.meta.pages);
+            setIncidents(incidents.data);
+            setLoaded(true);
         }
         fetchData();
     }, [myTeams, page]);
@@ -87,19 +82,7 @@ export default function DashboardPage() {
                                             </Row>
                                         )
                                 }
-                                <Pagination className="mt-3 mx-auto max-w-40">
-                                    <Pagination.First onClick={() => setPage(1)} disabled={maxPage == 0} />
-                                    <Pagination.Prev onClick={() => setPage((prev) => prev - 1)} disabled={page == 1} />
-                                    <Pagination.Ellipsis hidden={page < 3} />
-
-                                    <Pagination.Item hidden={maxPage <= 1} active={page == 1}>{page == 1 ? 1 : page - 1}</Pagination.Item>
-                                    <Pagination.Item active={(page != 1 && page != maxPage) || (page == 1 && maxPage < 3)}>{page}</Pagination.Item>
-                                    <Pagination.Item hidden={maxPage < 3} active={page == maxPage}>{page == maxPage ? maxPage : page + 1}</Pagination.Item>
-
-                                    <Pagination.Ellipsis hidden={page > maxPage - 3} />
-                                    <Pagination.Next onClick={() => setPage((prev) => prev + 1)} disabled={page == maxPage || maxPage == 0} />
-                                    <Pagination.Last onClick={() => setPage(maxPage)} disabled={maxPage == 0} />
-                                </Pagination>
+                                <Paginator page={page} maxPage={maxPage} setPage={setPage} />
                             </>
                         )
                 }

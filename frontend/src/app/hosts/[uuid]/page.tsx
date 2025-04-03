@@ -9,6 +9,7 @@ import { z } from "zod";
 import ToastContainerComponent from "../../../components/toastContainer";
 import { GetMe } from "../../../actions/users";
 import { redirect, RedirectType } from "next/navigation";
+import Link from "next/link";
 
 const oses = [
     "Windows",
@@ -52,15 +53,15 @@ export default function HostDetailsPage({ params }: { params: Promise<{ uuid: st
         async function fetchData() {
             setPending(true);
             const userResponse = await GetMe().catch(handleError);
-            if (userResponse == undefined)
+            if (!userResponse)
                 return;
             setUser(userResponse);
             const teamsResponse = await GetTeams({ pageSize: 1000 }).catch(handleError);
-            if (teamsResponse == undefined)
+            if (!teamsResponse)
                 return;
             setTeams(teamsResponse.data);
             const hostResponse = await GetHost({ uuid: (await params).uuid }).catch(handleError);
-            if (hostResponse == undefined)
+            if (!hostResponse)
                 return;
             setHost(hostResponse);
             setHostname(hostResponse.hostname);
@@ -80,48 +81,48 @@ export default function HostDetailsPage({ params }: { params: Promise<{ uuid: st
         if (host == undefined)
             return;
         setPending(true);
-        DeleteHost(host.uuid).then(
-            async() => {
-                setPending(false);
-                redirect("/hosts", RedirectType.replace);
-            },
-            handleError
-        );
+        const res = await DeleteHost(host.uuid).catch(handleError);
+        setPending(false);
+        if (!res)
+            return;
+        redirect("/hosts", RedirectType.replace);
     }
 
     function updateHost() {
-        // this shouldnt hit, this is just to keep typescript happy
-        if (host == undefined)
-            return;
         setPending(true);
-        const hn = hostname;
-        const ipv4 = ip4.length > 0 ? ip4 : "";
-        const ipv6 = ip6.length > 0 ? ip6 : "";
-        const OS = os;
-        const teamUUID = teamID;
-        const body = { hostname: hn, ip4: ipv4.length > 0 ? ipv4 : undefined, ip6: ipv6.length > 0 ? ipv6 : undefined, os: OS, teamID: teamUUID };
-        const validatedFields = hostSchema.safeParse(body);
-        if (!validatedFields.success) {
-            const newErrors = validatedFields.error.flatten().fieldErrors;
-            const existingErrors = [
-                ...newErrors.hostname ?? [],
-                ...newErrors.ip4 ?? [],
-                ...newErrors.ip6 ?? [],
-                ...newErrors.os ?? [],
-                ...(teams.length == 0 ? ["no teams found"] : newErrors.teamID ?? []),
-                ...(ip4 == "" && ip6 == "" ? ["at least one of IPv4 or IPv6 is required"] : [])
-            ];
-            setErrors((prev) => [...prev, ...existingErrors]);
-            setPending(false);
-            return;
-        }
-        UpdateHost({ uuid: host.uuid, body }).then(
-            () => {
+        async function update() {
+            // this shouldnt hit, this is just to keep typescript happy
+            if (host == undefined)
+                return;
+            const hn = hostname;
+            const ipv4 = ip4.length > 0 ? ip4 : "";
+            const ipv6 = ip6.length > 0 ? ip6 : "";
+            const OS = os;
+            const teamUUID = teamID;
+            const body = { hostname: hn, ip4: ipv4.length > 0 ? ipv4 : undefined, ip6: ipv6.length > 0 ? ipv6 : undefined, os: OS, teamID: teamUUID };
+            const validatedFields = hostSchema.safeParse(body);
+            if (!validatedFields.success) {
+                const newErrors = validatedFields.error.flatten().fieldErrors;
+                const existingErrors = [
+                    ...newErrors.hostname ?? [],
+                    ...newErrors.ip4 ?? [],
+                    ...newErrors.ip6 ?? [],
+                    ...newErrors.os ?? [],
+                    ...(teams.length == 0 ? ["no teams found"] : newErrors.teamID ?? []),
+                    ...(ip4 == "" && ip6 == "" ? ["at least one of IPv4 or IPv6 is required"] : [])
+                ];
+                setErrors((prev) => [...prev, ...existingErrors]);
                 setPending(false);
-                setSuccessMessages((prev) => [...prev, "Host updated successfully"]);
-            },
-            handleError
-        );
+                return;
+            }
+            const res = await UpdateHost({ uuid: host.uuid, body }).catch(handleError);
+            setPending(false);
+            if (!res)
+                return;
+            setSuccessMessages((prev) => [...prev, "Host updated successfully"]);
+            setHost({ hostname, ip4, ip6, uuid: host.uuid, team: teams.find((t) => t.uuid == teamUUID), os } as HostMachine);
+        }
+        update();
     }
 
     return (
@@ -134,7 +135,11 @@ export default function HostDetailsPage({ params }: { params: Promise<{ uuid: st
                             {
                                 host == undefined
                                     ? (
-                                        <div></div>
+                                        <div>
+                                            <h1 className="mt-5">Host not found</h1>
+                                            <p className="mt-2">The host you are looking for does not exist.</p>
+                                            <Link href="/hosts" className="btn btn-secondary mt-3">Return to All Hosts</Link>
+                                        </div>
                                     )
                                     : (
                                         <div>
@@ -148,7 +153,7 @@ export default function HostDetailsPage({ params }: { params: Promise<{ uuid: st
 
                                             <Card className="mt-4 mx-auto max-w-96">
                                                 <CardBody>
-                                                    <CardTitle>{hostname}</CardTitle>
+                                                    <CardTitle>{host.hostname}</CardTitle>
                                                     <FloatingLabel label="Hostname" controlId="hostname" key="hostname" className="mt-2">
                                                         <FormControl type="text" value={hostname} onChange={(e) => setHostname(e.target.value)} />
                                                     </FloatingLabel>

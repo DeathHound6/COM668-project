@@ -22,10 +22,10 @@ import {
 } from "react-bootstrap";
 import InputGroupText from "react-bootstrap/esm/InputGroupText";
 import { z } from "zod";
-import { CreateSetting, GetSetting, GetSettings } from "../../actions/settings";
+import { CreateSetting, GetSettings } from "../../actions/settings";
 import ToastContainerComponent from "../../components/toastContainer";
-import { GetMe } from "../../actions/users";
-import { RedirectType, redirect } from "next/navigation";
+import Paginator from "../../components/paginator";
+import { redirect, RedirectType } from "next/navigation";
 
 const newSettingSchema = z.object({
     name: z.string().trim().min(1, "setting name is required")
@@ -45,6 +45,9 @@ export default function SettingsPage() {
 
     const [successToastMessages, setSuccessToastMessages] = useState([] as string[]);
 
+    const [page, setPage] = useState(1);
+    const [maxPage, setMaxPage] = useState(1);
+
     function handleError(error: APIError) {
         if ([400, 404, 500].includes(error.status))
             setErrors((prev) => [...prev, error.message]);
@@ -55,18 +58,16 @@ export default function SettingsPage() {
         setPending(true);
         async function fetchData() {
             setLoaded(false);
-            const userResponse = await GetMe().catch(handleError);
-            if (!userResponse || !userResponse.admin)
-                redirect("/dashboard", RedirectType.replace);
-            const settingsResponse = await GetSettings({ providerType }).catch(handleError);
+            const settingsResponse = await GetSettings({ providerType, page }).catch(handleError);
             if (!settingsResponse)
                 return;
             setSettings(settingsResponse.data);
+            setMaxPage(settingsResponse.meta.pages);
             setLoaded(true);
             setPending(false);
         }
         fetchData();
-    }, [providerType]);
+    }, [providerType, page]);
 
     function createSetting() {
         setPending(true);
@@ -82,15 +83,8 @@ export default function SettingsPage() {
             const postResponse = await CreateSetting({ name, providerType }).catch(handleError);
             if (!postResponse)
                 return;
-            const setting = await GetSetting({ uuid: postResponse }).catch(handleError);
-            if (!setting)
-                return;
-            const newSettings = [...settings];
-            newSettings.push(setting);
-            setSettings(newSettings);
-            setShowNewSettingModal(false);
-            setSuccessToastMessages((prev) => [...prev, "Setting created successfully"]);
             setPending(false);
+            redirect(`/settings/${postResponse}`, RedirectType.replace);
         }
         post();
     }
@@ -181,6 +175,7 @@ export default function SettingsPage() {
                                         </Row>
                                 )
                         }
+                        <Paginator page={page} maxPage={maxPage} setPage={setPage} />
                         </div>
                     )
             }
