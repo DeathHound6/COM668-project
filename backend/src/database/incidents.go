@@ -12,17 +12,17 @@ import (
 
 type Incident struct {
 	ID              uint              `gorm:"column:id;primaryKey;autoIncrement"`
-	UUID            string            `gorm:"column:uuid;size:36;unique;not null"`
+	UUID            string            `gorm:"column:uuid;size:36;unique;not null;uniqueIndex"`
 	HostsAffected   []HostMachine     `gorm:"many2many:incident_host"`
 	Description     string            `gorm:"column:description;size:500"`
 	Summary         string            `gorm:"column:summary;size:100;not null"`
 	Comments        []IncidentComment `gorm:"foreignKey:incident_id;constraint:OnDelete:CASCADE"`
 	CreatedAt       time.Time         `gorm:"column:created_at;autoCreateTime;not null"`
-	ResolvedAt      *time.Time        `gorm:"column:resolved_at"`
+	ResolvedAt      *time.Time        `gorm:"column:resolved_at;index"`
 	ResolvedByID    *uint             `gorm:"column:resolved_by_id"`
 	ResolvedBy      *User             `gorm:"foreignKey:resolved_by_id;references:id"`
 	ResolutionTeams []Team            `gorm:"many2many:incident_resolution_team"`
-	Hash            string            `gorm:"column:hash;size:64;not null"`
+	Hash            string            `gorm:"column:hash;size:64;not null;uniqueIndex"`
 }
 
 func (incident *Incident) BeforeCreate(tx *gorm.DB) error {

@@ -13,9 +13,9 @@ import (
 
 type User struct {
 	ID       uint   `gorm:"column:id;primaryKey;autoIncrement"`
-	UUID     string `gorm:"column:uuid;size:36;unique;not null"`
+	UUID     string `gorm:"column:uuid;size:36;unique;not null;unqiueIndex"`
 	Name     string `gorm:"column:name;size:30;unique;not null"`
-	Email    string `gorm:"column:email;size:30;unique;not null"`
+	Email    string `gorm:"column:email;size:30;unique;not null;uniqueIndex"`
 	Password string `gorm:"column:password;size:72;not null"`
 	Admin    bool   `gorm:"column:admin;not null"`
 	Teams    []Team `gorm:"many2many:team_user"`

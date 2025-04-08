@@ -11,7 +11,7 @@ import (
 
 type Provider struct {
 	ID     uint            `gorm:"column:id;primaryKey;autoIncrement"`
-	UUID   string          `gorm:"column:uuid;size:36;unique;not null"`
+	UUID   string          `gorm:"column:uuid;size:36;unique;not null;uniqueIndex"`
 	Name   string          `gorm:"column:name;size:30;unique;not null"`
 	Fields []ProviderField `gorm:"foreignKey:provider_id;constraint:OnDelete:CASCADE"`
 	Type   string          `gorm:"column:type;check:type IN ('log','alert');size:5;not null"`

@@ -11,9 +11,9 @@ import (
 
 type HostMachine struct {
 	ID       uint    `gorm:"column:id;primaryKey;autoIncrement"`
-	UUID     string  `gorm:"column:uuid;size:36;unique;not null"`
+	UUID     string  `gorm:"column:uuid;size:36;unique;not null;uniqueIndex"`
 	OS       string  `gorm:"column:os;size:20;not null;check:os IN ('Windows','Linux','MacOS')"`
-	Hostname string  `gorm:"column:hostname;size:40;not null;unique"`
+	Hostname string  `gorm:"column:hostname;size:40;not null;unique;uniqueIndex"`
 	IP4      *string `gorm:"column:ip4;size:15;unique"`
 	IP6      *string `gorm:"column:ip6;size:39;unique"`
 	TeamID   uint    `gorm:"column:team_id;not null"`
