@@ -184,7 +184,7 @@ export default function HostsPage() {
                 <Col style={{textAlign: "left"}}></Col>
                 <Col style={{textAlign: "center", fontSize: 24}}><b>Host Inventory</b></Col>
                 <Col style={{textAlign: "right"}}>
-                    <Button variant="secondary" onClick={() => setShowCreateModal(true)}>Add Host</Button>
+                    <Button variant="secondary" onClick={() => setShowCreateModal(true)} disabled={!user?.admin}>Add Host</Button>
                 </Col>
             </Row>
 

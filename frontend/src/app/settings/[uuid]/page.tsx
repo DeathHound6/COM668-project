@@ -50,7 +50,7 @@ export default function SettingPage({ params }: { params: Promise<{uuid: string}
             if (!userResponse)
                 return;
             if (!userResponse.admin)
-                redirect("/settings", RedirectType.replace);
+                redirect("/dashboard", RedirectType.replace);
 
             const settingResponse = await GetSetting({ uuid: (await params).uuid }).catch(handleError);
             setLoaded(true);

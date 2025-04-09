@@ -55,6 +55,8 @@ export default function HostDetailsPage({ params }: { params: Promise<{ uuid: st
             const userResponse = await GetMe().catch(handleError);
             if (!userResponse)
                 return;
+            if (!userResponse.admin)
+                redirect("/hosts", RedirectType.replace);
             setUser(userResponse);
             const teamsResponse = await GetTeams({ pageSize: 1000 }).catch(handleError);
             if (!teamsResponse)

@@ -26,6 +26,7 @@ import { CreateSetting, GetSettings } from "../../actions/settings";
 import ToastContainerComponent from "../../components/toastContainer";
 import Paginator from "../../components/paginator";
 import { redirect, RedirectType } from "next/navigation";
+import { GetMe } from "../../actions/users";
 
 const newSettingSchema = z.object({
     name: z.string().trim().min(1, "setting name is required")
@@ -57,6 +58,14 @@ export default function SettingsPage() {
     useEffect(() => {
         setPending(true);
         async function fetchData() {
+            setPending(true);
+            const userResponse = await GetMe().catch(handleError);
+            setPending(false);
+            if (!userResponse)
+                return;
+            if (!userResponse.admin)
+                redirect("/dashboard", RedirectType.replace);
+
             setLoaded(false);
             const settingsResponse = await GetSettings({ providerType, page }).catch(handleError);
             if (!settingsResponse)
@@ -88,6 +97,8 @@ export default function SettingsPage() {
         }
         post();
     }
+
+    const fieldsLimit = 3;
 
     return (
         <div className="m-2" style={{textAlign: "center"}}>
@@ -156,7 +167,7 @@ export default function SettingsPage() {
                                                         <CardBody key={`cb-${setting.uuid}`}>
                                                             <CardTitle key={`ct-${setting.uuid}`}>{setting.name}</CardTitle>
                                                             {
-                                                                setting.fields.map((field: SettingField) => (
+                                                                setting.fields.slice(0, fieldsLimit).map((field: SettingField) => (
                                                                     <InputGroup key={`ig-${setting.uuid}-${field.key}`} className="m-2">
                                                                         <FloatingLabel controlId="floatingKey" label={field.key}>
                                                                             <FormControl type="text" value={field.value} disabled />
@@ -165,6 +176,12 @@ export default function SettingsPage() {
                                                                         <InputGroup.Checkbox checked={field.required} disabled />
                                                                     </InputGroup>
                                                                 ))
+                                                            }
+                                                            {
+                                                                // if there are more than 3 fields, show a "+n more" item
+                                                                setting.fields.length > fieldsLimit && (
+                                                                    <p key={`${setting.uuid}-more`}>{`+${setting.fields.length - fieldsLimit} more`}</p>
+                                                                )
                                                             }
                                                             <Button variant="primary" className="mt-2" href={`/settings/${setting.uuid}`}>Edit</Button>
                                                         </CardBody>
