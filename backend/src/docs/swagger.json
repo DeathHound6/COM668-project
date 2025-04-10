@@ -1316,7 +1316,6 @@
         "controller.GetManyHostsResponseSchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "data": {
                     "type": "array",
                     "items": {
@@ -1331,7 +1330,6 @@
         "controller.GetManyIncidentsResponseSchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "data": {
                     "type": "array",
                     "items": {
@@ -1346,7 +1344,6 @@
         "controller.GetManyProvidersResponseSchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "data": {
                     "type": "array",
                     "items": {
@@ -1361,7 +1358,6 @@
         "controller.GetManyTeamsResponseSchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "data": {
                     "type": "array",
                     "items": {
@@ -1376,7 +1372,6 @@
         "utility.ErrorResponseSchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "error": {
                     "type": "string"
                 }
@@ -1385,7 +1380,6 @@
         "utility.HostMachineGetResponseBodySchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "hostname": {
                     "type": "string"
                 },
@@ -1409,7 +1403,6 @@
         "utility.HostMachinePostPutRequestBodySchema": {
             "type": "object",
             "properties": {
-                "BodySchema": {},
                 "hostname": {
                     "type": "string"
                 },
@@ -1430,7 +1423,6 @@
         "utility.IncidentCommentGetResponseBodySchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "comment": {
                     "type": "string"
                 },
@@ -1448,7 +1440,6 @@
         "utility.IncidentCommentPostRequestBodySchema": {
             "type": "object",
             "properties": {
-                "BodySchema": {},
                 "comment": {
                     "type": "string"
                 }
@@ -1457,7 +1448,6 @@
         "utility.IncidentGetResponseBodySchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "comments": {
                     "type": "array",
                     "items": {
@@ -1502,7 +1492,6 @@
         "utility.IncidentPostRequestBodySchema": {
             "type": "object",
             "properties": {
-                "BodySchema": {},
                 "description": {
                     "type": "string"
                 },
@@ -1529,7 +1518,6 @@
         "utility.IncidentPutRequestBodySchema": {
             "type": "object",
             "properties": {
-                "BodySchema": {},
                 "description": {
                     "type": "string"
                 },
@@ -1556,8 +1544,6 @@
         "utility.KeyValueSchema": {
             "type": "object",
             "properties": {
-                "BodySchema": {},
-                "ResponseSchema": {},
                 "key": {
                     "type": "string"
                 },
@@ -1575,7 +1561,6 @@
         "utility.MetaSchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "page": {
                     "type": "integer"
                 },
@@ -1593,7 +1578,6 @@
         "utility.ProviderGetResponseSchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "fields": {
                     "type": "array",
                     "items": {
@@ -1614,7 +1598,6 @@
         "utility.ProviderPostRequestBodySchema": {
             "type": "object",
             "properties": {
-                "BodySchema": {},
                 "name": {
                     "type": "string"
                 }
@@ -1623,7 +1606,6 @@
         "utility.ProviderPutRequestBodySchema": {
             "type": "object",
             "properties": {
-                "BodySchema": {},
                 "fields": {
                     "type": "array",
                     "items": {
@@ -1638,7 +1620,6 @@
         "utility.TeamGetResponseBodySchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "name": {
                     "type": "string"
                 },
@@ -1656,7 +1637,6 @@
         "utility.UserGetResponseBodySchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "admin": {
                     "type": "boolean"
                 },
@@ -1683,7 +1663,6 @@
         "utility.UserLoginRequestBodySchema": {
             "type": "object",
             "properties": {
-                "BodySchema": {},
                 "email": {
                     "type": "string"
                 },
@@ -1695,7 +1674,6 @@
         "utility.UserPostRequestBodySchema": {
             "type": "object",
             "properties": {
-                "BodySchema": {},
                 "email": {
                     "type": "string"
                 },

@@ -1320,7 +1320,6 @@ const docTemplate = `{
         "controller.GetManyHostsResponseSchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "data": {
                     "type": "array",
                     "items": {
@@ -1335,7 +1334,6 @@ const docTemplate = `{
         "controller.GetManyIncidentsResponseSchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "data": {
                     "type": "array",
                     "items": {
@@ -1350,7 +1348,6 @@ const docTemplate = `{
         "controller.GetManyProvidersResponseSchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "data": {
                     "type": "array",
                     "items": {
@@ -1365,7 +1362,6 @@ const docTemplate = `{
         "controller.GetManyTeamsResponseSchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "data": {
                     "type": "array",
                     "items": {
@@ -1380,7 +1376,6 @@ const docTemplate = `{
         "utility.ErrorResponseSchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "error": {
                     "type": "string"
                 }
@@ -1389,7 +1384,6 @@ const docTemplate = `{
         "utility.HostMachineGetResponseBodySchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "hostname": {
                     "type": "string"
                 },
@@ -1413,7 +1407,6 @@ const docTemplate = `{
         "utility.HostMachinePostPutRequestBodySchema": {
             "type": "object",
             "properties": {
-                "BodySchema": {},
                 "hostname": {
                     "type": "string"
                 },
@@ -1434,7 +1427,6 @@ const docTemplate = `{
         "utility.IncidentCommentGetResponseBodySchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "comment": {
                     "type": "string"
                 },
@@ -1452,7 +1444,6 @@ const docTemplate = `{
         "utility.IncidentCommentPostRequestBodySchema": {
             "type": "object",
             "properties": {
-                "BodySchema": {},
                 "comment": {
                     "type": "string"
                 }
@@ -1461,7 +1452,6 @@ const docTemplate = `{
         "utility.IncidentGetResponseBodySchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "comments": {
                     "type": "array",
                     "items": {
@@ -1506,7 +1496,6 @@ const docTemplate = `{
         "utility.IncidentPostRequestBodySchema": {
             "type": "object",
             "properties": {
-                "BodySchema": {},
                 "description": {
                     "type": "string"
                 },
@@ -1533,7 +1522,6 @@ const docTemplate = `{
         "utility.IncidentPutRequestBodySchema": {
             "type": "object",
             "properties": {
-                "BodySchema": {},
                 "description": {
                     "type": "string"
                 },
@@ -1560,8 +1548,6 @@ const docTemplate = `{
         "utility.KeyValueSchema": {
             "type": "object",
             "properties": {
-                "BodySchema": {},
-                "ResponseSchema": {},
                 "key": {
                     "type": "string"
                 },
@@ -1579,7 +1565,6 @@ const docTemplate = `{
         "utility.MetaSchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "page": {
                     "type": "integer"
                 },
@@ -1597,7 +1582,6 @@ const docTemplate = `{
         "utility.ProviderGetResponseSchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "fields": {
                     "type": "array",
                     "items": {
@@ -1618,7 +1602,6 @@ const docTemplate = `{
         "utility.ProviderPostRequestBodySchema": {
             "type": "object",
             "properties": {
-                "BodySchema": {},
                 "name": {
                     "type": "string"
                 }
@@ -1627,7 +1610,6 @@ const docTemplate = `{
         "utility.ProviderPutRequestBodySchema": {
             "type": "object",
             "properties": {
-                "BodySchema": {},
                 "fields": {
                     "type": "array",
                     "items": {
@@ -1642,7 +1624,6 @@ const docTemplate = `{
         "utility.TeamGetResponseBodySchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "name": {
                     "type": "string"
                 },
@@ -1660,7 +1641,6 @@ const docTemplate = `{
         "utility.UserGetResponseBodySchema": {
             "type": "object",
             "properties": {
-                "ResponseSchema": {},
                 "admin": {
                     "type": "boolean"
                 },
@@ -1687,7 +1667,6 @@ const docTemplate = `{
         "utility.UserLoginRequestBodySchema": {
             "type": "object",
             "properties": {
-                "BodySchema": {},
                 "email": {
                     "type": "string"
                 },
@@ -1699,7 +1678,6 @@ const docTemplate = `{
         "utility.UserPostRequestBodySchema": {
             "type": "object",
             "properties": {
-                "BodySchema": {},
                 "email": {
                     "type": "string"
                 },

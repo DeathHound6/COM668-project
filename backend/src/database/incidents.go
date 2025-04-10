@@ -133,7 +133,9 @@ func GetIncidents(ctx *gin.Context, filters GetIncidentsFilters) ([]*Incident, i
 	if filters.MyTeams {
 		user := ctx.MustGet("user").(*User)
 		tx = tx.Joins("LEFT JOIN tbl_incident_resolution_team ON tbl_incident_resolution_team.incident_id = tbl_incident.id").
-			Joins("LEFT JOIN tbl_team_user ON tbl_team_user.team_id = tbl_incident_resolution_team.team_id").
+			Joins("LEFT JOIN tbl_incident_host ON tbl_incident_host.incident_id = tbl_incident.id").
+			Joins("LEFT JOIN tbl_host_machine ON tbl_host_machine.id = tbl_incident_host.host_machine_id").
+			Joins("LEFT JOIN tbl_team_user ON tbl_team_user.team_id = tbl_incident_resolution_team.team_id OR tbl_team_user.team_id = tbl_host_machine.team_id").
 			Joins("LEFT JOIN tbl_user ON tbl_user.id = tbl_team_user.user_id").
 			Where("tbl_user.uuid = ?", user.UUID)
 	}

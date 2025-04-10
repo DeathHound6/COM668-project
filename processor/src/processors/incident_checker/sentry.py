@@ -13,9 +13,9 @@ import re
 
 
 def handle_sentry(log_provider: dict[str, Any], alert_providers: list[dict[str, Any]]):
-    handled_all_pages = False
+    handled_all_pages = True
     offset = 0
-    while not handled_all_pages:
+    while handled_all_pages:
         issue_events, link_headers = sentry_client.get_issues(log_provider["fields"], offset)
         for event in issue_events:
             # If it is an unhanded error event
@@ -26,14 +26,13 @@ def handle_sentry(log_provider: dict[str, Any], alert_providers: list[dict[str, 
             if link["rel"] == "next":
                 offset = link["cursor"]["offset"]
                 handled_all_pages = link["results"]
-                if handled_all_pages:
-                    logger.info("[SENTRY] Handled all pages")
-                else:
-                    logger.info(f"[SENTRY] Handling next page of events with offset: {offset}")
+            if handled_all_pages:
+                logger.info("[SENTRY] Handled all pages")
                 break
+            else:
+                logger.info(f"[SENTRY] Handling next page of events with offset: {offset}")
         else:
             logger.info("[SENTRY] No Link headers found. Assuming all pages have been handled")
-            handled_all_pages = True
 
 
 def handle_event(event: dict[str, Any], alert_providers: list[dict[str, Any]]):

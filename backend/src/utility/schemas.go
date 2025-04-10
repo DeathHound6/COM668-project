@@ -21,8 +21,8 @@ type ResponseSchema interface {
 }
 
 type ErrorResponseSchema struct {
-	ResponseSchema
-	Error string `json:"error"`
+	ResponseSchema `swaggerignore:"true"`
+	Error          string `json:"error"`
 }
 
 func (e ErrorResponseSchema) JSON() map[string]any {
@@ -33,11 +33,11 @@ func (e ErrorResponseSchema) String() string {
 }
 
 type UserPostRequestBodySchema struct {
-	BodySchema
-	Name     string   `json:"name"`
-	Email    string   `json:"email"`
-	Password string   `json:"password"`
-	Teams    []string `json:"teams"`
+	BodySchema `swaggerignore:"true"`
+	Name       string   `json:"name"`
+	Email      string   `json:"email"`
+	Password   string   `json:"password"`
+	Teams      []string `json:"teams"`
 }
 
 func (u UserPostRequestBodySchema) Validate() (int, error) {
@@ -70,9 +70,9 @@ func (u UserPostRequestBodySchema) Validate() (int, error) {
 }
 
 type UserLoginRequestBodySchema struct {
-	BodySchema
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	BodySchema `swaggerignore:"true"`
+	Email      string `json:"email"`
+	Password   string `json:"password"`
 }
 
 func (u UserLoginRequestBodySchema) Validate() (int, error) {
@@ -86,12 +86,12 @@ func (u UserLoginRequestBodySchema) Validate() (int, error) {
 }
 
 type KeyValueSchema struct {
-	ResponseSchema
-	BodySchema
-	Key      string `json:"key"`
-	Value    string `json:"value"`
-	Type     string `json:"type"`
-	Required *bool  `json:"required"`
+	ResponseSchema `swaggerignore:"true"`
+	BodySchema     `swaggerignore:"true"`
+	Key            string `json:"key"`
+	Value          string `json:"value"`
+	Type           string `json:"type"`
+	Required       *bool  `json:"required"`
 }
 
 func (k KeyValueSchema) JSON() map[string]any {
@@ -127,11 +127,11 @@ func (k KeyValueSchema) Validate() (int, error) {
 }
 
 type ProviderGetResponseSchema struct {
-	ResponseSchema
-	UUID   string           `json:"uuid"`
-	Name   string           `json:"name"`
-	Fields []KeyValueSchema `json:"fields"`
-	Type   string           `json:"type"`
+	ResponseSchema `swaggerignore:"true"`
+	UUID           string           `json:"uuid"`
+	Name           string           `json:"name"`
+	Fields         []KeyValueSchema `json:"fields"`
+	Type           string           `json:"type"`
 }
 
 func (p ProviderGetResponseSchema) JSON() map[string]any {
@@ -150,11 +150,11 @@ func (p ProviderGetResponseSchema) String() string {
 }
 
 type MetaSchema struct {
-	ResponseSchema
-	TotalItems int64 `json:"total"`
-	Pages      int   `json:"pages"`
-	Page       int   `json:"page"`
-	PageSize   int   `json:"pageSize"`
+	ResponseSchema `swaggerignore:"true"`
+	TotalItems     int64 `json:"total"`
+	Pages          int   `json:"pages"`
+	Page           int   `json:"page"`
+	PageSize       int   `json:"pageSize"`
 }
 
 func (m MetaSchema) JSON() map[string]any {
@@ -165,9 +165,9 @@ func (m MetaSchema) String() string {
 }
 
 type GetManyResponseSchema[T ResponseSchema] struct {
-	ResponseSchema
-	Data []T        `json:"data"`
-	Meta MetaSchema `json:"meta"`
+	ResponseSchema `swaggerignore:"true"`
+	Data           []T        `json:"data"`
+	Meta           MetaSchema `json:"meta"`
 }
 
 func (g GetManyResponseSchema[T]) JSON() map[string]any {
@@ -186,7 +186,7 @@ func (g GetManyResponseSchema[T]) String() string {
 }
 
 type IncidentPostRequestBodySchema struct {
-	BodySchema
+	BodySchema      `swaggerignore:"true"`
 	Summary         string   `json:"summary"`
 	Description     string   `json:"description"`
 	ResolutionTeams []string `json:"resolutionTeams"`
@@ -227,13 +227,13 @@ func (i IncidentPostRequestBodySchema) Validate() (int, error) {
 }
 
 type UserGetResponseBodySchema struct {
-	ResponseSchema
-	UUID    string                      `json:"uuid"`
-	Name    string                      `json:"name"`
-	Email   string                      `json:"email"`
-	Teams   []TeamGetResponseBodySchema `json:"teams"`
-	SlackID string                      `json:"slackID"`
-	Admin   *bool                       `json:"admin"`
+	ResponseSchema `swaggerignore:"true"`
+	UUID           string                      `json:"uuid"`
+	Name           string                      `json:"name"`
+	Email          string                      `json:"email"`
+	Teams          []TeamGetResponseBodySchema `json:"teams"`
+	SlackID        string                      `json:"slackID"`
+	Admin          *bool                       `json:"admin"`
 }
 
 func (u UserGetResponseBodySchema) JSON() map[string]any {
@@ -256,10 +256,10 @@ func (u UserGetResponseBodySchema) String() string {
 }
 
 type TeamGetResponseBodySchema struct {
-	ResponseSchema
-	UUID  string                      `json:"uuid"`
-	Name  string                      `json:"name"`
-	Users []UserGetResponseBodySchema `json:"users"`
+	ResponseSchema `swaggerignore:"true"`
+	UUID           string                      `json:"uuid"`
+	Name           string                      `json:"name"`
+	Users          []UserGetResponseBodySchema `json:"users"`
 }
 
 func (t TeamGetResponseBodySchema) JSON() map[string]any {
@@ -278,11 +278,11 @@ func (t TeamGetResponseBodySchema) String() string {
 }
 
 type IncidentCommentGetResponseBodySchema struct {
-	ResponseSchema
-	UUID        string                    `json:"uuid"`
-	Comment     string                    `json:"comment"`
-	CommentedBy UserGetResponseBodySchema `json:"commentedBy"`
-	CommentedAt time.Time                 `json:"commentedAt"`
+	ResponseSchema `swaggerignore:"true"`
+	UUID           string                    `json:"uuid"`
+	Comment        string                    `json:"comment"`
+	CommentedBy    UserGetResponseBodySchema `json:"commentedBy"`
+	CommentedAt    time.Time                 `json:"commentedAt"`
 }
 
 func (i IncidentCommentGetResponseBodySchema) JSON() map[string]any {
@@ -293,7 +293,7 @@ func (i IncidentCommentGetResponseBodySchema) String() string {
 }
 
 type IncidentGetResponseBodySchema struct {
-	ResponseSchema
+	ResponseSchema  `swaggerignore:"true"`
 	UUID            string                                 `json:"uuid"`
 	Comments        []IncidentCommentGetResponseBodySchema `json:"comments"`
 	HostsAffected   []HostMachineGetResponseBodySchema     `json:"hostsAffected"`
@@ -350,13 +350,13 @@ func (i IncidentGetResponseBodySchema) String() string {
 }
 
 type HostMachineGetResponseBodySchema struct {
-	ResponseSchema
-	UUID     string                    `json:"uuid"`
-	OS       string                    `json:"os"`
-	Hostname string                    `json:"hostname"`
-	IP4      *string                   `json:"ip4"`
-	IP6      *string                   `json:"ip6"`
-	Team     TeamGetResponseBodySchema `json:"team"`
+	ResponseSchema `swaggerignore:"true"`
+	UUID           string                    `json:"uuid"`
+	OS             string                    `json:"os"`
+	Hostname       string                    `json:"hostname"`
+	IP4            *string                   `json:"ip4"`
+	IP6            *string                   `json:"ip6"`
+	Team           TeamGetResponseBodySchema `json:"team"`
 }
 
 func (h HostMachineGetResponseBodySchema) JSON() map[string]any {
@@ -375,8 +375,8 @@ func (h HostMachineGetResponseBodySchema) String() string {
 }
 
 type ProviderPostRequestBodySchema struct {
-	BodySchema
-	Name string `json:"name"`
+	BodySchema `swaggerignore:"true"`
+	Name       string `json:"name"`
 }
 
 func (p ProviderPostRequestBodySchema) Validate() (int, error) {
@@ -390,9 +390,9 @@ func (p ProviderPostRequestBodySchema) Validate() (int, error) {
 }
 
 type ProviderPutRequestBodySchema struct {
-	BodySchema
-	ProviderPostRequestBodySchema
-	Fields []KeyValueSchema `json:"fields"`
+	BodySchema `swaggerignore:"true"`
+	Name       string           `json:"name"`
+	Fields     []KeyValueSchema `json:"fields"`
 }
 
 func (p ProviderPutRequestBodySchema) Validate() (int, error) {
@@ -411,12 +411,12 @@ func (p ProviderPutRequestBodySchema) Validate() (int, error) {
 }
 
 type HostMachinePostPutRequestBodySchema struct {
-	BodySchema
-	OS       string  `json:"os"`
-	Hostname string  `json:"hostname"`
-	IP4      *string `json:"ip4"`
-	IP6      *string `json:"ip6"`
-	TeamID   string  `json:"teamID"`
+	BodySchema `swaggerignore:"true"`
+	OS         string  `json:"os"`
+	Hostname   string  `json:"hostname"`
+	IP4        *string `json:"ip4"`
+	IP6        *string `json:"ip6"`
+	TeamID     string  `json:"teamID"`
 }
 
 func (h HostMachinePostPutRequestBodySchema) Validate() (int, error) {
@@ -460,8 +460,8 @@ func (h HostMachinePostPutRequestBodySchema) Validate() (int, error) {
 }
 
 type IncidentCommentPostRequestBodySchema struct {
-	BodySchema
-	Comment string `json:"comment"`
+	BodySchema `swaggerignore:"true"`
+	Comment    string `json:"comment"`
 }
 
 func (i IncidentCommentPostRequestBodySchema) Validate() (int, error) {
@@ -475,7 +475,7 @@ func (i IncidentCommentPostRequestBodySchema) Validate() (int, error) {
 }
 
 type IncidentPutRequestBodySchema struct {
-	BodySchema
+	BodySchema      `swaggerignore:"true"`
 	Summary         string   `json:"summary"`
 	Description     string   `json:"description"`
 	HostsAffected   []string `json:"hostsAffected"`

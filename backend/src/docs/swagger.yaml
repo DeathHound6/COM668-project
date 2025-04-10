@@ -4,7 +4,6 @@ consumes:
 definitions:
   controller.GetManyHostsResponseSchema:
     properties:
-      ResponseSchema: {}
       data:
         items:
           $ref: '#/definitions/utility.HostMachineGetResponseBodySchema'
@@ -14,7 +13,6 @@ definitions:
     type: object
   controller.GetManyIncidentsResponseSchema:
     properties:
-      ResponseSchema: {}
       data:
         items:
           $ref: '#/definitions/utility.IncidentGetResponseBodySchema'
@@ -24,7 +22,6 @@ definitions:
     type: object
   controller.GetManyProvidersResponseSchema:
     properties:
-      ResponseSchema: {}
       data:
         items:
           $ref: '#/definitions/utility.ProviderGetResponseSchema'
@@ -34,7 +31,6 @@ definitions:
     type: object
   controller.GetManyTeamsResponseSchema:
     properties:
-      ResponseSchema: {}
       data:
         items:
           $ref: '#/definitions/utility.TeamGetResponseBodySchema'
@@ -44,13 +40,11 @@ definitions:
     type: object
   utility.ErrorResponseSchema:
     properties:
-      ResponseSchema: {}
       error:
         type: string
     type: object
   utility.HostMachineGetResponseBodySchema:
     properties:
-      ResponseSchema: {}
       hostname:
         type: string
       ip4:
@@ -66,7 +60,6 @@ definitions:
     type: object
   utility.HostMachinePostPutRequestBodySchema:
     properties:
-      BodySchema: {}
       hostname:
         type: string
       ip4:
@@ -80,7 +73,6 @@ definitions:
     type: object
   utility.IncidentCommentGetResponseBodySchema:
     properties:
-      ResponseSchema: {}
       comment:
         type: string
       commentedAt:
@@ -92,13 +84,11 @@ definitions:
     type: object
   utility.IncidentCommentPostRequestBodySchema:
     properties:
-      BodySchema: {}
       comment:
         type: string
     type: object
   utility.IncidentGetResponseBodySchema:
     properties:
-      ResponseSchema: {}
       comments:
         items:
           $ref: '#/definitions/utility.IncidentCommentGetResponseBodySchema'
@@ -128,7 +118,6 @@ definitions:
     type: object
   utility.IncidentPostRequestBodySchema:
     properties:
-      BodySchema: {}
       description:
         type: string
       hash:
@@ -146,7 +135,6 @@ definitions:
     type: object
   utility.IncidentPutRequestBodySchema:
     properties:
-      BodySchema: {}
       description:
         type: string
       hostsAffected:
@@ -164,8 +152,6 @@ definitions:
     type: object
   utility.KeyValueSchema:
     properties:
-      BodySchema: {}
-      ResponseSchema: {}
       key:
         type: string
       required:
@@ -177,7 +163,6 @@ definitions:
     type: object
   utility.MetaSchema:
     properties:
-      ResponseSchema: {}
       page:
         type: integer
       pageSize:
@@ -189,7 +174,6 @@ definitions:
     type: object
   utility.ProviderGetResponseSchema:
     properties:
-      ResponseSchema: {}
       fields:
         items:
           $ref: '#/definitions/utility.KeyValueSchema'
@@ -203,13 +187,11 @@ definitions:
     type: object
   utility.ProviderPostRequestBodySchema:
     properties:
-      BodySchema: {}
       name:
         type: string
     type: object
   utility.ProviderPutRequestBodySchema:
     properties:
-      BodySchema: {}
       fields:
         items:
           $ref: '#/definitions/utility.KeyValueSchema'
@@ -219,7 +201,6 @@ definitions:
     type: object
   utility.TeamGetResponseBodySchema:
     properties:
-      ResponseSchema: {}
       name:
         type: string
       users:
@@ -231,7 +212,6 @@ definitions:
     type: object
   utility.UserGetResponseBodySchema:
     properties:
-      ResponseSchema: {}
       admin:
         type: boolean
       email:
@@ -249,7 +229,6 @@ definitions:
     type: object
   utility.UserLoginRequestBodySchema:
     properties:
-      BodySchema: {}
       email:
         type: string
       password:
@@ -257,7 +236,6 @@ definitions:
     type: object
   utility.UserPostRequestBodySchema:
     properties:
-      BodySchema: {}
       email:
         type: string
       name:

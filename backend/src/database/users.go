@@ -126,7 +126,7 @@ func CreateUser(ctx *gin.Context, body *utility.UserPostRequestBodySchema) (*Use
 
 func UpdateUser(ctx *gin.Context, user *User) error {
 	tx := GetDBTransaction(ctx).Model(&User{})
-	tx = tx.Save(user)
+	tx = tx.Where("uuid = ?", user.UUID).Save(user)
 	if tx.Error != nil {
 		return handleError(ctx, tx.Error)
 	}

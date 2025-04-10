@@ -91,7 +91,7 @@ SENTRY_EVENTS = [
 
 
 SENTRY_HEADERS = {
-    "Link": "<https://sentry.io/api/0/projects/sentry/sentry/events/?cursor=0:0:0>; rel=\"next\"; results=\"true\"; cursor=\"0:0:0\""  # noqa: E501
+    "Link": "<https://sentry.io/api/0/projects/sentry/sentry/events/?cursor=0:0:0>; rel=\"next\"; results=\"false\"; cursor=\"0:0:0\""  # noqa: E501
 }
 
 

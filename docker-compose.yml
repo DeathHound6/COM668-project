@@ -44,6 +44,7 @@ services:
       - MARIADB_ROOT_PASSWORD=root
       - MARIADB_DATABASE=com668
   test_app:
+    hostname: 7e83c1b6c515
     container_name: test_app
     env_file: ./test_app/.env
     build:

@@ -64,10 +64,10 @@ class TestIncidentCheckerProcessor:
             offset = kwargs.get("params", {}).get("cursor", "0:0:0").split(":")[1]
             headers = deepcopy(SENTRY_HEADERS)
             if offset == "0":
-                headers["Link"] = headers["Link"].replace("true", "false")
+                headers["Link"] = headers["Link"].replace("false", "true")
                 headers["Link"] = headers["Link"].replace("0:0:0", "0:1:0")
             elif offset == "1":
-                headers["Link"] = headers["Link"].replace("false", "true")
+                headers["Link"] = headers["Link"].replace("true", "false")
             return headers
         mock_request.side_effect = mock_api_request(headers={"GET events": mock_events})
 
